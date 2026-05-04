@@ -67,8 +67,9 @@ Each run produces an immutable directory under `uploads/runs/<run_id>/` with man
 
 ## Gotchas
 - Simulation runs OASIS in a subprocess via `scripts/`. The scripts add the project root to `sys.path` to import from `app.utils.oasis_llm`.
-- `camel-oasis==0.2.5` and `camel-ai==0.2.78` stay pinned in the optional `simulation` extra — upgrading either can break the simulation pipeline.
-- `report_agent.py` has two generation paths: `generate_report_fast()` (single-pass, default) and `generate_report()` (ReACT loop, legacy). The ReACT path is still ~2500 lines and much slower.
+- `camel-oasis==0.2.5` and `camel-ai==0.2.78` stay pinned in the optional `simulation` extra — upgrading either can break the simulation pipeline. The wheel is now vendored at `vendor/camel_oasis-0.2.5-py3-none-any.whl` and referenced via `[tool.uv.sources]` to protect against upstream URL rot.
+- `report_agent.py` split into three files: `report_types.py` (enums, dataclasses, prompts), `report_manager.py` (file I/O), `report_agent.py` (ReportAgent class only). `ReportAgent.generate_report_fast()` is the active path; `generate_report()` is legacy ReACT.
+- CLI uses Typer (not argparse). `app` and `runs_app` are the Typer app objects; tests use `typer.testing.CliRunner` to invoke commands.
 - `graph_tools.py` is now the public assembly point for split graph retrieval modules (`graph_models.py`, `graph_retrieval.py`, `graph_search_tools.py`, `graph_interview.py`); callers should keep importing `GraphToolsService` from `app.services.graph_tools`.
 - CLI display (`cli_display.py`) uses `rich.Live` on stderr. Suppresses service-layer logs to WARNING during display. `--json` mode bypasses rich entirely.
 - `--smoke` keeps ontology, graph build, and profile/config generation live but skips the long-running OASIS subprocess; use it for fast e2e artifact checks or Python 3.12 validation.

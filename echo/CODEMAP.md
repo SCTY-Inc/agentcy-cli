@@ -40,7 +40,9 @@ Heavy business logic:
 - `simulation_runner.py` — Subprocess spawning, IPC, monitoring, and graph-memory updater lifecycle (~1500 lines); CLI automation now uses a `--no-wait` path so runs can exit cleanly without entering command mode
 - `simulation_ipc.py` — File-based IPC with OASIS processes
 - `simulation_platforms.py` — Twitter/Reddit data normalization
-- `report_agent.py` — Report generation: `generate_report_fast()` (single-pass, default) + legacy ReACT loop (~2550 lines); failure persistence and default-outline helpers now live in the service
+- `report_types.py` — Shared enums, dataclasses (ReportStatus, ReportSection, ReportOutline, Report), and all prompt templates
+- `report_manager.py` — File I/O and storage (report folders, section files, progress, assembly)
+- `report_agent.py` — ReportAgent class: `generate_report_fast()` (active path) + legacy `generate_report()` / `chat()` ReACT methods
 - `graph_models.py` — Search/interview result models shared across graph retrieval tools
 - `graph_retrieval.py` — Base graph CRUD, summaries, and node/edge access
 - `graph_search_tools.py` — Higher-level search helpers (`insight_forge`, `panorama_search`, `quick_search`)

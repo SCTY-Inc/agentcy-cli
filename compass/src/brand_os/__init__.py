@@ -17,17 +17,6 @@ from brand_os.core.brands import (
 )
 from brand_os.core.llm import complete, complete_json, get_provider
 
-# Persona
-from brand_os.persona import (
-    create_persona,
-    delete_persona,
-    get_persona,
-    init_persona,
-    list_personas,
-    load_persona,
-    save_persona,
-)
-
 # Intel
 from brand_os.intel import (
     detect_outliers,

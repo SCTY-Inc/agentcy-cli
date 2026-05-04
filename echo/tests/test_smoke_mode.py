@@ -4,20 +4,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.cli import build_parser
+from app.cli import app
 from app.smoke_mode import build_smoke_outputs
 
 
-def test_cli_parser_includes_smoke_flag() -> None:
-    parser = build_parser()
-    run_parser = next(
-        action.choices["run"]
-        for action in parser._actions
-        if getattr(action, "choices", None) and "run" in action.choices
-    )
-
-    help_text = run_parser.format_help()
-    assert "--smoke" in help_text
+def test_cli_run_includes_smoke_flag() -> None:
+    from typer.testing import CliRunner
+    result = CliRunner().invoke(app, ["run", "--help"])
+    assert "--smoke" in result.output
 
 
 def test_build_smoke_outputs_uses_prepared_simulation_config(tmp_path: Path) -> None:

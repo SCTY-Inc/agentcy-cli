@@ -18,12 +18,13 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "pydantic>=2.0.0",
     "rich>=13.0.0",
+    "typer>=0.12.0",
 ]
 
 [project.optional-dependencies]
 # camel-oasis pinned — do not upgrade; breaks simulation pipeline
 simulation = [
-    "camel-oasis @ https://files.pythonhosted.org/packages/77/d0/6d62173602433937d0228b7809e2b244e09c11cfb1be9c6754ae3b20d887/camel_oasis-0.2.5-py3-none-any.whl",
+    "camel-oasis==0.2.5",
     "camel-ai==0.2.78",
 ]
 
@@ -32,6 +33,8 @@ agentcy-echo = "app.cli:main"
 
 [tool.uv.sources]
 agentcy-protocols = { workspace = true }
+# Vendored to protect against upstream URL rot (original: pythonhosted.org direct whl)
+camel-oasis = { path = "vendor/camel_oasis-0.2.5-py3-none-any.whl" }
 
 [build-system]
 requires = ["hatchling"]

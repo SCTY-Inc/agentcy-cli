@@ -33,7 +33,6 @@ def main(
     set_output_mode(json_output=json_output, envelope=json_envelope)
 
 # Import and register subcommand groups
-from brand_os.persona.cli import persona_app
 from brand_os.intel.cli import intel_app
 from brand_os.signals.cli import signals_app
 from brand_os.plan.cli import plan_app
@@ -43,7 +42,6 @@ from brand_os.publish.cli import publish_app, queue_cli_app
 from brand_os.monitor.cli import monitor_app
 from brand_os.loop_cli import loop_app, decision_app, policy_app, learn_app
 
-app.add_typer(persona_app, name="persona")
 app.add_typer(intel_app, name="intel")
 app.add_typer(signals_app, name="signals")
 app.add_typer(plan_app, name="plan")

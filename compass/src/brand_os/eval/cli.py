@@ -76,39 +76,6 @@ def grade(
     emit(result.model_dump(), resolved_format)
 
 
-@eval_app.command("drift")
-def drift(
-    persona: str = typer.Argument(..., help="Persona name"),
-    response: str = typer.Argument(..., help="Response to check"),
-    context: str | None = typer.Option(None, "--context", "-c", help="Conversation context"),
-    format: str | None = typer.Option(None, "--format", "-f", help="Output format"),
-) -> None:
-    """Check if a response drifts from persona definition."""
-    from brand_os.persona.drift import detect_drift
-
-    result = detect_drift(persona, response, context=context)
-    resolved_format = pick_format(format, default="yaml")
-
-    if resolved_format == "table":
-        console.print(
-            f"[bold]Consistent: {'[green]Yes[/green]' if result.is_consistent else '[red]No[/red]'}[/bold]"
-        )
-        console.print(f"Confidence: {result.confidence:.2f}")
-        console.print(f"Voice Match: {result.voice_match:.2f}")
-
-        if result.boundary_violations:
-            console.print("\n[red]Boundary Violations:[/red]")
-            for violation in result.boundary_violations:
-                console.print(f"  - {violation}")
-
-        if result.suggestions:
-            console.print("\n[yellow]Suggestions:[/yellow]")
-            for suggestion in result.suggestions:
-                console.print(f"  - {suggestion}")
-        return
-
-    emit(result.model_dump(), resolved_format)
-
 
 @eval_app.command("learn")
 def learn(

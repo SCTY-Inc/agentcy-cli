@@ -2,7 +2,8 @@
 
 from typing import Optional
 
-from ...services.report_agent import Report, ReportManager
+from ...services.report_types import Report
+from ...services.report_manager import ReportManager
 
 
 class ReportStore:

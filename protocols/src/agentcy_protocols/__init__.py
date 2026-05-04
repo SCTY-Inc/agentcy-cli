@@ -21,6 +21,7 @@ EXAMPLES = {
 from .adapters import adapt_run_result_to_performance  # noqa: E402
 from .llm import LLMError, LLMProvider  # noqa: E402
 from .utils import load_json, load_json_optional, write_json  # noqa: E402
+from .output import configure as configure_output, emit, emit_error, is_json, is_envelope  # noqa: E402
 
 __all__ = [
     "SCHEMAS",
@@ -31,4 +32,9 @@ __all__ = [
     "load_json",
     "load_json_optional",
     "write_json",
+    "configure_output",
+    "emit",
+    "emit_error",
+    "is_json",
+    "is_envelope",
 ]

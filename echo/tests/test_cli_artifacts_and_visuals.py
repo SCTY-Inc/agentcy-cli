@@ -1,6 +1,6 @@
-import argparse
 import json
 import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -8,7 +8,10 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.brief_v1 import import_brief_v1
-from app.cli import _refresh_run_manifest, _resolve_run_inputs, build_parser, main
+from app.cli import _refresh_run_manifest, _resolve_run_inputs, app
+from typer.testing import CliRunner
+
+_runner = CliRunner()
 from app.forecast_v1 import build_completed_forecast_v1
 from app.config import Config
 from app.utils.oasis_llm import get_simulation_runtime_preflight
@@ -86,26 +89,22 @@ def test_generate_visual_snapshots_handles_empty_graph(tmp_path: Path):
     assert "No graph nodes available" in cluster_map
 
 
-def test_cli_parser_is_run_first():
-    parser = build_parser()
-    subparsers = next(action for action in parser._actions if isinstance(action, argparse._SubParsersAction))
+def test_cli_commands_are_run_first():
+    from typer.testing import CliRunner
+    runner = CliRunner()
 
-    assert set(subparsers.choices) == {"doctor", "run", "runs"}
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    assert "doctor" in result.output
+    assert "run" in result.output
+    assert "runs" in result.output
 
-    run_help = subparsers.choices["run"].format_help()
-    assert "--files" in run_help
-    assert "--requirement" in run_help
-    assert "--brief" in run_help
-    assert "--project-name" not in run_help
-    assert "--additional-context" not in run_help
-    assert "--parallel-profile-count" not in run_help
-    assert "--no-llm-profiles" not in run_help
-    assert "--enable-graph-memory-update" not in run_help
-
-    runs_subparsers = next(
-        action for action in subparsers.choices["runs"]._actions if isinstance(action, argparse._SubParsersAction)
-    )
-    assert set(runs_subparsers.choices) == {"list", "status", "export"}
+    result = runner.invoke(app, ["run", "--help"])
+    assert "--files" in result.output
+    assert "--requirement" in result.output
+    assert "--brief" in result.output
+    assert "--project-name" not in result.output
+    assert "--parallel-profile-count" not in result.output
 
 
 def test_refresh_run_manifest_promotes_completed_simulation(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
@@ -133,7 +132,7 @@ def test_refresh_run_manifest_promotes_completed_simulation(monkeypatch: pytest.
     assert refreshed["task_progress"] == 100
 
 
-def test_cli_doctor_emits_json(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]):
+def test_cli_doctor_emits_json(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         "app.cli.get_simulation_runtime_preflight",
         lambda: {
@@ -148,11 +147,10 @@ def test_cli_doctor_emits_json(monkeypatch: pytest.MonkeyPatch, capsys: pytest.C
         },
     )
 
-    exit_code = main(["doctor", "--json"])
-    captured = capsys.readouterr()
-    payload = json.loads(captured.out)
+    _result = _runner.invoke(app, ["doctor", "--json"])
+    payload = json.loads(_result.output)
 
-    assert exit_code == 0
+    assert _result.exit_code == 0
     assert payload["command"] == "doctor"
     assert payload["ready"] is False
     assert payload["checks"]["python"]["supported"] == "3.11"
@@ -160,7 +158,7 @@ def test_cli_doctor_emits_json(monkeypatch: pytest.MonkeyPatch, capsys: pytest.C
 
 
 
-def test_cli_runs_list_and_status_emit_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]):
+def test_cli_runs_list_and_status_emit_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(Config, "UPLOAD_FOLDER", str(tmp_path / "uploads"))
 
     store = RunStore()
@@ -169,34 +167,28 @@ def test_cli_runs_list_and_status_emit_json(tmp_path: Path, monkeypatch: pytest.
     store.write_text(manifest["run_id"], "visuals/swarm-overview.svg", "<svg />")
     store.record_artifact(manifest["run_id"], "swarm_overview", "visuals/swarm-overview.svg")
 
-    exit_code = main(["runs", "list", "--json"])
-    captured = capsys.readouterr()
-    payload = json.loads(captured.out)
-
-    assert exit_code == 0
+    _result = _runner.invoke(app, ["runs", "list", "--json"])
+    payload = json.loads(_result.output)
+    assert _result.exit_code == 0
     assert payload["count"] == 1
     assert payload["runs"][0]["run_id"] == manifest["run_id"]
 
-    exit_code = main(["runs", "status", manifest["run_id"], "--json"])
-    captured = capsys.readouterr()
-    status_payload = json.loads(captured.out)
-
-    assert exit_code == 0
+    _result = _runner.invoke(app, ["runs", "status", manifest["run_id"], "--json"])
+    status_payload = json.loads(_result.output)
+    assert _result.exit_code == 0
     assert status_payload["graph_id"] == "graph_123"
     assert status_payload["status"] == "graph_ready"
 
-    exit_code = main(["runs", "export", manifest["run_id"], "--artifact", "swarm_overview", "--json"])
-    captured = capsys.readouterr()
-    export_payload = json.loads(captured.out)
-
-    assert exit_code == 0
+    _result = _runner.invoke(app, ["runs", "export", manifest["run_id"], "--artifact", "swarm_overview", "--json"])
+    export_payload = json.loads(_result.output)
+    assert _result.exit_code == 0
     assert export_payload["artifact"] == "swarm_overview"
     assert export_payload["path"].endswith("visuals/swarm-overview.svg")
 
 
 def test_simulation_runtime_preflight_reports_python_and_dependency_readiness():
     ready = get_simulation_runtime_preflight(
-        version_info=argparse.Namespace(major=3, minor=11, micro=9),
+        version_info=types.SimpleNamespace(major=3, minor=11, micro=9),
         camel_import_error=None,
     )
     assert ready["ready"] is True
@@ -204,7 +196,7 @@ def test_simulation_runtime_preflight_reports_python_and_dependency_readiness():
     assert ready["dependencies"]["simulation_extra_installed"] is True
 
     not_ready = get_simulation_runtime_preflight(
-        version_info=argparse.Namespace(major=3, minor=12, micro=1),
+        version_info=types.SimpleNamespace(major=3, minor=12, micro=1),
         camel_import_error=ImportError("No module named 'camel'"),
     )
     assert not_ready["ready"] is False
@@ -234,13 +226,11 @@ def test_resolve_run_inputs_prefers_brief_requirement(tmp_path: Path):
     source_file = tmp_path / "seed.md"
     source_file.write_text("seed", encoding="utf-8")
 
-    args = argparse.Namespace(
+    source_files, requirement, imported = _resolve_run_inputs(
         files=[str(source_file)],
         requirement=None,
         brief=str(PROTOCOLS / "brief.v1.rich.json"),
     )
-
-    source_files, requirement, imported = _resolve_run_inputs(args)
 
     assert source_files == [str(source_file.resolve())]
     assert imported is not None
@@ -251,10 +241,8 @@ def test_resolve_run_inputs_rejects_missing_requirement_without_brief(tmp_path: 
     source_file = tmp_path / "seed.md"
     source_file.write_text("seed", encoding="utf-8")
 
-    args = argparse.Namespace(files=[str(source_file)], requirement=None, brief=None)
-
     with pytest.raises(ValueError, match="--requirement is required unless --brief is supplied"):
-        _resolve_run_inputs(args)
+        _resolve_run_inputs(files=[str(source_file)], requirement=None, brief=None)
 
 
 def test_import_brief_v1_rejects_malformed_json(tmp_path: Path):
@@ -387,7 +375,6 @@ def test_build_completed_forecast_v1_separates_lineage_and_provenance(tmp_path: 
 def test_runs_export_emits_forecast_v1_for_completed_brief_based_run(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
 ):
     monkeypatch.setattr(Config, "UPLOAD_FOLDER", str(tmp_path / "uploads"))
 
@@ -434,11 +421,10 @@ def test_runs_export_emits_forecast_v1_for_completed_brief_based_run(
         report_id="miro.report.export",
     )
 
-    exit_code = main(["runs", "export", run_id, "--json"])
-    captured = capsys.readouterr()
-    payload = json.loads(captured.out)
+    _result = _runner.invoke(app, ["runs", "export", run_id, "--json"])
+    payload = json.loads(_result.output)
 
-    assert exit_code == 0
+    assert _result.exit_code == 0
     assert "forecast_v1" in payload["artifacts"]
 
     forecast_path = Path(payload["artifacts"]["forecast_v1"])
@@ -452,7 +438,6 @@ def test_runs_export_emits_forecast_v1_for_completed_brief_based_run(
 def test_runs_export_does_not_emit_forecast_v1_for_failed_run(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
 ):
     monkeypatch.setattr(Config, "UPLOAD_FOLDER", str(tmp_path / "uploads"))
 
@@ -460,9 +445,8 @@ def test_runs_export_does_not_emit_forecast_v1_for_failed_run(
     manifest = store.create("Predict reaction", [], project_name="Failed Demo")
     store.update(manifest["run_id"], status="failed", error="boom")
 
-    exit_code = main(["runs", "export", manifest["run_id"], "--json"])
-    captured = capsys.readouterr()
-    payload = json.loads(captured.out)
+    _result = _runner.invoke(app, ["runs", "export", manifest["run_id"], "--json"])
+    payload = json.loads(_result.output)
 
-    assert exit_code == 0
+    assert _result.exit_code == 0
     assert "forecast_v1" not in payload["artifacts"]

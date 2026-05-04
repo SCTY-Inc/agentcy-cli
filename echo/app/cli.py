@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import argparse
+import typer
 import json
 import os
 import shutil
 import sys
 import time
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Annotated, Any, Dict, Iterable, List, Optional
 
 import logging
 
@@ -78,13 +78,17 @@ def _default_project_name(source_files: List[str]) -> str:
     return f"{stem} +{len(source_files) - 1}"
 
 
-def _resolve_run_inputs(args: argparse.Namespace) -> tuple[List[str], str, ImportedBrief | None]:
-    source_files = _require_existing_files(args.files)
-    imported_brief = import_brief_v1(args.brief) if getattr(args, "brief", None) else None
-    requirement = imported_brief.requirement if imported_brief else args.requirement
-    if not requirement:
+def _resolve_run_inputs(
+    files: List[str],
+    requirement: Optional[str],
+    brief: Optional[str],
+) -> tuple[List[str], str, ImportedBrief | None]:
+    source_files = _require_existing_files(files)
+    imported_brief = import_brief_v1(brief) if brief else None
+    req = imported_brief.requirement if imported_brief else requirement
+    if not req:
         raise ValueError("--requirement is required unless --brief is supplied")
-    return source_files, requirement, imported_brief
+    return source_files, req, imported_brief
 
 
 def _wait_for_task(
@@ -320,10 +324,19 @@ def _collect_run_outputs(
     return store.load(run_id)
 
 
-def _run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
-    source_files, requirement, imported_brief = _resolve_run_inputs(args)
+def _run_pipeline(
+    files: List[str],
+    requirement: Optional[str],
+    brief: Optional[str],
+    platform: str = "parallel",
+    max_rounds: Optional[int] = None,
+    smoke: bool = False,
+    output_dir: Optional[str] = None,
+    json_mode: bool = False,
+) -> Dict[str, Any]:
+    source_files, requirement, imported_brief = _resolve_run_inputs(files, requirement, brief)
     project_name = _default_project_name(source_files)
-    store = RunStore(root_dir=args.output_dir)
+    store = RunStore(root_dir=output_dir)
     manifest = store.create(
         requirement,
         source_files,
@@ -337,13 +350,13 @@ def _run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
         project_name=project_name,
         run_id=run_id,
         provider=Config.LLM_PROVIDER,
-        platform=args.platform,
-        json_mode=args.json,
+        platform=platform,
+        json_mode=json_mode,
     )
     display.start()
 
     # Suppress service-layer console noise when rich display is active
-    if not args.json:
+    if not json_mode:
         from .utils.logger import set_console_level
         set_console_level(logging.WARNING)
 
@@ -365,7 +378,7 @@ def _run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
     current_step = "simulation"
 
     try:
-        if not args.smoke:
+        if not smoke:
             require_simulation_runtime()
         current_step = "ontology"
         # --- ontology ---
@@ -414,8 +427,8 @@ def _run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
         # --- profiles ---
         current_step = "profiles"
         display.start_step("profiles")
-        enable_twitter = args.platform in {"parallel", "twitter"}
-        enable_reddit = args.platform in {"parallel", "reddit"}
+        enable_twitter = platform in {"parallel", "twitter"}
+        enable_reddit = platform in {"parallel", "reddit"}
         simulation_state = session.create_simulation(
             project_id=project_result["project_id"],
             graph_id=graph_id,
@@ -460,15 +473,15 @@ def _run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
         report_markdown = ""
         report_id = None
 
-        if args.smoke:
+        if smoke:
             smoke_outputs = build_smoke_outputs(
                 sim_dir,
                 run_id=run_id,
                 simulation_id=simulation_id,
                 graph_id=graph_id,
                 requirement=requirement,
-                platform=args.platform,
-                max_rounds=args.max_rounds,
+                platform=platform,
+                max_rounds=max_rounds,
             )
             timeline = smoke_outputs["timeline"]
             agent_stats = smoke_outputs["agent_stats"]
@@ -495,8 +508,8 @@ def _run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
         else:
             session.start_simulation_run(
                 simulation_id=simulation_id,
-                platform=args.platform,
-                max_rounds=args.max_rounds,
+                platform=platform,
+                max_rounds=max_rounds,
                 enable_graph_memory_update=False,
                 wait_for_commands=False,
             )
@@ -574,97 +587,122 @@ def _run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
             os.environ["AGENTCY_LLM_TELEMETRY_FILE"] = previous_telemetry_path
 
 
-def _handle_command(args: argparse.Namespace) -> Dict[str, Any]:
-    if args.command == "doctor":
-        preflight = get_simulation_runtime_preflight()
-        return {
-            "command": "doctor",
-            "ready": preflight["ready"],
-            "checks": preflight,
-        }
-    if args.command == "runs" and args.runs_command == "list":
-        store = RunStore(root_dir=args.output_dir)
-        manifests = [_refresh_run_manifest(store, item["run_id"]) for item in store.list(limit=args.limit)]
-        return {"runs": manifests, "count": len(manifests)}
-    if args.command == "runs" and args.runs_command == "status":
-        store = RunStore(root_dir=args.output_dir)
-        return _refresh_run_manifest(store, args.run_id)
-    if args.command == "runs" and args.runs_command == "export":
-        store = RunStore(root_dir=args.output_dir)
-        manifest = _refresh_run_manifest(store, args.run_id)
-        artifacts = _resolve_artifact_paths(store, manifest)
-        if args.artifact:
-            if args.artifact not in artifacts:
-                raise FileNotFoundError(f"Artifact not found for run {args.run_id}: {args.artifact}")
-            return {
-                "run_id": args.run_id,
-                "artifact": args.artifact,
-                "path": artifacts[args.artifact],
-            }
-        return {
-            "run_id": args.run_id,
-            "count": len(artifacts),
-            "artifacts": artifacts,
-        }
-    if args.command == "run":
-        return _run_pipeline(args)
-    raise RuntimeError("Unknown command")
+
+# ── Typer app ────────────────────────────────────────────────
+
+app = typer.Typer(name="agentcy-echo", add_completion=False, no_args_is_help=True)
+runs_app = typer.Typer(no_args_is_help=True)
+app.add_typer(runs_app, name="runs", help="Inspect persisted runs")
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="agentcy-echo",
-        description="Minimal run-first CLI for agentcy-echo",
-    )
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    doctor_parser = subparsers.add_parser("doctor", help="Check simulation runtime readiness")
-    doctor_parser.add_argument("--json", action="store_true")
-
-    run_parser = subparsers.add_parser("run", help="Run the full workflow and persist artifacts")
-    run_parser.add_argument("--files", nargs="+", required=True)
-    run_parser.add_argument("--requirement")
-    run_parser.add_argument("--brief", help="Canonical brief.v1 JSON input; derives the simulation requirement when supplied")
-    run_parser.add_argument("--platform", choices=("parallel", "twitter", "reddit"), default="parallel")
-    run_parser.add_argument("--max-rounds", type=int)
-    run_parser.add_argument("--smoke", action="store_true", help="Skip the live OASIS runtime and emit deterministic smoke-mode artifacts")
-    run_parser.add_argument("--wait", action="store_true", help="Accepted for consistency; end-to-end run waits by default")
-    run_parser.add_argument("--output-dir")
-    run_parser.add_argument("--json", action="store_true")
-
-    runs_parser = subparsers.add_parser("runs", help="Inspect persisted runs")
-    runs_subparsers = runs_parser.add_subparsers(dest="runs_command", required=True)
-    runs_list = runs_subparsers.add_parser("list", help="List run manifests")
-    runs_list.add_argument("--limit", type=int, default=20)
-    runs_list.add_argument("--output-dir")
-    runs_list.add_argument("--json", action="store_true")
-    runs_status = runs_subparsers.add_parser("status", help="Show run status")
-    runs_status.add_argument("run_id")
-    runs_status.add_argument("--output-dir")
-    runs_status.add_argument("--json", action="store_true")
-    runs_export = runs_subparsers.add_parser("export", help="Resolve artifact paths for a run")
-    runs_export.add_argument("run_id")
-    runs_export.add_argument("--artifact")
-    runs_export.add_argument("--output-dir")
-    runs_export.add_argument("--json", action="store_true")
-
-    return parser
+def _emit_result(payload: Any, json_mode: bool) -> None:
+    if json_mode:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    elif isinstance(payload, dict):
+        for k, v in payload.items():
+            print(f"{k}: {v}")
+    else:
+        print(payload)
 
 
-def main(argv: Optional[List[str]] = None) -> int:
-    parser = build_parser()
-    args = parser.parse_args(argv)
+def _exit_on_error(exc: Exception, json_mode: bool) -> None:
+    if json_mode:
+        print(json.dumps({"success": False, "error": str(exc)}, ensure_ascii=False, indent=2))
+    else:
+        print(f"error: {exc}", file=sys.stderr)
+    raise typer.Exit(1)
 
+
+@app.command("doctor")
+def doctor(
+    json: bool = typer.Option(False, "--json", help="Machine-readable output"),
+) -> None:
+    """Check simulation runtime readiness."""
     try:
-        payload = _handle_command(args)
-        return _emit(payload, getattr(args, "json", False))
+        preflight = get_simulation_runtime_preflight()
+        _emit_result({"command": "doctor", "ready": preflight["ready"], "checks": preflight}, json)
     except Exception as exc:
-        if getattr(args, "json", False):
-            print(json.dumps({"success": False, "error": str(exc)}, ensure_ascii=False, indent=2))
+        _exit_on_error(exc, json)
+
+
+@app.command("run")
+def run(
+    files: List[str] = typer.Option(..., "--files", help="Source document paths"),
+    requirement: Optional[str] = typer.Option(None, "--requirement", help="Simulation requirement"),
+    brief: Optional[str] = typer.Option(None, "--brief", help="Canonical brief.v1 JSON path"),
+    platform: str = typer.Option("parallel", "--platform", help="Platform: parallel, twitter, reddit"),
+    max_rounds: Optional[int] = typer.Option(None, "--max-rounds", help="Max simulation rounds"),
+    smoke: bool = typer.Option(False, "--smoke", help="Skip live OASIS runtime; emit deterministic artifacts"),
+    wait: bool = typer.Option(False, "--wait", help="Accepted for compatibility; run always waits"),
+    output_dir: Optional[str] = typer.Option(None, "--output-dir"),
+    json: bool = typer.Option(False, "--json", help="Machine-readable output"),
+) -> None:
+    """Run the full simulation pipeline and persist artifacts."""
+    try:
+        payload = _run_pipeline(
+            files=files, requirement=requirement, brief=brief,
+            platform=platform, max_rounds=max_rounds, smoke=smoke,
+            output_dir=output_dir, json_mode=json,
+        )
+        _emit_result(payload, json)
+    except Exception as exc:
+        _exit_on_error(exc, json)
+
+
+@runs_app.command("list")
+def runs_list(
+    limit: int = typer.Option(20, "--limit"),
+    output_dir: Optional[str] = typer.Option(None, "--output-dir"),
+    json: bool = typer.Option(False, "--json"),
+) -> None:
+    """List persisted run manifests."""
+    try:
+        store = RunStore(root_dir=output_dir)
+        manifests = [_refresh_run_manifest(store, item["run_id"]) for item in store.list(limit=limit)]
+        _emit_result({"runs": manifests, "count": len(manifests)}, json)
+    except Exception as exc:
+        _exit_on_error(exc, json)
+
+
+@runs_app.command("status")
+def runs_status(
+    run_id: str = typer.Argument(...),
+    output_dir: Optional[str] = typer.Option(None, "--output-dir"),
+    json: bool = typer.Option(False, "--json"),
+) -> None:
+    """Show status for a run."""
+    try:
+        store = RunStore(root_dir=output_dir)
+        _emit_result(_refresh_run_manifest(store, run_id), json)
+    except Exception as exc:
+        _exit_on_error(exc, json)
+
+
+@runs_app.command("export")
+def runs_export(
+    run_id: str = typer.Argument(...),
+    artifact: Optional[str] = typer.Option(None, "--artifact"),
+    output_dir: Optional[str] = typer.Option(None, "--output-dir"),
+    json: bool = typer.Option(False, "--json"),
+) -> None:
+    """Resolve artifact paths for a run."""
+    try:
+        store = RunStore(root_dir=output_dir)
+        manifest = _refresh_run_manifest(store, run_id)
+        artifacts = _resolve_artifact_paths(store, manifest)
+        if artifact:
+            if artifact not in artifacts:
+                raise FileNotFoundError(f"Artifact not found for run {run_id}: {artifact}")
+            _emit_result({"run_id": run_id, "artifact": artifact, "path": artifacts[artifact]}, json)
         else:
-            _stderr(f"error: {exc}")
-        return 1
+            _emit_result({"run_id": run_id, "count": len(artifacts), "artifacts": artifacts}, json)
+    except Exception as exc:
+        _exit_on_error(exc, json)
+
+
+def main(argv: Optional[List[str]] = None) -> None:
+    app(argv)
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

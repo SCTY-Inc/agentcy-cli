@@ -8,8 +8,8 @@ import type {
 } from '../domain/types'
 import { generateSocialDraftSet } from '../generate/copy'
 import { generateExploreGrid } from '../generate/explore'
-import { generateSourceImage } from '../generate/image'
 import { generateText } from '../render/gemini'
+import { renderCard } from '../render/pipeline'
 import type { RuntimePaths } from '../core/paths'
 
 export interface WorkflowContext {
@@ -269,60 +269,51 @@ async function buildExploreArtifacts(context: WorkflowContext): Promise<StepOutp
   ]
 }
 
-async function buildImageArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
-  const topic = resolveTopicFromContext(context)
-
-  const sourceImage = await generateSourceImage({
-    brand: context.brand,
-    paths: context.paths,
-    runId: context.runId,
-    topic,
-  })
-
-  return [
-    {
-      type: 'source_image' as const,
-      data: sourceImage
-        ? { channel: 'social', ...sourceImage }
-        : { channel: 'social', skipped: true },
-    },
-  ]
+async function buildImageArtifacts(_context: WorkflowContext): Promise<StepOutput[]> {
+  return [{ type: 'source_image' as const, data: { channel: 'social', skipped: true } }]
 }
 
 async function buildAssetArtifacts(context: WorkflowContext): Promise<StepOutput[]> {
   const draft = findArtifact(context.priorArtifacts, 'draft_set')
-  const sourceImage = findArtifact(context.priorArtifacts, 'source_image')
   const mainVariant = Array.isArray(draft?.data.variants) ? draft?.data.variants[0] as Record<string, unknown> : null
   const headline = typeof draft?.data.headline === 'string'
     ? draft.data.headline
     : String(mainVariant?.hook ?? context.input.topic ?? 'Untitled')
   const body = String(mainVariant?.body ?? context.brand.positioning)
-  const cta = typeof mainVariant?.cta === 'string' ? mainVariant.cta : undefined
-  const sourceImagePath = typeof sourceImage?.data.imagePath === 'string' ? sourceImage.data.imagePath : ''
+  const topic = resolveTopicFromContext(context)
 
-  const { renderSocialAssets } = await import('../render/social')
-  const platformAssets = await renderSocialAssets({
-    brand: context.brand,
-    paths: context.paths,
-    runId: context.runId,
-    headline,
-    body,
-    cta,
-    sourceImagePath,
-  })
+  const groundId = typeof context.input.ground === 'string' ? context.input.ground : undefined
+  const figure   = typeof context.input.figure === 'string' ? context.input.figure as any : undefined
+  const gravity  = typeof context.input.gravity === 'string' ? context.input.gravity as any : undefined
+
+  const { writeFileSync, mkdirSync } = await import('fs')
+  const { join } = await import('path')
+  const outDir = join(context.paths.artifactsDir, context.runId, 'cards')
+  mkdirSync(outDir, { recursive: true })
+
+  const platformAssets: Record<string, string> = {}
+  for (const platformId of ['facebook', 'instagram', 'linkedin', 'threads', 'twitter'] as const) {
+    const png = await renderCard({
+      figure, gravity, groundId, platformId,
+      topic, eyebrow: topic, headline, body,
+      brandName: context.brand.name,
+    })
+    const outPath = join(outDir, `${platformId}.png`)
+    writeFileSync(outPath, png)
+    platformAssets[platformId] = outPath
+  }
 
   return [
     {
       type: 'asset_set' as const,
       data: {
         channel: 'social',
-        topic: resolveTopicFromContext(context),
+        topic,
         visualIntent: typeof draft?.data.imageDirection === 'string' ? draft.data.imageDirection : null,
         suggestedHeadline: headline,
         palette: context.brand.visual.palette,
-        imagePath: platformAssets.twitter,
+        imagePath: platformAssets.twitter ?? null,
         platformAssets,
-        sourceImagePath: sourceImagePath || null,
         headline,
         body,
       },

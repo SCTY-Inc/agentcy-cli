@@ -62,10 +62,7 @@ src/brand_os/
 │   ├── base.py         # Base Agent protocol
 │   ├── market.py       # Market analyst (LLM-powered)
 │   └── threat.py       # Threat assessor
-├── persona/            # Persona management + storage helpers
-│   ├── cli.py          # Deprecated persona CLI surface
-│   ├── crud.py         # Persona CRUD via storage helpers
-│   └── storage.py      # Persona filesystem persistence
+│   # persona/ archived to archive/compass-persona-20260504/ — use agentcy-vox
 ├── plan/               # Brief stages + canonical brief_v1 emission
 │   ├── brief_v1.py     # brief.v1 builder / writer
 │   └── stages/

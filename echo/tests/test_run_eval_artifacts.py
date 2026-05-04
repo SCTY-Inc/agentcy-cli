@@ -4,7 +4,10 @@ import json
 from pathlib import Path
 
 import pytest
-from app.cli import main
+from app.cli import app
+from typer.testing import CliRunner as _CliRunner
+
+_runner = _CliRunner()
 from app.config import Config
 from app.run_artifacts import RunStore
 from app.run_eval import build_completed_run_eval
@@ -224,7 +227,6 @@ def test_build_completed_run_eval_computes_synthetic_quality_metrics_from_action
 def test_runs_export_emits_run_eval_for_completed_run(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
 ):
     monkeypatch.setattr(Config, "UPLOAD_FOLDER", str(tmp_path / "uploads"))
 
@@ -241,10 +243,10 @@ def test_runs_export_emits_run_eval_for_completed_run(
     store.record_artifact(run_id, "top_agents", "simulation/top_agents.json")
     store.update(run_id, status="completed")
 
-    exit_code = main(["runs", "export", run_id, "--json"])
-    payload = json.loads(capsys.readouterr().out)
+    _result = _runner.invoke(app, ["runs", "export", run_id, "--json"])
+    payload = json.loads(_result.output)
 
-    assert exit_code == 0
+    assert _result.exit_code == 0
     assert "run_eval" in payload["artifacts"]
 
     eval_payload = json.loads(Path(payload["artifacts"]["run_eval"]).read_text(encoding="utf-8"))

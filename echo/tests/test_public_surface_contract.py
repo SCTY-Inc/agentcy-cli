@@ -30,11 +30,8 @@ def test_simulation_dependencies_are_optional_and_pinned():
 
     assert all(not dep.startswith("camel-oasis") for dep in dependencies)
     assert all(not dep.startswith("camel-ai") for dep in dependencies)
-    assert any(
-        dep.startswith("camel-oasis @ https://files.pythonhosted.org/packages/")
-        and "camel_oasis-0.2.5-py3-none-any.whl" in dep
-        for dep in simulation_extra
-    )
+    # camel-oasis is vendored in vendor/ and referenced via [tool.uv.sources]
+    assert any("camel-oasis==0.2.5" in dep for dep in simulation_extra)
     assert "camel-ai==0.2.78" in simulation_extra
 
 

@@ -130,68 +130,40 @@ export function runLabCommand(args: string[], root?: string): unknown {
 }
 
 async function runLabRender(args: string[], root?: string): Promise<unknown> {
+  const { writeFileSync, mkdirSync } = await import('fs')
+  const { FIGURES, GRAVITIES, PLATFORMS } = await import('../render/tokens')
+  const { renderCard } = await import('../render/pipeline')
   const parsed = parseArgs(args)
-  const { FIGURES, GRAVITIES, GROUNDS, PLATFORMS, renderCardToFile } = await import('../render/card')
 
-  const figure = parsed.figure || 'statement'
-  const gravity = parsed.gravity || 'center'
-  const groundId = parsed.ground || 'cream'
-  const platform = parsed.platform || 'linkedin'
-  const image = parsed.image || 'topography'
+  const figure   = (parsed.figure   || 'statement') as (typeof FIGURES)[number]
+  const gravity  = (parsed.gravity  || 'center')    as (typeof GRAVITIES)[number]
+  const groundId = parsed.ground   || 'cream'
+  const platformId = parsed.platform || 'linkedin'
 
-  if (!FIGURES.includes(figure as (typeof FIGURES)[number])) {
-    throw new Error('Invalid figure: ' + figure + '. Options: ' + FIGURES.join(', '))
-  }
-  if (!GRAVITIES.includes(gravity as (typeof GRAVITIES)[number])) {
-    throw new Error('Invalid gravity: ' + gravity + '. Options: ' + GRAVITIES.join(', '))
-  }
-  if (!GROUNDS.find((ground) => ground.id === groundId)) {
-    throw new Error('Invalid ground: ' + groundId + '. Options: ' + GROUNDS.map((ground) => ground.id).join(', '))
-  }
-  if (!(platform in PLATFORMS)) {
-    throw new Error('Invalid platform: ' + platform + '. Options: ' + Object.keys(PLATFORMS).join(', '))
-  }
+  if (!FIGURES.includes(figure))   throw new Error('Invalid figure: '   + figure   + '. Options: ' + FIGURES.join(', '))
+  if (!GRAVITIES.includes(gravity)) throw new Error('Invalid gravity: '  + gravity  + '. Options: ' + GRAVITIES.join(', '))
+  if (!(platformId in PLATFORMS))  throw new Error('Invalid platform: ' + platformId + '. Options: ' + Object.keys(PLATFORMS).join(', '))
 
-  const paths = resolveRuntimePaths(root)
+  const paths    = resolveRuntimePaths(root)
+  const brand    = parsed.brand ? loadBrandFoundation(parsed.brand, { root: paths.root }) : undefined
+  const headline = parsed.headline || 'Care is infrastructure'
+  const body     = parsed.body || 'The care economy is valued at $1 trillion in unpaid labor annually.'
+  const eyebrow  = parsed.eyebrow || 'CARE ECONOMY'
+  const outPath  = parsed.out
+    ? resolve(paths.root, parsed.out)
+    : join(paths.stateDir, 'cards', `${figure}-${gravity}-${groundId}-${platformId}.png`)
 
-  const brand = parsed.brand ? loadBrandFoundation(parsed.brand, { root: paths.root }) : undefined
-  const brandName = brand?.name || 'GiveCare'
-  const logoPath = brand?.visual.logo
-    ? join(paths.root, 'brands', brand.id, brand.visual.logo)
+  const stat = parsed['stat-num']
+    ? { num: parsed['stat-num'] as string, label: (parsed['stat-label'] as string) || '' }
     : undefined
 
-  const headline = parsed.headline || 'Care is infrastructure'
-  const body = parsed.body || 'The care economy is valued at $1 trillion in unpaid labor annually.'
-  const eyebrow = parsed.eyebrow || 'CARE ECONOMY'
-  const seed = parsed.seed || groundId + '|' + figure + '|' + Date.now()
-
-  const outPath = parsed.out
-    ? resolve(paths.root, parsed.out)
-    : join(paths.stateDir, 'cards', `${figure}-${gravity}-${groundId}-${platform}.png`)
-
-  const result = renderCardToFile({
-    figure: figure as (typeof FIGURES)[number],
-    gravity: gravity as (typeof GRAVITIES)[number],
-    ground: groundId,
-    platform,
-    eyebrow,
-    headline,
-    body,
-    statNum: parsed['stat-num'],
-    statLabel: parsed['stat-label'],
-    image,
-    brandName,
-    logoPath,
-    seed,
-    out: outPath,
+  mkdirSync(join(paths.stateDir, 'cards'), { recursive: true })
+  const png = await renderCard({
+    figure, gravity, groundId, platformId,
+    topic: eyebrow, eyebrow, headline, body, stat,
+    brandName: brand?.name || 'GiveCare',
   })
+  writeFileSync(outPath, png)
 
-  return {
-    figure,
-    gravity,
-    ground: groundId,
-    platform,
-    image,
-    path: result.path,
-  }
+  return { figure, gravity, ground: groundId, platform: platformId, path: outPath }
 }
