@@ -15,48 +15,44 @@ function createWorkspace(): string {
   roots.push(root)
   mkdirSync(join(root, 'brands', 'givecare'), { recursive: true })
   writeFileSync(
-    join(root, 'brands', 'givecare', 'brand.yml'),
+    join(root, 'brands', 'givecare', 'BRAND.md'),
     `
-id: givecare
+---
 name: GiveCare
 positioning: Care as infrastructure.
-audiences:
-  - id: caregivers
-    summary: Family caregivers balancing work and care.
-offers:
-  - id: invisiblebench
-    summary: Benchmarking and care tooling.
-proof_points:
-  - Caregiving is operational work.
 voice:
-  tone: Warm, direct, specific.
-  style: Human, plainspoken.
+  tone: [warm, direct, specific]
+  style: [human, plainspoken]
   do:
     - Name the problem directly.
   dont:
     - Use therapeutic cliches.
-channels:
-  social:
-    objective: Build signal and authority.
-  blog:
-    objective: Publish durable longform thinking.
-  outreach:
-    objective: Start useful conversations.
-  respond:
-    objective: Reply with clarity and care.
-visual:
-  palette:
-    background: "#FDF9EC"
-    primary: "#3D1600"
-    accent: "#FF9F00"
-response_playbooks:
-  - id: skeptical-comment
-    trigger: skepticism
-    approach: Clarify the claim and add evidence.
-outreach_playbooks:
-  - id: intro
-    trigger: first-touch
-    approach: Lead with a sharp observation and one ask.
+audience:
+  segments:
+    - id: caregivers
+      description: Family caregivers balancing work and care.
+message:
+  proof_points:
+    - Caregiving is operational work.
+topics:
+  pillars:
+    - id: care-economy
+      angle: Caregiving is infrastructure and should be discussed as such.
+      signals:
+        - caregiver benefits
+      formats: [analysis]
+behavior:
+  engage:
+    - Inbound skepticism.
+  escalate:
+    - Legal or safety concerns.
+  channels:
+    linkedin:
+      primary_job: Build signal and authority.
+---
+
+## Overview
+Caregiving is infrastructure.
 `.trim(),
     'utf8',
   )
@@ -243,7 +239,7 @@ describe.sequential('runCli', () => {
     process.env.HOME = root
 
     const { result, stdout } = await captureStdout(() =>
-      runCli(['inspect', 'artifact', join(root, 'brands', 'givecare', 'brand.yml'), '--json']),
+      runCli(['inspect', 'artifact', join(root, 'brands', 'givecare', 'BRAND.md'), '--json']),
     )
 
     expect(result).toBe(1)
@@ -295,69 +291,20 @@ describe.sequential('runCli', () => {
     expect(JSON.parse(stdout)).toMatchObject({
       status: 'error',
       error: {
-        message: expect.stringContaining(join(root, 'brands', 'givecare', 'brand.yml')),
+        message: expect.stringContaining(join(root, 'brands', 'givecare', 'BRAND.md')),
       },
     })
   })
 
-  test('rejects brand validation when referenced assets are missing', async () => {
+  test('rejects brand validation when BRAND.md is malformed', async () => {
     const root = createWorkspace()
     process.env.LOOM_ROOT = root
     process.env.HOME = root
 
     mkdirSync(join(root, 'brands', 'broken'), { recursive: true })
     writeFileSync(
-      join(root, 'brands', 'broken', 'brand.yml'),
-      `
-id: broken
-name: Broken Brand
-positioning: Broken positioning.
-audiences:
-  - id: primary
-    summary: Someone.
-offers:
-  - id: primary
-    summary: Something.
-proof_points:
-  - One proof point.
-pillars:
-  - id: primary-theme
-    perspective: One angle.
-    signals:
-      - one signal
-    format: analysis
-    frequency: weekly
-voice:
-  tone: Direct.
-  style: Plain.
-  do:
-    - Say the real thing plainly.
-  dont:
-    - Hide behind abstractions.
-channels:
-  social:
-    objective: Build signal.
-  blog:
-    objective: Publish thinking.
-  outreach:
-    objective: Start conversations.
-  respond:
-    objective: Reply clearly.
-visual:
-  logo: missing-logo.png
-  palette:
-    background: "#FFFFFF"
-    primary: "#111111"
-    accent: "#FF6600"
-response_playbooks:
-  - id: default-response
-    trigger: inbound-question
-    approach: Clarify the claim and answer directly.
-outreach_playbooks:
-  - id: default-outreach
-    trigger: first-touch
-    approach: Lead with one specific observation and one ask.
-`.trim(),
+      join(root, 'brands', 'broken', 'BRAND.md'),
+      `name: Broken Brand\npositioning: Broken positioning.\n`,
       'utf8',
     )
 
@@ -369,7 +316,7 @@ outreach_playbooks:
     expect(JSON.parse(stdout)).toMatchObject({
       status: 'error',
       error: {
-        message: expect.stringContaining(join(root, 'brands', 'broken', 'missing-logo.png')),
+        message: expect.stringContaining('missing YAML front matter'),
       },
     })
   })

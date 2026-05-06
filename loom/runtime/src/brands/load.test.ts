@@ -13,56 +13,46 @@ function createWorkspace(): string {
   roots.push(root)
   mkdirSync(join(root, 'brands', 'givecare'), { recursive: true })
   writeFileSync(
-    join(root, 'brands', 'givecare', 'brand.yml'),
+    join(root, 'brands', 'givecare', 'BRAND.md'),
     `
-id: givecare
+---
 name: GiveCare
 positioning: Care as infrastructure.
-audiences:
-  - id: caregivers
-    summary: Family caregivers balancing work and care.
-offers:
-  - id: invisiblebench
-    summary: Benchmarking and care tooling.
-proof_points:
-  - 63 million Americans are caregivers.
-pillars:
-  - id: care-economy
-    perspective: Caregiving is infrastructure and should be discussed as such.
-    signals:
-      - caregiver benefits
-      - care deserts
-    format: analysis
-    frequency: weekly
 voice:
-  tone: Warm, direct, specific.
-  style: Human, plainspoken.
+  tone: [warm, direct, specific]
+  style: [human, plainspoken]
   do:
     - Name the problem directly.
   dont:
     - Use therapeutic cliches.
-channels:
-  social:
-    objective: Build signal and authority.
-  blog:
-    objective: Publish durable longform thinking.
-  outreach:
-    objective: Start useful conversations.
-  respond:
-    objective: Reply with clarity and care.
-visual:
-  palette:
-    background: "#FDF9EC"
-    primary: "#3D1600"
-    accent: "#FF9F00"
-response_playbooks:
-  - id: skeptical-comment
-    trigger: skepticism
-    approach: Clarify the claim and add evidence.
-outreach_playbooks:
-  - id: intro
-    trigger: first-touch
-    approach: Lead with a sharp observation and one ask.
+audience:
+  segments:
+    - id: caregivers
+      description: Family caregivers balancing work and care.
+message:
+  proof_points:
+    - 63 million Americans are caregivers.
+topics:
+  pillars:
+    - id: care-economy
+      angle: Caregiving is infrastructure and should be discussed as such.
+      signals:
+        - caregiver benefits
+        - care deserts
+      formats: [analysis]
+      frequency: weekly
+behavior:
+  engage:
+    - Inbound skepticism.
+  escalate:
+    - Legal or safety concerns.
+  channels:
+    linkedin:
+      primary_job: Build signal and authority.
+---
+
+## Overview
+Caregiving is infrastructure.
 `.trim(),
   )
   return root
@@ -76,15 +66,14 @@ afterEach(() => {
 })
 
 describe('loadBrandFoundation', () => {
-  test('loads a first-principles brand foundation from brand.yml', () => {
+  test('loads a first-principles brand foundation from BRAND.md', () => {
     const root = createWorkspace()
 
     const brand = loadBrandFoundation('givecare', { root })
 
     expect(brand.id).toBe('givecare')
-    expect(brand.channels.blog.objective).toContain('longform')
+    expect(brand.channels.blog.objective).toContain('durable')
     expect(brand.responsePlaybooks).toHaveLength(1)
-    expect(brand.visual.palette.accent).toBe('#FF9F00')
     expect(brand.pillars).toEqual([
       {
         id: 'care-economy',
@@ -92,69 +81,154 @@ describe('loadBrandFoundation', () => {
         signals: ['caregiver benefits', 'care deserts'],
         format: 'analysis',
         frequency: 'weekly',
+        defaultFormat: 'analysis',
       },
     ])
+  })
+
+  test('loads an agent-facing BRAND.md behavioral contract', () => {
+    const root = mkdtempSync(join(tmpdir(), 'loom-brand-md-'))
+    roots.push(root)
+    mkdirSync(join(root, 'brands', 'givecare'), { recursive: true })
+    writeFileSync(
+      join(root, 'brands', 'givecare', 'BRAND.md'),
+      `
+---
+name: GiveCare
+positioning: "AI caregiving coordination that reduces caregiver burnout"
+archetype: caregiver
+voice:
+  tone: [warm, authoritative]
+  style: [plainspoken, evidence-based]
+  do:
+    - Acknowledge before advising.
+  dont:
+    - Use generic wellness language.
+message:
+  proof_points:
+    - 63 million Americans provide unpaid care.
+audience:
+  primary: Adult children managing care remotely.
+  segments:
+    - id: distant-child
+      description: Working professional managing care from another city.
+      pain: Coordination overhead.
+      goal: Feel in control.
+topics:
+  pillars:
+    - id: coordination-gap
+      angle: "The problem is not love — it is logistics"
+      signals:
+        - care coordination
+      formats: [statement card]
+      frequency: weekly
+behavior:
+  engage:
+    - Inbound questions about caregiving logistics.
+  escalate:
+    - Medical or safety claims.
+  channels:
+    linkedin:
+      primary_job: Authority building and partner credibility.
+      default_cta: Learn more.
+---
+
+## Overview
+
+GiveCare should execute with practical care.
+`.trim(),
+      'utf8',
+    )
+
+    const brand = loadBrandFoundation('givecare', { root })
+
+    expect(brand.id).toBe('givecare')
+    expect(brand.voice.tone).toBe('warm, authoritative')
+    expect(brand.channels.social.objective).toContain('Authority')
+    expect(brand.proofPoints).toEqual(['63 million Americans provide unpaid care.'])
+    expect(brand.policy.escalationRules).toEqual(['Medical or safety claims.'])
+    expect(brand.pillars[0]).toMatchObject({
+      id: 'coordination-gap',
+      perspective: 'The problem is not love — it is logistics',
+      format: 'statement card',
+      frequency: 'weekly',
+    })
+    expect(brand.responsePlaybooks[0]?.trigger).toBe('Inbound questions about caregiving logistics.')
+  })
+
+  test('loads a direct .brand.md file path', () => {
+    const root = mkdtempSync(join(tmpdir(), 'loom-brand-path-'))
+    roots.push(root)
+    const filePath = join(root, 'scty.brand.md')
+    writeFileSync(
+      filePath,
+      `
+---
+name: SCTY
+positioning: "AI systems studio building infrastructure for intelligent organizations"
+voice:
+  tone: [precise, direct]
+  style: [technical, evidence-first]
+  do:
+    - State the claim before the evidence.
+  dont:
+    - Use hype.
+audience:
+  primary: Technical and operational leaders.
+topics:
+  pillars:
+    - id: systems-thinking
+      angle: "AI problems are systems problems"
+      signals:
+        - AI systems design
+      formats: [thread]
+---
+
+## Overview
+SCTY is direct and systems-oriented.
+`.trim(),
+      'utf8',
+    )
+
+    const brand = loadBrandFoundation(filePath, { root })
+
+    expect(brand.id).toBe('scty')
+    expect(brand.name).toBe('SCTY')
+    expect(brand.pillars[0]?.defaultFormat).toBe('thread')
   })
 
   test('rejects unsupported handle keys', () => {
     const root = createWorkspace()
     writeFileSync(
-      join(root, 'brands', 'givecare', 'brand.yml'),
+      join(root, 'brands', 'givecare', 'BRAND.md'),
       `
-id: givecare
+---
 name: GiveCare
 positioning: Care as infrastructure.
-audiences:
-  - id: caregivers
-    summary: Family caregivers balancing work and care.
-offers:
-  - id: invisiblebench
-    summary: Benchmarking and care tooling.
-proof_points:
-  - 63 million Americans are caregivers.
-pillars:
-  - id: care-economy
-    perspective: Caregiving is infrastructure and should be discussed as such.
-    signals:
-      - caregiver benefits
-    format: analysis
-    frequency: weekly
 voice:
-  tone: Warm, direct, specific.
-  style: Human, plainspoken.
+  tone: [warm, direct, specific]
+  style: [human, plainspoken]
   do:
     - Name the problem directly.
   dont:
     - Use therapeutic cliches.
-channels:
-  social:
-    objective: Build signal and authority.
-  blog:
-    objective: Publish durable longform thinking.
-  outreach:
-    objective: Start useful conversations.
-  respond:
-    objective: Reply with clarity and care.
+topics:
+  pillars:
+    - id: care-economy
+      angle: Caregiving is infrastructure and should be discussed as such.
+      signals:
+        - caregiver benefits
 handles:
   mastodon: '@givecare'
-visual:
-  palette:
-    background: "#FDF9EC"
-    primary: "#3D1600"
-    accent: "#FF9F00"
-response_playbooks:
-  - id: skeptical-comment
-    trigger: skepticism
-    approach: Clarify the claim and add evidence.
-outreach_playbooks:
-  - id: intro
-    trigger: first-touch
-    approach: Lead with a sharp observation and one ask.
+---
+
+## Overview
+Bad handle example.
 `.trim(),
       'utf8',
     )
 
-    expect(() => loadBrandFoundation('givecare', { root })).toThrow('Invalid brand foundation: handles.mastodon is not a supported platform')
+    expect(() => loadBrandFoundation('givecare', { root })).toThrow('Invalid BRAND.md: handles.mastodon is not a supported platform')
   })
 
   test('resolves the workspace root when invoked from the agent directory', () => {

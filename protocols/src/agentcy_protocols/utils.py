@@ -3,8 +3,22 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+
+def utc_now() -> datetime:
+    """Return the current UTC datetime (timezone-aware).
+
+    Prefer this over ``datetime.utcnow()`` which is deprecated in Python 3.12+.
+    """
+    return datetime.now(UTC)
+
+
+def utc_now_iso() -> str:
+    """Return the current UTC time as an ISO-8601 string."""
+    return utc_now().isoformat()
 
 
 def load_json(path: Path | str) -> dict[str, Any]:

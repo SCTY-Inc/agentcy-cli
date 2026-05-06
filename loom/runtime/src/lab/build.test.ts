@@ -16,63 +16,46 @@ function createWorkspace(): string {
     Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn7n6cAAAAASUVORK5CYII=', 'base64'),
   )
   writeFileSync(
-    join(root, 'brands', 'givecare', 'brand.yml'),
+    join(root, 'brands', 'givecare', 'BRAND.md'),
     `
-id: givecare
+---
 name: GiveCare
 positioning: Care as infrastructure.
-audiences:
-  - id: caregivers
-    summary: Family caregivers balancing work and care.
-offers:
-  - id: invisiblebench
-    summary: Benchmarking and care tooling.
-proof_points:
-  - 63 million Americans are caregivers.
-pillars:
-  - id: care-economy
-    perspective: Caregiving is infrastructure and should be discussed as such.
-    signals:
-      - caregiver benefits
-      - care deserts
-    format: analysis
-    frequency: weekly
 voice:
-  tone: Warm, direct, specific.
-  style: Human, plainspoken.
+  tone: [warm, direct, specific]
+  style: [human, plainspoken]
   do:
     - Name the problem directly.
   dont:
     - Use therapeutic cliches.
-channels:
-  social:
-    objective: Build signal and authority.
-  blog:
-    objective: Publish durable longform thinking.
-  outreach:
-    objective: Start useful conversations.
-  respond:
-    objective: Reply with clarity and care.
-visual:
-  logo: logo.png
-  palette:
-    background: "#FDF9EC"
-    primary: "#3D1600"
-    accent: "#FF9F00"
-  typography:
-    headline: "Alegreya, serif, bold"
-    body: "Inter, sans-serif, regular"
-    accent: "Gabarito, sans-serif, bold"
-  motif: Soft concentric rings.
-  layout: calm-editorial
-response_playbooks:
-  - id: skeptical-comment
-    trigger: skepticism
-    approach: Clarify the claim and add evidence.
-outreach_playbooks:
-  - id: intro
-    trigger: first-touch
-    approach: Lead with a sharp observation and one ask.
+audience:
+  segments:
+    - id: caregivers
+      description: Family caregivers balancing work and care.
+message:
+  proof_points:
+    - 63 million Americans are caregivers.
+topics:
+  pillars:
+    - id: care-economy
+      angle: Caregiving is infrastructure and should be discussed as such.
+      signals:
+        - caregiver benefits
+        - care deserts
+      formats: [analysis]
+      frequency: weekly
+behavior:
+  engage:
+    - Inbound skepticism.
+  escalate:
+    - Legal or safety concerns.
+  channels:
+    linkedin:
+      primary_job: Build signal and authority.
+---
+
+## Overview
+Caregiving is infrastructure.
 `.trim(),
     'utf8',
   )
@@ -106,7 +89,7 @@ describe('buildCardLabHtml', () => {
     expect(html).toContain('Prefer left')
     expect(html).toContain('Current leaning')
     expect(html).toContain('Care is infrastructure')
-    expect(html).toContain('data:image/png;base64,')
+    expect(html).toContain('brand-mark')
     expect(html).toContain('Copy top preset JSON')
   })
 })

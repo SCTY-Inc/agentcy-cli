@@ -24,63 +24,53 @@ function createWorkspace(): string {
   roots.push(root)
   mkdirSync(join(root, 'brands', 'givecare'), { recursive: true })
   writeFileSync(
-    join(root, 'brands', 'givecare', 'brand.yml'),
+    join(root, 'brands', 'givecare', 'BRAND.md'),
     `
-id: givecare
+---
 name: GiveCare
 positioning: Care as infrastructure.
-audiences:
-  - id: caregivers
-    summary: Family caregivers balancing work and care.
-offers:
-  - id: invisiblebench
-    summary: Benchmarking and care tooling.
-proof_points:
-  - Caregiving is operational work.
-pillars:
-  - id: care-economy
-    perspective: Caregiving is infrastructure and should be discussed as such.
-    signals:
-      - caregiver benefits
-      - care deserts
-    format: analysis
-    frequency: weekly
-  - id: policy
-    perspective: Policy should be judged by whether it reduces caregiver burden.
-    signals:
-      - paid leave
-      - Medicaid waivers
-    format: opinionated-take
-    frequency: weekly
 voice:
-  tone: Warm, direct, specific.
-  style: Human, plainspoken.
+  tone: [warm, direct, specific]
+  style: [human, plainspoken]
   do:
     - Name the problem directly.
   dont:
     - Use therapeutic cliches.
-channels:
-  social:
-    objective: Build signal and authority.
-  blog:
-    objective: Publish durable longform thinking.
-  outreach:
-    objective: Start useful conversations.
-  respond:
-    objective: Reply with clarity and care.
-visual:
-  palette:
-    background: "#FDF9EC"
-    primary: "#3D1600"
-    accent: "#FF9F00"
-response_playbooks:
-  - id: skeptical-comment
-    trigger: skepticism
-    approach: Clarify the claim and add evidence.
-outreach_playbooks:
-  - id: intro
-    trigger: first-touch
-    approach: Lead with a sharp observation and one ask.
+audience:
+  segments:
+    - id: caregivers
+      description: Family caregivers balancing work and care.
+message:
+  proof_points:
+    - Caregiving is operational work.
+topics:
+  pillars:
+    - id: care-economy
+      angle: Caregiving is infrastructure and should be discussed as such.
+      signals:
+        - caregiver benefits
+        - care deserts
+      formats: [analysis]
+      frequency: weekly
+    - id: policy
+      angle: Policy should be judged by whether it reduces caregiver burden.
+      signals:
+        - paid leave
+        - Medicaid waivers
+      formats: [opinionated-take]
+      frequency: weekly
+behavior:
+  engage:
+    - Inbound skepticism.
+  escalate:
+    - Legal or safety concerns.
+  channels:
+    linkedin:
+      primary_job: Build signal and authority.
+---
+
+## Overview
+Caregiving is infrastructure.
 `.trim(),
   )
   return root
@@ -257,6 +247,121 @@ describe('runtime workflows', () => {
     expect(Object.keys(platformAssets ?? {})).toEqual(['facebook', 'instagram', 'linkedin', 'threads', 'twitter'])
     expect(existsSync(String(platformAssets?.twitter))).toBe(true)
     expect(existsSync(String(platformAssets?.instagram))).toBe(true)
+  })
+
+  test('runs social.post from a tenant BRAND.md contract', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'loom-runtime-brand-md-'))
+    roots.push(root)
+    mkdirSync(join(root, 'brands', 'scty'), { recursive: true })
+    writeFileSync(
+      join(root, 'brands', 'scty', 'BRAND.md'),
+      `
+---
+name: SCTY
+positioning: "AI systems studio building infrastructure for intelligent organizations"
+voice:
+  tone: [precise, direct]
+  style: [technical, evidence-first]
+  do:
+    - State the claim before the evidence.
+  dont:
+    - Use hype.
+audience:
+  primary: Technical and operational leaders.
+message:
+  proof_points:
+    - Production AI fails at the system boundary.
+topics:
+  pillars:
+    - id: systems-thinking
+      angle: "AI problems are systems problems"
+      signals:
+        - AI systems design
+      formats: [thread]
+      frequency: weekly
+behavior:
+  engage:
+    - Technical questions about AI systems.
+  escalate:
+    - Legal or confidential client details.
+---
+
+## Overview
+SCTY executes directly and technically.
+`.trim(),
+      'utf8',
+    )
+    const runtime = createRuntime({ root })
+    suppressImageApiKeys()
+
+    const run = await runtime.runWorkflow({
+      workflow: 'social.post',
+      brand: 'scty',
+      input: { topic: 'AI deployment failures' },
+    })
+
+    expect(run.brand).toBe('scty')
+    expect(run.status).toBe('in_review')
+
+    const details = runtime.inspectRun(run.id)
+    const draftSet = details.artifacts.find((artifact) => artifact.type === 'draft_set')
+    const brief = details.artifacts.find((artifact) => artifact.type === 'brief')
+    const socialMain = Array.isArray(draftSet?.data.variants)
+      ? draftSet.data.variants.find((variant) => typeof variant === 'object' && variant && (variant as Record<string, unknown>).id === 'social-main') as Record<string, unknown> | undefined
+      : undefined
+    expect(brief?.data.brandPolicy).toMatchObject({
+      escalationRules: ['Legal or confidential client details.'],
+    })
+    expect(String(socialMain?.body)).toContain('AI problems are systems problems')
+  })
+
+  test('retries a run created from a direct .brand.md path', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'loom-runtime-brand-path-'))
+    roots.push(root)
+    const brandPath = join(root, 'scty.brand.md')
+    writeFileSync(
+      brandPath,
+      `
+---
+name: SCTY
+positioning: "AI systems studio building infrastructure for intelligent organizations"
+voice:
+  tone: [precise, direct]
+  style: [technical, evidence-first]
+  do:
+    - State the claim before the evidence.
+  dont:
+    - Use hype.
+audience:
+  primary: Technical and operational leaders.
+topics:
+  pillars:
+    - id: systems-thinking
+      angle: "AI problems are systems problems"
+      signals:
+        - AI systems design
+---
+
+## Overview
+SCTY executes directly and technically.
+`.trim(),
+      'utf8',
+    )
+    const runtime = createRuntime({ root })
+    suppressImageApiKeys()
+
+    const run = await runtime.runWorkflow({
+      workflow: 'blog.post',
+      brand: brandPath,
+      input: { topic: 'AI deployment failures' },
+    })
+    const retry = await runtime.retryRun(run.id, { fromStep: 'draft' })
+
+    expect(run.brand).toBe('scty')
+    expect(run.input.brandSource).toBe(brandPath)
+    expect(retry.parentRunId).toBe(run.id)
+    expect(retry.brand).toBe('scty')
+    expect(retry.input.brandSource).toBe(brandPath)
   })
 
   test('runs blog.post and creates outline and article draft artifacts', async () => {
@@ -600,65 +705,50 @@ describe('runtime workflows', () => {
     expect(result.status).toBe('approved')
   })
 
-  test('enriches input with format from pillar default_format', async () => {
+  test('enriches input with first pillar format', async () => {
     const root = createWorkspace()
 
     writeFileSync(
-      join(root, 'brands', 'givecare', 'brand.yml'),
+      join(root, 'brands', 'givecare', 'BRAND.md'),
       `
-id: givecare
+---
 name: GiveCare
 positioning: Care as infrastructure.
-audiences:
-  - id: caregivers
-    summary: Family caregivers balancing work and care.
-offers:
-  - id: invisiblebench
-    summary: Benchmarking and care tooling.
-proof_points:
-  - 63 million Americans are caregivers.
-pillars:
-  - id: care-economy
-    perspective: Caregiving is infrastructure.
-    signals:
-      - caregiver benefits
-    format: data-driven
-    frequency: weekly
-    default_format: infographic
-  - id: policy
-    perspective: Policy should reduce caregiver burden.
-    signals:
-      - paid leave
-    format: opinionated-take
-    frequency: weekly
 voice:
-  tone: Warm, direct, specific.
-  style: Human, plainspoken.
+  tone: [warm, direct, specific]
+  style: [human, plainspoken]
   do:
     - Name the problem directly.
   dont:
     - Use therapeutic cliches.
-channels:
-  social:
-    objective: Build signal and authority.
-  blog:
-    objective: Publish durable longform thinking.
-  outreach:
-    objective: Start useful conversations.
-  respond:
-    objective: Reply with clarity and care.
-visual:
-  palette:
-    background: "#FDF9EC"
-    primary: "#3D1600"
-    accent: "#FF9F00"
+topics:
+  pillars:
+    - id: care-economy
+      angle: Caregiving is infrastructure.
+      signals:
+        - caregiver benefits
+      formats: [infographic]
+      frequency: weekly
+    - id: policy
+      angle: Policy should reduce caregiver burden.
+      signals:
+        - paid leave
+      frequency: weekly
+behavior:
+  channels:
+    linkedin:
+      primary_job: Build signal and authority.
+---
+
+## Overview
+Format test brand.
 `.trim(),
     )
 
     const runtime = createRuntime({ root })
     suppressImageApiKeys()
 
-    // care-economy pillar auto-resolves format to infographic
+    // care-economy pillar auto-resolves its first format to infographic
     const run = await runtime.runWorkflow({
       workflow: 'social.post',
       brand: 'givecare',
@@ -666,7 +756,7 @@ visual:
     })
     expect(run.input).toMatchObject({ format: 'infographic' })
 
-    // policy pillar has no default_format — stays standard
+    // policy pillar has no format — stays standard
     const run2 = await runtime.runWorkflow({
       workflow: 'social.post',
       brand: 'givecare',
