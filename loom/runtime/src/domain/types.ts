@@ -75,6 +75,34 @@ export interface BrandFormat {
   promptOverlay?: string
 }
 
+export interface BrandApprovalLane {
+  description?: string
+  examples: string[]
+}
+
+export interface BrandSensitiveTopic {
+  topic: string
+  handling: string
+  note?: string
+}
+
+export interface BrandPolicy {
+  approvalLanes?: Partial<Record<'green' | 'yellow' | 'red', BrandApprovalLane>>
+  approvalRequired: string[]
+  autonomousActions: string[]
+  humanRequiredActions: string[]
+  forbiddenClaims: string[]
+  regulatedClaims: string[]
+  sensitiveTopics: BrandSensitiveTopic[]
+  escalationRules: string[]
+  citationPolicy?: string
+  crisisPolicy?: {
+    triggers: string[]
+    response?: string
+    owner?: string
+  }
+}
+
 export interface BrandFoundation {
   id: string
   name: string
@@ -120,6 +148,7 @@ export interface BrandFoundation {
   formats?: BrandFormat[]
   responsePlaybooks: BrandPlaybook[]
   outreachPlaybooks: BrandPlaybook[]
+  policy: BrandPolicy
 }
 
 export interface RunRecord {
@@ -145,10 +174,62 @@ export interface ArtifactRecord {
   data: Record<string, unknown>
 }
 
+export type CanonicalRunResultStatus = 'dry_run' | 'published' | 'failed'
+
+/**
+ * Canonical loom-owned publish outcome exported for family handoffs.
+ *
+ * Loop-5 `performance.v1` readers should treat only published `social.post`
+ * results as measurement sources. `dry_run` and `failed` outcomes are explicit
+ * non-sources even though they remain exportable for operator inspection.
+ */
+export interface CanonicalRunResultV1 {
+  artifact_type: 'run_result.v1'
+  schema_version: 'v1'
+  run_id: string
+  parent_run_id?: string
+  brief_id: string
+  brand_id: string
+  writer: {
+    repo: 'cli-phantom'
+    module: 'agentcy-loom'
+  }
+  workflow: string
+  status: CanonicalRunResultStatus
+  current_step: string
+  started_at: string
+  completed_at: string
+  review?: {
+    decision?: 'approved' | 'rejected' | 'needs_revision'
+    summary?: string
+  }
+  delivery?: {
+    dry_run?: boolean
+    platforms?: Array<{
+      platform: string
+      status: 'simulated' | 'published' | 'failed' | 'skipped'
+      post_id?: string
+      url?: string
+      message?: string
+    }>
+    export_paths?: string[]
+    selected_variant_id?: string
+  }
+  error?: {
+    step: string
+    message: string
+  }
+  lineage?: {
+    source_voice_pack_id?: string
+    campaign_id?: string
+    signal_id?: string
+  }
+}
+
 export interface RunDetails {
   run: RunRecord
   artifacts: ArtifactRecord[]
-  runResult?: import('./run-result-v1').CanonicalRunResultV1
+  runResult?: CanonicalRunResultV1
 }
 
 export interface ReviewInput {

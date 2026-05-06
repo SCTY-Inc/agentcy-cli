@@ -1,4 +1,5 @@
 import { isWorkflowName, isSocialPlatform, type SocialPlatform } from '../domain/types'
+import { loadBrandFoundation } from '../brands/load'
 import { createRuntime } from '../runtime/runtime'
 
 function parseAutoArgs(args: string[]): {
@@ -55,26 +56,34 @@ export async function runAutoCommand(args: string[], root?: string): Promise<unk
     throw new Error(`Invalid workflow: ${parsed.workflow}`)
   }
 
-  const runtime = createRuntime({ root })
-
-  const run = await runtime.runWorkflow({
-    workflow: parsed.workflow,
-    brand: parsed.brand,
-    input: parsed.input,
-    autoApprove: true,
-  })
-
-  if (run.status === 'failed') {
-    return { run, published: false, error: run.errorMessage }
+  const brand = loadBrandFoundation(parsed.brand, { root })
+  if (!parsed.dryRun && (brand.policy.approvalLanes || brand.policy.humanRequiredActions.length > 0)) {
+    throw new Error(`Brand ${brand.id} defines approval or human-required policy. Use "run", "review approve", then "publish" instead of auto publish, or pass --dry-run.`)
   }
 
-  const published = await runtime.publishRun(run.id, {
-    dryRun: parsed.dryRun,
-    platforms: parsed.platforms,
-  })
+  const runtime = createRuntime({ root })
+  try {
+    const run = await runtime.runWorkflow({
+      workflow: parsed.workflow,
+      brand: parsed.brand,
+      input: parsed.input,
+      autoApprove: true,
+    })
 
-  return {
-    run: published,
-    runResult: runtime.buildRunResult(published.id),
+    if (run.status === 'failed') {
+      return { run, published: false, error: run.errorMessage }
+    }
+
+    const published = await runtime.publishRun(run.id, {
+      dryRun: parsed.dryRun,
+      platforms: parsed.platforms,
+    })
+
+    return {
+      run: published,
+      runResult: runtime.buildRunResult(published.id),
+    }
+  } finally {
+    runtime.close()
   }
 }

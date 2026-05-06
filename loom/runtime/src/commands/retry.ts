@@ -14,6 +14,9 @@ export async function runRetryCommand(args: string[], root?: string): Promise<un
   }
 
   const runtime = createRuntime({ root })
-  return await runtime.retryRun(runId, { fromStep })
+  try {
+    return await runtime.retryRun(runId, { fromStep })
+  } finally {
+    runtime.close()
+  }
 }
-

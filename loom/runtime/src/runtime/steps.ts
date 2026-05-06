@@ -10,6 +10,8 @@ import { generateSocialDraftSet } from '../generate/copy'
 import { generateExploreGrid } from '../generate/explore'
 import { generateText } from '../render/gemini'
 import { renderCard } from '../render/pipeline'
+import { FIGURES, GRAVITIES } from '../render/tokens'
+import type { Figure, Gravity } from '../render/tokens'
 import type { RuntimePaths } from '../core/paths'
 
 export interface WorkflowContext {
@@ -100,6 +102,35 @@ export function formatSocialPostText(variant: Record<string, unknown>): string {
 
 export function cloneArtifactData(data: Record<string, unknown>): Record<string, unknown> {
   return JSON.parse(JSON.stringify(data)) as Record<string, unknown>
+}
+
+function brandPolicySummary(brand: BrandFoundation): Record<string, unknown> | null {
+  const policy = brand.policy
+  const hasPolicy = Boolean(
+    policy.approvalLanes
+    || policy.autonomousActions.length
+    || policy.humanRequiredActions.length
+    || policy.forbiddenClaims.length
+    || policy.regulatedClaims.length
+    || policy.sensitiveTopics.length
+    || policy.escalationRules.length
+    || policy.citationPolicy
+    || policy.crisisPolicy,
+  )
+  if (!hasPolicy) return null
+
+  return {
+    approvalLanes: policy.approvalLanes ?? null,
+    approvalRequired: policy.approvalRequired,
+    autonomousActions: policy.autonomousActions,
+    humanRequiredActions: policy.humanRequiredActions,
+    forbiddenClaims: policy.forbiddenClaims,
+    regulatedClaims: policy.regulatedClaims,
+    sensitiveTopics: policy.sensitiveTopics,
+    escalationRules: policy.escalationRules,
+    citationPolicy: policy.citationPolicy ?? null,
+    crisisPolicy: policy.crisisPolicy ?? null,
+  }
 }
 
 function getImportedBrief(input: Record<string, unknown>): ImportedBriefInput | undefined {
@@ -223,6 +254,7 @@ async function buildBriefArtifacts(context: WorkflowContext): Promise<StepOutput
         perspective: selectedPillar?.perspective ?? null,
         format: selectedPillar?.format ?? null,
         signals: selectedPillar?.signals ?? [],
+        brandPolicy: brandPolicySummary(context.brand),
         topic: resolveTopicFromContext(context),
       },
     },
@@ -283,8 +315,10 @@ async function buildAssetArtifacts(context: WorkflowContext): Promise<StepOutput
   const topic = resolveTopicFromContext(context)
 
   const groundId = typeof context.input.ground === 'string' ? context.input.ground : undefined
-  const figure   = typeof context.input.figure === 'string' ? context.input.figure as any : undefined
-  const gravity  = typeof context.input.gravity === 'string' ? context.input.gravity as any : undefined
+  const rawFigure  = typeof context.input.figure  === 'string' ? context.input.figure  : undefined
+  const rawGravity = typeof context.input.gravity === 'string' ? context.input.gravity : undefined
+  const figure:  Figure  | undefined = (FIGURES  as readonly string[]).includes(rawFigure  ?? '')  ? rawFigure  as Figure  : undefined
+  const gravity: Gravity | undefined = (GRAVITIES as readonly string[]).includes(rawGravity ?? '') ? rawGravity as Gravity : undefined
 
   const { writeFileSync, mkdirSync } = await import('fs')
   const { join } = await import('path')
@@ -421,4 +455,3 @@ async function buildArticleDraftArtifacts(context: WorkflowContext): Promise<Ste
     },
   ]
 }
-

@@ -15,7 +15,8 @@ export interface CardContent {
 }
 
 type S = Record<string, string | number | undefined>
-type Node = { type: string; props: Record<string, any> }
+type NodeChildren = Node | string | (Node | string)[]
+export type Node = { type: string; props: { style?: S; children?: NodeChildren } }
 
 const el = (type: string, style: S, children?: (Node | string | null | undefined)[]): Node => ({
   type,

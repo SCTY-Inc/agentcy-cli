@@ -6,7 +6,7 @@ import yaml from 'js-yaml'
 const __dir = dirname(fileURLToPath(import.meta.url))
 const raw = readFileSync(join(__dir, '../../brand.design.md'), 'utf8')
 const fm = raw.match(/^---\n([\s\S]+?)\n---/)!
-const t = yaml.load(fm[1]) as Record<string, any>
+const t = yaml.load(fm[1]) as Record<string, unknown>
 
 export interface Ground {
   bg: string

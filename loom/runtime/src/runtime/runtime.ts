@@ -92,6 +92,10 @@ function normalizeImportedBrief(
   }
 }
 
+function brandSourceForRun(run: RunRecord): string {
+  return typeof run.input.brandSource === 'string' ? run.input.brandSource : run.brand
+}
+
 export class Runtime {
   private readonly root?: string
   private readonly db: DatabaseSync
@@ -105,6 +109,10 @@ export class Runtime {
     ensureRuntimePaths(this.paths)
     this.db = openRuntimeDb(this.paths.root)
     this.socialPublisher = options.socialPublisher ?? publishSocialPost
+  }
+
+  close(): void {
+    this.db.close()
   }
 
   async runWorkflow(input: RunWorkflowInput): Promise<RunRecord> {
@@ -126,14 +134,17 @@ export class Runtime {
     const runId = createId('run')
     const createdAt = nowIso()
     const steps = WORKFLOWS[input.workflow]
+    const withBrandSource = input.brand === brand.id
+      ? runtimeInput
+      : { ...runtimeInput, brandSource: input.brand }
     const enrichedInput = format !== 'standard'
-      ? { ...runtimeInput, format }
-      : runtimeInput
+      ? { ...withBrandSource, format }
+      : withBrandSource
     const finalStatus: RunStatus = input.autoApprove ? 'approved' : 'in_review'
     const run: RunRecord = {
       id: runId,
       workflow: input.workflow,
-      brand: input.brand,
+      brand: brand.id,
       status: finalStatus,
       input: enrichedInput,
       currentStep: steps[0].name,
@@ -299,7 +310,7 @@ export class Runtime {
 
   async retryRun(runId: string, input: RetryInput): Promise<RunRecord> {
     const original = this.getRun(runId)
-    const brand = loadBrandFoundation(original.brand, { root: this.paths.root })
+    const brand = loadBrandFoundation(brandSourceForRun(original), { root: this.paths.root })
     const createdAt = nowIso()
     const steps = WORKFLOWS[original.workflow]
     const startIndex = selectStepIndex(original.workflow, input.fromStep)
@@ -493,11 +504,13 @@ export class Runtime {
   }
 
   private tryBuildRunResult(run: RunRecord, artifacts: ArtifactRecord[]): CanonicalRunResultV1 | undefined {
-    try {
-      return buildRunResultV1(run, artifacts)
-    } catch {
+    const delivery = artifacts.find((a) => a.type === 'delivery')
+    const isDryRun = typeof (delivery?.data as Record<string, unknown> | undefined)?.dryRun === 'boolean'
+      && (delivery?.data as Record<string, unknown>).dryRun === true
+    if (run.status !== 'published' && run.status !== 'failed' && !isDryRun) {
       return undefined
     }
+    return buildRunResultV1(run, artifacts)
   }
 }
 

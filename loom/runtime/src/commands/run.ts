@@ -55,11 +55,14 @@ export async function runWorkflowCommand(args: string[], root?: string): Promise
   delete input['auto-approve']
   delete input['brief-file']
   const runtime = createRuntime({ root })
-  return await runtime.runWorkflow({
-    workflow,
-    brand,
-    input,
-    autoApprove,
-  })
+  try {
+    return await runtime.runWorkflow({
+      workflow,
+      brand,
+      input,
+      autoApprove,
+    })
+  } finally {
+    runtime.close()
+  }
 }
-

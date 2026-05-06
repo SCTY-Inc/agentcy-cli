@@ -16,53 +16,45 @@ function validateBrandAssets(brand: ReturnType<typeof loadBrandFoundation>, bran
   return { logo: 'found' }
 }
 
-const TEMPLATE = `id: __ID__
+const TEMPLATE = `---
 name: __NAME__
 positioning: Replace with the sharpest explanation of the brand.
-audiences:
-  - id: primary
-    summary: Replace with the core audience.
-offers:
-  - id: primary-offer
-    summary: Replace with the main offer.
-proof_points:
-  - Replace with one concrete proof point.
-pillars:
-  - id: primary-theme
-    perspective: Replace with the recurring angle this brand should own.
-    signals:
-      - Replace with one signal to monitor.
-    format: opinionated-take
-    frequency: weekly
 voice:
-  tone: Direct and specific.
-  style: Plainspoken and credible.
+  tone: [direct, specific]
+  style: [plainspoken, credible]
   do:
     - Say the real thing plainly.
   dont:
     - Hide behind generic positioning.
-channels:
-  social:
-    objective: Build signal and authority.
-  blog:
-    objective: Publish durable longform thinking.
-  outreach:
-    objective: Start useful conversations.
-  respond:
-    objective: Reply with clarity and care.
-visual:
-  palette:
-    background: "#FFFFFF"
-    primary: "#111111"
-    accent: "#FF6600"
-response_playbooks:
-  - id: default-response
-    trigger: inbound-question
-    approach: Clarify the claim and answer directly.
-outreach_playbooks:
-  - id: default-outreach
-    trigger: first-touch
-    approach: Lead with one specific observation and one ask.
+audience:
+  primary: Replace with the core audience.
+message:
+  proof_points:
+    - Replace with one concrete proof point.
+topics:
+  pillars:
+    - id: primary-theme
+      angle: Replace with the recurring angle this brand should own.
+      signals:
+        - Replace with one signal to monitor.
+      formats: [opinionated-take]
+behavior:
+  engage:
+    - Inbound questions.
+  escalate:
+    - Legal, safety, or confidential matters.
+  channels:
+    linkedin:
+      primary_job: Build signal and authority.
+safety:
+  delegation:
+    human_required:
+      - legal_or_safety_claims
+---
+
+## Overview
+
+Replace with the brand behavior rationale.
 `
 
 function displayNameFromId(id: string): string {
@@ -82,7 +74,7 @@ export function runBrandCommand(args: string[], root?: string): unknown {
       throw new Error('Usage: brand init <id>')
     }
     const dir = join(paths.brandsDir, brandId)
-    const brandPath = join(dir, 'brand.yml')
+    const brandPath = join(dir, 'BRAND.md')
     if (existsSync(brandPath)) {
       throw new Error(`Brand already exists: ${brandPath}`)
     }
@@ -120,4 +112,3 @@ export function runBrandCommand(args: string[], root?: string): unknown {
 
   throw new Error('Usage: brand <init|show|validate> ...')
 }
-

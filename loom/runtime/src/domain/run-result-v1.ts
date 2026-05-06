@@ -1,56 +1,6 @@
-import type { ArtifactRecord, RunRecord } from './types'
+import type { ArtifactRecord, CanonicalRunResultStatus, CanonicalRunResultV1, RunRecord } from './types'
 
-export type CanonicalRunResultStatus = 'dry_run' | 'published' | 'failed'
-
-/**
- * Canonical loom-owned publish outcome exported for family handoffs.
- *
- * Loop-5 `performance.v1` readers should treat only published `social.post`
- * results as measurement sources. `dry_run` and `failed` outcomes are explicit
- * non-sources even though they remain exportable for operator inspection.
- */
-export interface CanonicalRunResultV1 {
-  artifact_type: 'run_result.v1'
-  schema_version: 'v1'
-  run_id: string
-  parent_run_id?: string
-  brief_id: string
-  brand_id: string
-  writer: {
-    repo: 'cli-phantom'
-    module: 'agentcy-loom'
-  }
-  workflow: string
-  status: CanonicalRunResultStatus
-  current_step: string
-  started_at: string
-  completed_at: string
-  review?: {
-    decision?: 'approved' | 'rejected' | 'needs_revision'
-    summary?: string
-  }
-  delivery?: {
-    dry_run?: boolean
-    platforms?: Array<{
-      platform: string
-      status: 'simulated' | 'published' | 'failed' | 'skipped'
-      post_id?: string
-      url?: string
-      message?: string
-    }>
-    export_paths?: string[]
-    selected_variant_id?: string
-  }
-  error?: {
-    step: string
-    message: string
-  }
-  lineage?: {
-    source_voice_pack_id?: string
-    campaign_id?: string
-    signal_id?: string
-  }
-}
+export type { CanonicalRunResultStatus, CanonicalRunResultV1 }
 
 function findLatestArtifact(artifacts: ArtifactRecord[], type: ArtifactRecord['type']): ArtifactRecord | undefined {
   for (let index = artifacts.length - 1; index >= 0; index -= 1) {

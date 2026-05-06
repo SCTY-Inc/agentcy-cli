@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url'
 import satori from 'satori'
 import { Resvg } from '@resvg/resvg-js'
 import { generateImage } from './gemini'
-import { cardTemplate } from './template'
+import { cardTemplate, type Node as CardNode } from './template'
 import { GROUNDS, PLATFORMS } from './tokens'
 import type { Figure, Gravity, GroundId, PlatformId } from './tokens'
 
@@ -75,6 +75,6 @@ export async function renderCard(opts: RenderOptions): Promise<Buffer> {
     bgDataUrl,
   })
 
-  const svg = await satori(element as any, { width: platform.w, height: platform.h, fonts })
+  const svg = await satori(element as unknown as Parameters<typeof satori>[0], { width: platform.w, height: platform.h, fonts })
   return Buffer.from(new Resvg(svg, { font: { loadSystemFonts: false } }).render().asPng())
 }

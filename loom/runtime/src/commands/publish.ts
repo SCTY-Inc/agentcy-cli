@@ -38,9 +38,13 @@ export async function runPublishCommand(args: string[], root?: string): Promise<
   }
 
   const runtime = createRuntime({ root })
-  const run = await runtime.publishRun(runId, { dryRun, platforms })
-  return {
-    run,
-    runResult: runtime.buildRunResult(run.id),
+  try {
+    const run = await runtime.publishRun(runId, { dryRun, platforms })
+    return {
+      run,
+      runResult: runtime.buildRunResult(run.id),
+    }
+  } finally {
+    runtime.close()
   }
 }

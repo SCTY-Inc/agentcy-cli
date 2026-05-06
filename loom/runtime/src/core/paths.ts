@@ -19,7 +19,12 @@ function hasBrandFoundations(root: string): boolean {
   if (!existsSync(brandsDir)) return false
 
   const entries = readdirSync(brandsDir, { withFileTypes: true })
-  return entries.some((entry) => entry.isDirectory() && existsSync(join(brandsDir, entry.name, 'brand.yml')))
+  return entries.some((entry) => {
+    if (!entry.isDirectory()) return false
+    const dir = join(brandsDir, entry.name)
+    return existsSync(join(dir, 'BRAND.md'))
+      || existsSync(join(dir, `${entry.name}.brand.md`))
+  })
 }
 
 function detectWorkspaceRoot(start: string): string {

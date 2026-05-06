@@ -1,5 +1,10 @@
 # Solutions Log
 
+## 2026-05-06 — Loom brand.yml → BRAND.md migration must ship as one atomic commit
+- Problem: The working tree had a complete migration of loom from `brand.yml` to `BRAND.md` across 20+ files (paths.ts, runtime.ts, commands/*, domain/*, render/*, all test files). Partial staging over two commits left source files and test files out of sync — CI failed because committed tests expected BRAND.md while committed source still checked brand.yml.
+- Fix: Commit all migrated source files together. Specifically: `paths.ts` (hasBrandFoundations), `runtime.ts`, all `commands/`, `domain/types.ts`, `render/` files must ship in the same commit as `load.ts` and the test files. Never commit test files without the source they depend on.
+- Recurrence: In loom, format-level changes (brand file format, schema shape) touch many files simultaneously. Stage with `git add loom/runtime/src/` to avoid splitting the set.
+
 ## 2026-05-06 — GiveCare brand wired end-to-end through pipeline with five quality fixes
 - Problem: First full pipeline run revealed five systematic issues: (1) loom render used hardcoded palette (#FFFFFF/#FF6600) ignoring BRAND.md visual.palette; (2) card body text truncated at 16 words mid-sentence; (3) compass research invented competitors instead of using the brand.yml list; (4) brief CTA contained literal "[Phone Number]" placeholder; (5) echo smoke reported 0.86 confidence from 5 stub actions, indistinguishable from a real forecast.
 - Fix: (1) `load.ts` now reads `data.visual.palette` with fallback to defaults; (2) `build.ts` word caps raised to 28/30 for statement/photo-text figures; (3) `research.py` loads `brand.yml` competitors and injects them as seed before LLM prompt; (4) `brief_v1.py` prefers `offer.cta` from brand config, skipping any LLM CTA containing `[`; (5) `forecast_v1.py` sets `confidence=None` and `smoke=True` when `manifest.smoke_mode` is set; schema updated to allow null confidence.

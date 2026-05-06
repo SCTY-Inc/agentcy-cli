@@ -48,6 +48,18 @@ function buildVoicePrompt(brand: BrandFoundation): string {
   if (brand.proofPoints.length > 0) {
     lines.push('', 'Evidence you can use:', ...brand.proofPoints.map(p => `- ${p}`))
   }
+  if (brand.policy.forbiddenClaims.length > 0) {
+    lines.push('', 'Forbidden claims — never say or imply:', ...brand.policy.forbiddenClaims.map(c => `- ${c}`))
+  }
+  if (brand.policy.regulatedClaims.length > 0) {
+    lines.push('', 'Regulated claims — require evidence or review:', ...brand.policy.regulatedClaims.map(c => `- ${c}`))
+  }
+  if (brand.policy.escalationRules.length > 0) {
+    lines.push('', 'Escalate instead of publishing when:', ...brand.policy.escalationRules.map(r => `- ${r}`))
+  }
+  if (brand.policy.citationPolicy) {
+    lines.push('', `Citation policy: ${brand.policy.citationPolicy}`)
+  }
   return lines.join('\n')
 }
 
