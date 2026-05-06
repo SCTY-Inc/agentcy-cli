@@ -19,16 +19,21 @@ The previous content-pipeline implementation is archived under `archive/legacy-2
 
 ### Runtime
 - `runtime/src/domain/types.ts` — core workflow, run, step, and artifact types
-- `runtime/src/brands/load.ts` — brand foundation loader for `brands/<name>/brand.yml`
+- `runtime/src/brands/load.ts` — strict `brand.md` 0.3 foundation loader for `brands/<name>/BRAND.md` and `<name>.brand.md`
 - `runtime/src/runtime/db.ts` — SQLite initialization
 - `runtime/src/runtime/runtime.ts` — run engine, artifact writing, review, publish, retry
 - `runtime/src/commands/` — CLI command handlers
 - `runtime/src/cli/index.ts` — command dispatch and help output
 
 ### Brand Foundations
-- `brands/<name>/brand.yml` — positioning, audiences, offers, pillars, voice, handles, channel objectives, playbooks, image prompts, visual palette
+- `brands/<name>/BRAND.md` — tenant behavioral brand contract: voice, audience, topics, claims, approval, escalation
 - `brand validate <name>` checks the foundation shape and referenced assets like logos
-- do not recreate the old `*-brand.yml`, queue, rubric, or visual-pipeline structure in active code
+- `BRAND.md` front matter now supports `visual.palette` (background/primary/accent hex) — loaded by `load.ts` and forwarded to the render step; omit to use defaults (#FFFFFF/#111111/#FF6600)
+- `BRAND.md` supports `voice.traits`, `voice.patterns`, `voice.examples` for richer copy generation prompts
+- `BRAND.md` supports `competitors` list — informational, not directly consumed by loom but useful for full-pipeline context
+- `offer.cta` in `BRAND.md` is used by `generate/copy.ts` as the default CTA when no brief CTA is supplied
+- do not recreate the old queue, rubric, or visual-pipeline structure in active code
+- When running loom from the monorepo root (not `loom/runtime/`), set `LOOM_ROOT=loom/runtime` or use `agentcy pipeline run` which injects it automatically; loom walks up from CWD looking for `brands/` otherwise
 
 ### Runtime State
 - `state/` is generated at runtime
@@ -79,7 +84,7 @@ cd runtime
 npx tsx src/cli.ts brand init <name>
 ```
 
-Then edit `brands/<name>/brand.yml` and run:
+Then edit `brands/<name>/BRAND.md` and run:
 
 ```bash
 cd runtime

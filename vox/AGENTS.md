@@ -1,4 +1,41 @@
-# Agent Architecture
+# AGENTS.md — agentcy-vox
+
+Persona CLI and Python library. Vox owns persona creation, evaluation, optimization, and `voice_pack.v1` export.
+
+## Current Surfaces
+
+- Python distribution: `agentcy-vox`
+- Python import path: `prsna`
+- installed CLI: `agentcy-vox`
+- dispatcher alias: `agentcy vox ...`
+- writer contract: `voice_pack.v1.writer = { repo: "cli-prsna", module: "agentcy-vox" }`
+
+## Commands
+
+```bash
+uv sync --dev
+uv run agentcy-vox --help
+uv run pytest
+uv run ruff check src/
+make install-personas   # sync vox/personas/*.yaml → ~/.prsna/personas/
+```
+
+Use centralized LLM helpers in `src/prsna/llm.py`. Persist durable eval reports through `src/prsna/eval_store.py`.
+
+## Persona Install
+
+Vox reads personas from `~/.prsna/personas/` (user-level), not from `vox/personas/`. Source files live in `vox/personas/` and must be synced manually or via `make install-personas`. The `install` Makefile target runs `install-personas` automatically.
+
+To set a canonical `brand_id` in the exported `voice_pack.v1`, add to the persona YAML:
+```yaml
+context:
+  agentcy:
+    brand_id: <brand>.brand.core
+    voice_pack_id: <brand>.voice.<name>.v1
+```
+Without this, the exporter derives `brand_id` from the persona slug, which may not match compass/loom brand IDs.
+
+## Agent Architecture
 
 How prsna's intelligent features work under the hood.
 

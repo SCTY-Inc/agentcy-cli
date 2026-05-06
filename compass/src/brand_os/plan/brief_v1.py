@@ -358,6 +358,16 @@ def build_brief_v1(
     )
     cta_options = [item for item in creative_result.get("ctas", []) if item]
     cta_options.extend(f"Support this with {item}." for item in proof_points[:1])
+    # Prefer the brand's own offer CTA over any LLM-generated placeholder
+    if brand:
+        try:
+            from brand_os.core.brands import load_brand_config
+            _cfg = load_brand_config(brand)
+            _brand_cta = (_cfg.get("offer") or {}).get("cta") or ""
+            if _brand_cta and "[" not in _brand_cta:
+                cta_options.insert(0, _brand_cta)
+        except Exception:
+            pass
     built = BriefV1(
         brief_id=default_brief_id(brand, campaign_id),
         brand_id=(

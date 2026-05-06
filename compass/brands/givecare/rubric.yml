@@ -1,0 +1,72 @@
+name: givecare
+description: "Content evaluation rubric for GiveCare — weighted toward empathy, accuracy, and caregiver dignity"
+pass_threshold: 0.75
+
+dimensions:
+  - name: empathy_authenticity
+    description: "Does it validate the caregiver's experience before offering solutions?"
+    weight: 1.8
+    threshold: 0.75
+    criteria:
+      - Acknowledges emotional reality before advice
+      - Uses person-first language
+      - Avoids toxic positivity or empty platitudes
+      - Feels like it came from someone who has lived this
+
+  - name: practical_value
+    description: "Does it give caregivers something they can actually use?"
+    weight: 1.5
+    threshold: 0.75
+    criteria:
+      - Concrete, actionable guidance (not vague)
+      - Accounts for time/energy/resource constraints
+      - Steps are manageable and specific
+      - No advice that requires unrealistic effort
+
+  - name: brand_voice
+    description: "Matches GiveCare voice: compassionate-practical, accessible, empowering"
+    weight: 1.2
+    threshold: 0.70
+    criteria:
+      - Consistent warm-but-grounded tone
+      - No jargon without translation
+      - Doesn't position GiveCare as savior
+      - Respects caregiver autonomy and wisdom
+
+  - name: accuracy_trust
+    description: "Is the content factually sound and trustworthy?"
+    weight: 1.5
+    threshold: 0.80
+    criteria:
+      - No false or misleading health claims
+      - Statistics cited correctly (e.g., 53M caregivers)
+      - Does not contradict clinical guidance
+      - Appropriate epistemic humility
+
+  - name: clarity
+    description: "Is the content clear on any device, including a basic phone screen?"
+    weight: 1.0
+    threshold: 0.70
+    criteria:
+      - Short sentences in crisis/SMS contexts
+      - Logical structure
+      - Platform-appropriate length
+
+  - name: engagement
+    description: "Will caregivers stop scrolling and read this?"
+    weight: 1.0
+    threshold: 0.65
+    criteria:
+      - Opens with a human moment, not a feature
+      - Maintains interest through specificity
+      - CTA feels helpful, not salesy
+
+red_flags:
+  - Guilt or pressure tactics toward caregivers
+  - Minimizing or dismissing caregiver challenges
+  - Positioning GiveCare as a replacement for human connection or clinical care
+  - Medical advice without appropriate caveats
+  - Any content touching grief/crisis/suicide without human review
+  - Competitor bashing
+  - Staged or inauthentic caregiver imagery descriptions
+  - "Just" / "Simply" / "Obviously" language patterns

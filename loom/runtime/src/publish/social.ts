@@ -5,6 +5,7 @@ import { postToLinkedIn } from './linkedin-direct'
 import { postToInstagram, postToThreads } from './meta-graph'
 import { checkRateLimit } from './rate-limit'
 import { postToTwitter } from './twitter-direct'
+import type { AdapterPostResult } from './base'
 
 export interface SocialPlatformAuthStatus {
   platform: SocialPlatform
@@ -20,12 +21,8 @@ export interface SocialAuthReport {
   r2Configured: boolean
 }
 
-export interface SocialPostResult {
+export interface SocialPostResult extends AdapterPostResult {
   platform: SocialPlatform
-  success: boolean
-  postId?: string
-  postUrl?: string
-  error?: string
 }
 
 export interface SocialPublishRequest {
@@ -149,6 +146,10 @@ export function buildSocialPublishPlan(brand: string, options: PublishInput = {}
   }
 
   if (platforms.length === 0) {
+    if (options.dryRun) {
+      // Dry-run with no auth: stub all known platforms so content generation proceeds
+      return { platforms: [...ALL_SOCIAL_PLATFORMS], auth }
+    }
     throw new Error(`No configured social platforms for ${brand}. Run "loom ops auth check --brand ${brand}" first.`)
   }
 

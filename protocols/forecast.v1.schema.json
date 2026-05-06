@@ -55,16 +55,20 @@
     "summary": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["thesis", "confidence"],
+      "required": ["thesis"],
       "properties": {
         "thesis": {
           "type": "string",
           "minLength": 1
         },
         "confidence": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
+          "oneOf": [
+            {"type": "number", "minimum": 0, "maximum": 1},
+            {"type": "null"}
+          ]
+        },
+        "smoke": {
+          "type": "boolean"
         },
         "recommended_action": {
           "type": "string",

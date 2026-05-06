@@ -1,4 +1,36 @@
-# agentcy-compass Agent Architecture
+# AGENTS.md — agentcy-compass
+
+Brand ops CLI with autonomous execution. Compass owns brand planning and `brief.v1` generation.
+
+## Current Surfaces
+
+- Python distribution: `agentcy-compass`
+- Python import root: `brand_os`
+- installed CLI: `agentcy-compass`
+- dispatcher alias: `agentcy compass ...`
+- writer contract: `brief.v1.writer = { repo: "brand-os", module: "agentcy-compass" }`
+
+Preferred stage surfaces are `brand`, `signals`, `intel`, and `plan`. `produce`, `eval`, `publish`, and `monitor` are secondary. Persona commands are deprecated; use `agentcy-vox`.
+
+## Brand-Seeded Research
+
+`plan/stages/research.py` now loads `brand.yml` competitors before calling the LLM. If `brand` is passed, known competitors are injected into the prompt so the LLM enriches them rather than inventing its own list.
+
+`plan/brief_v1.py` now prefers `offer.cta` from `brand.yml` over any LLM-generated CTA that contains bracket placeholders. Add `offer.cta` to `compass/brands/<name>/brand.yml` to lock the CTA across all runs.
+
+## Commands
+
+```bash
+uv sync
+uv run agentcy-compass --help
+BRANDOPS_LLM_PROVIDER=claude-cli CLAUDE_MODEL=sonnet uv run agentcy-compass plan run "..." --brand givecare -f json
+uv run pytest
+uv run ruff check src/
+```
+
+Compatible data-producing commands honor global `--json`; `--json-envelope` wraps successful compatible outputs as `{status, command, data}`.
+
+## Agent Architecture
 
 ## Overview
 

@@ -1,5 +1,22 @@
 # Solutions Log
 
+## 2026-05-06 — GiveCare brand wired end-to-end through pipeline with five quality fixes
+- Problem: First full pipeline run revealed five systematic issues: (1) loom render used hardcoded palette (#FFFFFF/#FF6600) ignoring BRAND.md visual.palette; (2) card body text truncated at 16 words mid-sentence; (3) compass research invented competitors instead of using the brand.yml list; (4) brief CTA contained literal "[Phone Number]" placeholder; (5) echo smoke reported 0.86 confidence from 5 stub actions, indistinguishable from a real forecast.
+- Fix: (1) `load.ts` now reads `data.visual.palette` with fallback to defaults; (2) `build.ts` word caps raised to 28/30 for statement/photo-text figures; (3) `research.py` loads `brand.yml` competitors and injects them as seed before LLM prompt; (4) `brief_v1.py` prefers `offer.cta` from brand config, skipping any LLM CTA containing `[`; (5) `forecast_v1.py` sets `confidence=None` and `smoke=True` when `manifest.smoke_mode` is set; schema updated to allow null confidence.
+- Recurrence note: any new brand added via pipeline should set `offer.cta` in `brand.yml` and `visual.palette` in `BRAND.md` to avoid these defaults surfacing.
+
+## 2026-05-06 — echo smoke mode bypasses all LLM steps (ontology/graph/profiles)
+- Problem: `agentcy-echo run --smoke` was documented as a fast LLM-free path but still called `session.generate_ontology()`, hitting the LLM and failing with truncated JSON on Python 3.12.
+- Fix: `_run_pipeline()` in `echo/app/cli.py` now branches at the top of the try block — smoke builds stub `graph_id`, `simulation_id`, `sim_dir`, `graph_data`, `graph_stats` and calls `build_smoke_outputs()` directly, skipping all session calls. Also fixed stale `getattr(args, "brief", None)` reference (now uses the `brief` parameter).
+
+## 2026-05-06 — agentcy pipeline run now auto-injects LOOM_ROOT
+- Problem: `agentcy pipeline run` failed with "Brand foundation not found" because it ran loom from the monorepo root where `brands/` doesn't exist; loom looked for `brands/givecare/BRAND.md` relative to CWD instead of `loom/runtime/brands/`.
+- Fix: `_subprocess_env()` in `src/agentcy/cli.py` now sets `LOOM_ROOT=loom/runtime` when the directory exists and `LOOM_ROOT` is not already set. Also fixed loom `--dry-run` with no configured platforms: `buildSocialPublishPlan` now falls back to all platforms as stubs when `dryRun=true` and no platforms are configured.
+
+## 2026-05-06 — BRAND.md established as single source of truth for GiveCare brand
+- Problem: three separate config files (compass `brand.yml`, vox `persona.yaml`, loom `BRAND.md`) each held overlapping brand identity data. Edits to voice, palette, or competitors required updating multiple files.
+- Fix: `loom/runtime/brands/givecare/BRAND.md` now carries `visual.palette`, `voice.traits`, `voice.patterns`, `voice.examples`, `competitors`, `industry`, and `tagline`. `brand.yml` reduced to compass-only operational config (subreddits, feeds, policy rules) with comments pointing to BRAND.md. `persona.yaml` reduced to vox runtime stub (model, pipeline IDs). `make install-personas` added to Makefile and wired into `install` target.
+
 ## 2026-04-22 — Repo-local smoke, eval, and study workflows were recovered from mixed local state without restoring generated artifacts
 - Problem: several real operator-facing improvements were stranded in a mixed local stash alongside disposable generated pipeline artifacts, which left the repo clean only by hiding useful code rather than integrating it.
 - Fix: the durable parts were recovered and shipped — Echo smoke mode plus split graph/report helpers and tests, Vox structured eval cases plus saved eval-report workflows, Compass stage normalization / Claude CLI / honest unsupported surfaces, Pulse study-path recovery, and the small shared protocol helper layer — while generated `artifacts/**` outputs and other low-signal leftovers were intentionally discarded.

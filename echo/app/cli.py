@@ -8,7 +8,7 @@ import os
 import shutil
 import sys
 import time
-from typing import Annotated, Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 import logging
 
@@ -341,7 +341,7 @@ def _run_pipeline(
         requirement,
         source_files,
         project_name=project_name,
-        brief_path=getattr(args, "brief", None),
+        brief_path=brief,
         imported_lineage=imported_brief.lineage if imported_brief else None,
     )
     run_id = manifest["run_id"]
@@ -378,102 +378,34 @@ def _run_pipeline(
     current_step = "simulation"
 
     try:
-        if not smoke:
-            require_simulation_runtime()
-        current_step = "ontology"
-        # --- ontology ---
-        display.start_step("ontology")
-        project_result = session.generate_ontology(
-            simulation_requirement=requirement,
-            uploaded_files=[LocalFileInput(path) for path in source_files],
-            project_name=project_name,
-        )
-        ontology = project_result.get("ontology", {})
-        n_entity_types = len(ontology.get("entity_types", []))
-        n_edge_types = len(ontology.get("relationship_types", ontology.get("edge_types", [])))
-        display.complete_step("ontology", f"{n_entity_types} entity types, {n_edge_types} edge types")
-
-        store.update(run_id, project_id=project_result["project_id"], status="graph_building", task_progress=0, task_message="Ontology generated")
-        store.write_json(run_id, "input/ontology.json", ontology)
-        store.record_artifact(run_id, "ontology", "input/ontology.json")
-        store.write_text(run_id, "input/analysis_summary.txt", project_result.get("analysis_summary", ""))
-        store.record_artifact(run_id, "analysis_summary", "input/analysis_summary.txt")
-
-        # --- graph ---
-        current_step = "graph"
-        display.start_step("graph")
-        graph_result = session.start_graph_build(project_id=project_result["project_id"])
-        store.update(run_id, graph_build_task_id=graph_result["task_id"], status="graph_building")
-        _wait_for_task(
-            graph_result["task_id"],
-            on_update=lambda task: (
-                store.update(run_id, status="graph_building", task_progress=task.progress, task_message=task.message),
-                display.update_step("graph", task.message or ""),
-            ),
-        )
-        graph_id = (_get_task_result(graph_result["task_id"]) or {}).get("graph_id")
-        if not graph_id:
-            raise RuntimeError("Graph build completed without a graph_id")
-
-        graph_builder = GraphBuilderService()
-        graph_db = GraphDatabase()
-        graph_data = graph_builder.get_graph_data(graph_id)
-        graph_stats = graph_db.get_graph_statistics(graph_id)
-        n_nodes = graph_stats.get("node_count", 0)
-        n_edges = graph_stats.get("edge_count", 0)
-        display.complete_step("graph", f"{n_nodes} nodes, {n_edges} edges")
-        store.update(run_id, graph_id=graph_id, status="graph_ready", task_progress=100, task_message="Graph ready")
-
-        # --- profiles ---
-        current_step = "profiles"
-        display.start_step("profiles")
-        enable_twitter = platform in {"parallel", "twitter"}
-        enable_reddit = platform in {"parallel", "reddit"}
-        simulation_state = session.create_simulation(
-            project_id=project_result["project_id"],
-            graph_id=graph_id,
-            enable_twitter=enable_twitter,
-            enable_reddit=enable_reddit,
-        )
-        simulation_id = simulation_state.simulation_id
-        store.update(run_id, simulation_id=simulation_id, status="simulation_preparing", task_progress=0, task_message="Simulation created")
-
-        prepare_result = session.start_simulation_preparation(
-            simulation_id=simulation_id,
-            use_llm_for_profiles=True,
-            parallel_profile_count=DEFAULT_PARALLEL_PROFILE_COUNT,
-        )
-        if prepare_result.get("task_id"):
-            store.update(run_id, prepare_task_id=prepare_result["task_id"], status="simulation_preparing")
-            _wait_for_task(
-                prepare_result["task_id"],
-                on_update=lambda task: (
-                    store.update(run_id, status="simulation_preparing", task_progress=task.progress, task_message=task.message),
-                    display.update_step("profiles", task.message or ""),
-                ),
-            )
-
-        sim_dir = _simulation_dir(simulation_id)
-        agent_count = 0
-        config_path = os.path.join(sim_dir, "simulation_config.json")
-        if os.path.exists(config_path):
-            with open(config_path, "r") as f:
-                agent_count = len(json.load(f).get("agent_configs", []))
-        display.complete_step("profiles", f"{agent_count} agents")
-        store.update(run_id, status="simulation_ready", task_progress=100, task_message="Simulation ready")
-
-        _record_if_copied(store, run_id, "frozen_simulation_config", os.path.join(sim_dir, "simulation_config.json"), "input/simulation_config.json")
-        _record_if_copied(store, run_id, "frozen_reddit_profiles", os.path.join(sim_dir, "reddit_profiles.json"), "input/reddit_profiles.json")
-        _record_if_copied(store, run_id, "frozen_twitter_profiles", os.path.join(sim_dir, "twitter_profiles.csv"), "input/twitter_profiles.csv")
-
-        # --- simulation ---
-        current_step = "simulation"
-        display.start_step("simulation")
         report_payload = None
         report_markdown = ""
         report_id = None
 
         if smoke:
+            # Bypass all LLM-dependent setup (ontology, graph, profiles).
+            # Build stubs for every variable the downstream code needs.
+            import tempfile
+            graph_id = f"smoke-graph-{run_id[:8]}"
+            simulation_id = f"smoke-sim-{run_id[:8]}"
+            stub_sim_dir = tempfile.mkdtemp(prefix="echo-smoke-")
+            with open(os.path.join(stub_sim_dir, "simulation_config.json"), "w") as _f:
+                json.dump({"agent_configs": [
+                    {"entity_name": "Caregivers"},
+                    {"entity_name": "Advocates"},
+                    {"entity_name": "Healthcare Providers"},
+                ]}, _f)
+            sim_dir = stub_sim_dir
+            graph_data: dict = {}
+            graph_stats: dict = {"node_count": 3, "edge_count": 2}
+            store.update(run_id, graph_id=graph_id, simulation_id=simulation_id,
+                         status="simulation_ready", smoke_mode=True)
+            for _step in ("ontology", "graph", "profiles"):
+                display.start_step(_step)
+                display.complete_step(_step, "smoke — skipped")
+
+            current_step = "simulation"
+            display.start_step("simulation")
             smoke_outputs = build_smoke_outputs(
                 sim_dir,
                 run_id=run_id,
@@ -494,18 +426,102 @@ def _run_pipeline(
                 "simulation",
                 f"smoke mode — {len(timeline)} rounds, {total_actions} actions",
             )
-            store.update(
-                run_id,
-                status="simulation_completed",
-                task_progress=100,
-                task_message="Smoke simulation completed",
-                smoke_mode=True,
-            )
-
+            store.update(run_id, status="simulation_completed", task_progress=100,
+                         task_message="Smoke simulation completed")
             current_step = "report"
             display.start_step("report")
             display.complete_step("report", "smoke report")
         else:
+            require_simulation_runtime()
+            current_step = "ontology"
+            # --- ontology ---
+            display.start_step("ontology")
+            project_result = session.generate_ontology(
+                simulation_requirement=requirement,
+                uploaded_files=[LocalFileInput(path) for path in source_files],
+                project_name=project_name,
+            )
+            ontology = project_result.get("ontology", {})
+            n_entity_types = len(ontology.get("entity_types", []))
+            n_edge_types = len(ontology.get("relationship_types", ontology.get("edge_types", [])))
+            display.complete_step("ontology", f"{n_entity_types} entity types, {n_edge_types} edge types")
+
+            store.update(run_id, project_id=project_result["project_id"], status="graph_building", task_progress=0, task_message="Ontology generated")
+            store.write_json(run_id, "input/ontology.json", ontology)
+            store.record_artifact(run_id, "ontology", "input/ontology.json")
+            store.write_text(run_id, "input/analysis_summary.txt", project_result.get("analysis_summary", ""))
+            store.record_artifact(run_id, "analysis_summary", "input/analysis_summary.txt")
+
+            # --- graph ---
+            current_step = "graph"
+            display.start_step("graph")
+            graph_result = session.start_graph_build(project_id=project_result["project_id"])
+            store.update(run_id, graph_build_task_id=graph_result["task_id"], status="graph_building")
+            _wait_for_task(
+                graph_result["task_id"],
+                on_update=lambda task: (
+                    store.update(run_id, status="graph_building", task_progress=task.progress, task_message=task.message),
+                    display.update_step("graph", task.message or ""),
+                ),
+            )
+            graph_id = (_get_task_result(graph_result["task_id"]) or {}).get("graph_id")
+            if not graph_id:
+                raise RuntimeError("Graph build completed without a graph_id")
+
+            graph_builder = GraphBuilderService()
+            graph_db = GraphDatabase()
+            graph_data = graph_builder.get_graph_data(graph_id)
+            graph_stats = graph_db.get_graph_statistics(graph_id)
+            n_nodes = graph_stats.get("node_count", 0)
+            n_edges = graph_stats.get("edge_count", 0)
+            display.complete_step("graph", f"{n_nodes} nodes, {n_edges} edges")
+            store.update(run_id, graph_id=graph_id, status="graph_ready", task_progress=100, task_message="Graph ready")
+
+            # --- profiles ---
+            current_step = "profiles"
+            display.start_step("profiles")
+            enable_twitter = platform in {"parallel", "twitter"}
+            enable_reddit = platform in {"parallel", "reddit"}
+            simulation_state = session.create_simulation(
+                project_id=project_result["project_id"],
+                graph_id=graph_id,
+                enable_twitter=enable_twitter,
+                enable_reddit=enable_reddit,
+            )
+            simulation_id = simulation_state.simulation_id
+            store.update(run_id, simulation_id=simulation_id, status="simulation_preparing", task_progress=0, task_message="Simulation created")
+
+            prepare_result = session.start_simulation_preparation(
+                simulation_id=simulation_id,
+                use_llm_for_profiles=True,
+                parallel_profile_count=DEFAULT_PARALLEL_PROFILE_COUNT,
+            )
+            if prepare_result.get("task_id"):
+                store.update(run_id, prepare_task_id=prepare_result["task_id"], status="simulation_preparing")
+                _wait_for_task(
+                    prepare_result["task_id"],
+                    on_update=lambda task: (
+                        store.update(run_id, status="simulation_preparing", task_progress=task.progress, task_message=task.message),
+                        display.update_step("profiles", task.message or ""),
+                    ),
+                )
+
+            sim_dir = _simulation_dir(simulation_id)
+            agent_count = 0
+            config_path = os.path.join(sim_dir, "simulation_config.json")
+            if os.path.exists(config_path):
+                with open(config_path, "r") as f:
+                    agent_count = len(json.load(f).get("agent_configs", []))
+            display.complete_step("profiles", f"{agent_count} agents")
+            store.update(run_id, status="simulation_ready", task_progress=100, task_message="Simulation ready")
+
+            _record_if_copied(store, run_id, "frozen_simulation_config", os.path.join(sim_dir, "simulation_config.json"), "input/simulation_config.json")
+            _record_if_copied(store, run_id, "frozen_reddit_profiles", os.path.join(sim_dir, "reddit_profiles.json"), "input/reddit_profiles.json")
+            _record_if_copied(store, run_id, "frozen_twitter_profiles", os.path.join(sim_dir, "twitter_profiles.csv"), "input/twitter_profiles.csv")
+
+            # --- simulation ---
+            current_step = "simulation"
+            display.start_step("simulation")
             session.start_simulation_run(
                 simulation_id=simulation_id,
                 platform=platform,
@@ -633,7 +649,6 @@ def run(
     platform: str = typer.Option("parallel", "--platform", help="Platform: parallel, twitter, reddit"),
     max_rounds: Optional[int] = typer.Option(None, "--max-rounds", help="Max simulation rounds"),
     smoke: bool = typer.Option(False, "--smoke", help="Skip live OASIS runtime; emit deterministic artifacts"),
-    wait: bool = typer.Option(False, "--wait", help="Accepted for compatibility; run always waits"),
     output_dir: Optional[str] = typer.Option(None, "--output-dir"),
     json: bool = typer.Option(False, "--json", help="Machine-readable output"),
 ) -> None:

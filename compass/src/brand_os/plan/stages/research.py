@@ -77,6 +77,24 @@ def research(
 
     if brand:
         prompt_parts.append(f"Brand: {brand}")
+        try:
+            from brand_os.core.brands import load_brand_config
+            brand_config = load_brand_config(brand)
+            known_competitors = brand_config.get("competitors", [])
+            if known_competitors:
+                competitor_list = "\n".join(f"- {c}" for c in known_competitors)
+                prompt_parts.append(
+                    f"Known competitors to analyze (use these exactly — do not substitute or invent others):\n{competitor_list}"
+                )
+            known_cta = (brand_config.get("metadata") or {}).get("primary_tagline") or ""
+            offer_cta = ""
+            try:
+                from brand_os.core.brands import load_brand_profile
+                profile = load_brand_profile(brand)
+            except Exception:
+                profile = None
+        except Exception:
+            pass
 
     if context:
         prompt_parts.append(f"Additional context: {context}")

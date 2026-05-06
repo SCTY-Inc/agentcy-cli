@@ -47,8 +47,15 @@ uv sync --all-extras --group dev
 cd loom/runtime && pnpm install
 # Protocol seam tests call the loom launcher, so this install is also required for `make check-python`
 
+# Install vox personas to ~/.prsna/personas/ (required after editing vox/personas/*.yaml)
+make install-personas
+
 # Full live pipeline (echo simulation requires Python 3.11 + simulation extra)
 make pipeline brand=givecare persona=my-persona files=docs/ req="predict adoption" sidecar=sidecar.json
+
+# GiveCare-specific pipeline targets
+make pipeline-givecare req="your brief" files=docs/          # live run
+make pipeline-givecare-preview req="your brief"              # smoke + dry publish
 
 # Fixture-backed downstream smoke path
 make pipeline-fixtures sidecar=protocols/tests/fixtures/run_result_to_performance_v1/sidecar.rich.json
@@ -90,11 +97,15 @@ Do not assume every member subcommand has the same JSON envelope yet; use the do
 - `trash` not `rm`
 - `git add <files>` never `.`
 - echo's `camel-oasis==0.2.5` / `camel-ai==0.2.78` stay pinned — do not upgrade
-- prefer `agentcy-echo run --smoke` when you need a fast e2e artifact proof on Python 3.12 or when the live OASIS runtime is too slow for validation
+- prefer `agentcy-echo run --smoke` when you need a fast e2e artifact proof on Python 3.12 or when the live OASIS runtime is too slow for validation; smoke now fully skips ontology/graph/profiles — no LLM calls
 - CLI automation for full echo runs should exit cleanly on its own; command-waiting mode is for debug/service workflows, not the operator happy path
 - Never delete `echo/uploads/runs/` — artifacts are immutable products
 - compass persona subcommands are deprecated — use `agentcy-vox` instead
 - pulse absorbs lab: `agentcy-pulse calibrate` replaces `agentcy-lab calibration`
+- vox personas source from `vox/personas/*.yaml` but install to `~/.prsna/personas/`; run `make install-personas` after editing persona files
+- loom brands live at `loom/runtime/brands/<name>/BRAND.md`; set `LOOM_ROOT` or rely on the pipeline's auto-inject when running from monorepo root
+- `agentcy pipeline run` auto-sets `LOOM_ROOT=loom/runtime` so loom resolves brands correctly from any CWD
+- echo smoke `forecast.v1` emits `"smoke": true` and omits `confidence` — treat these forecasts as plumbing checks, not real predictions
 
 ## Writer contract split
 

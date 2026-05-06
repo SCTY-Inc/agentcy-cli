@@ -19,7 +19,8 @@ class ForecastWriter(BaseModel):
 
 class ForecastSummary(BaseModel):
     thesis: str = Field(min_length=1)
-    confidence: float = Field(ge=0, le=1)
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    smoke: bool = False
     recommended_action: str | None = None
 
 
@@ -113,7 +114,7 @@ def _load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8").strip()
 
 
-def _first_non_empty(*values: Any) -> str:
+def _first_non_empty(*values: object) -> str:
     for value in values:
         if isinstance(value, str) and value.strip():
             return value.strip()
@@ -299,7 +300,8 @@ def build_completed_forecast_v1(manifest: dict[str, Any], run_dir: str | Path) -
         "completed_at": completed_at,
         "summary": {
             "thesis": thesis,
-            "confidence": _confidence_from_timeline(list(timeline)),
+            "confidence": None if manifest.get("smoke_mode") else _confidence_from_timeline(list(timeline)),
+            "smoke": bool(manifest.get("smoke_mode", False)),
             "recommended_action": _recommended_action(brief_payload if isinstance(brief_payload, dict) else None),
         },
         "scenarios": _build_scenarios(forecast_id, thesis, list(timeline), list(top_agents)),

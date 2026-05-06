@@ -1289,7 +1289,7 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
         if (variant.cardType === 'hero-stat') {
           const chips = bullets.slice(0, 2).map((item) => '<div class="stat-chip">' + escapeHtml(item) + '</div>').join('')
           return '<div style="display:grid; gap:10px;">'
-            + '<p class="body">' + escapeHtml(truncateWords(bullets[0] ?? variant.body, 16)) + '</p>'
+            + '<p class="body">' + escapeHtml(truncateWords(bullets[0] ?? variant.body, 28)) + '</p>'
             + '<div class="stat-grid">' + chips + '</div>'
             + '</div>'
         }
@@ -1302,10 +1302,10 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
         }
 
         if (variant.cardType === 'photo-text') {
-          return '<p class="body">' + escapeHtml(truncateWords(bullets[0] ?? variant.body, 18)) + '</p>'
+          return '<p class="body">' + escapeHtml(truncateWords(bullets[0] ?? variant.body, 30)) + '</p>'
         }
 
-        return '<p class="body">' + escapeHtml(truncateWords(bullets.slice(0, 2).join(' '), 22)) + '</p>'
+        return '<p class="body">' + escapeHtml(truncateWords(bullets.slice(0, 2).join(' '), 30)) + '</p>'
       }
 
       function renderMediaBlock(variant) {

@@ -21,12 +21,14 @@ import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
 from uuid import uuid4
 
 import typer
+from agentcy_protocols.utils import load_json as _load_json
+from agentcy_protocols.utils import utc_now_iso
+from agentcy_protocols.utils import write_json as _write_json
 from rich.console import Console
 from rich.table import Table
 
@@ -78,7 +80,7 @@ def main(
 
 
 def _utc_now() -> str:
-    return datetime.now(UTC).isoformat()
+    return utc_now_iso()
 
 
 def _subprocess_env() -> dict[str, str]:
@@ -87,6 +89,11 @@ def _subprocess_env() -> dict[str, str]:
         env["LLM_PROVIDER"] = _OVERRIDES.provider
     if _OVERRIDES.model:
         env["CLAUDE_MODEL"] = _OVERRIDES.model
+    # Ensure loom resolves brands/ from its own runtime root, not monorepo CWD
+    if "LOOM_ROOT" not in env:
+        loom_runtime = Path(__file__).resolve().parents[2] / "loom" / "runtime"
+        if loom_runtime.exists():
+            env["LOOM_ROOT"] = str(loom_runtime)
     return env
 
 
@@ -306,16 +313,6 @@ def _pipeline_root(output_dir: Path | None) -> Path:
 
 def _pipeline_manifest_path(output_dir: Path | None, pipeline_id: str) -> Path:
     return _pipeline_root(output_dir) / pipeline_id / "manifest.json"
-
-
-def _write_json(path: Path, payload: dict[str, Any]) -> Path:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    return path
-
-
-def _load_json(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _save_pipeline_manifest(path: Path, payload: dict[str, Any]) -> Path:

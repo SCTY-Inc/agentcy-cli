@@ -1,8 +1,14 @@
-.PHONY: install install-loom sync install-python-suite install-echo-simulation install-full-operator doctor check check-python check-loom test lint lint-full pipeline pipeline-fixtures
+.PHONY: install install-loom sync install-python-suite install-echo-simulation install-full-operator install-personas doctor check check-python check-loom test lint lint-full pipeline pipeline-fixtures pipeline-givecare pipeline-givecare-preview
 
 # Install Python workspace members + repo-local dev tools
-install:
+install: install-personas
 	uv sync --all-extras --group dev
+
+# Sync vox/personas/ source files → ~/.prsna/personas/ (vox reads from there)
+install-personas:
+	@mkdir -p ~/.prsna/personas
+	@cp vox/personas/*.yaml ~/.prsna/personas/
+	@echo "personas installed: $$(ls vox/personas/*.yaml | wc -l | tr -d ' ') files"
 
 # Install the base Python suite only (root CLI + protocols + vox + compass + echo base CLI + pulse)
 install-python-suite:
@@ -92,3 +98,63 @@ pipeline-fixtures:
 	cp protocols/examples/run_result.v1.published.json /tmp/run_result.json
 	uv run agentcy-pulse adapt --run-result /tmp/run_result.json --sidecar $(sidecar) --output /tmp/performance.json --json > /tmp/performance.stdout.json
 	uv run agentcy-pulse calibrate --forecast /tmp/forecast.json --performance /tmp/performance.json --json > /tmp/calibration.json
+
+# GiveCare end-to-end pipeline (full live run)
+# Requirements: Python 3.11 + `uv sync --extra simulation` + `make install-loom`
+# Usage:
+#   make pipeline-givecare req="launch post: SMS crisis support for dementia caregivers" files=docs/
+#   make pipeline-givecare req="..." files=... sidecar=path/to/sidecar.json
+pipeline-givecare:
+	@echo "==> vox: export GiveCare companion voice pack"
+	uv run agentcy-vox --json export givecare-companion --to voice-pack.v1 > /tmp/gc_voice_pack.json
+	@echo "==> compass: generate brief.v1 for GiveCare"
+	uv run agentcy-compass plan run "$(req)" \
+		--brand givecare \
+		--voice-pack-input /tmp/gc_voice_pack.json \
+		--brief-v1-output /tmp/gc_brief.json \
+		-f json > /tmp/gc_brief_plan.json
+	@echo "==> echo: forecast social adoption"
+	uv run agentcy-echo run \
+		--files $(if $(files),$(files),docs/) \
+		--brief /tmp/gc_brief.json \
+		--json > /tmp/gc_forecast.json
+	@echo "==> loom: render + publish"
+	cd loom/runtime && node bin/loom.js run social.post \
+		--brand givecare \
+		--brief-file /tmp/gc_brief.json \
+		--json > /tmp/gc_run_result.json
+	@echo "==> pulse: adapt (measure performance)"
+	uv run agentcy-pulse adapt \
+		--run-result /tmp/gc_run_result.json \
+		$(if $(sidecar),--sidecar $(sidecar),) \
+		--output /tmp/gc_performance.json \
+		--json > /tmp/gc_performance_stdout.json
+	@echo "==> pulse: calibrate (forecast vs. actuals)"
+	uv run agentcy-pulse calibrate \
+		--forecast /tmp/gc_forecast.json \
+		--performance /tmp/gc_performance.json \
+		--json > /tmp/gc_calibration.json
+	@echo "Pipeline complete. Artifacts in /tmp/gc_*.json"
+
+# GiveCare preview pipeline — dry run; loom publishes as preview, pulse emits preview note
+pipeline-givecare-preview:
+	@echo "==> vox: export GiveCare companion voice pack"
+	uv run agentcy-vox --json export givecare-companion --to voice-pack.v1 > /tmp/gc_voice_pack.json
+	@echo "==> compass: generate brief.v1 for GiveCare"
+	uv run agentcy-compass plan run "$(req)" \
+		--brand givecare \
+		--voice-pack-input /tmp/gc_voice_pack.json \
+		--brief-v1-output /tmp/gc_brief.json \
+		-f json > /tmp/gc_brief_plan.json
+	@echo "==> echo: smoke forecast (fast, no full simulation)"
+	uv run agentcy-echo run --smoke \
+		--brief /tmp/gc_brief.json \
+		--json > /tmp/gc_forecast.json
+	@echo "==> pipeline: preview mode (auto-approve, dry publish)"
+	uv run agentcy pipeline run \
+		--mode preview \
+		--brand givecare \
+		--brief-file /tmp/gc_brief.json \
+		--loom-workflow social.post \
+		--json > /tmp/gc_pipeline_preview.json
+	@echo "Preview complete. Artifacts in /tmp/gc_*.json"
