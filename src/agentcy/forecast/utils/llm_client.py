@@ -6,7 +6,7 @@ import json
 import os
 import re
 import subprocess
-from typing import Optional, Dict, Any, List
+from typing import Any
 
 from ..config import Config
 from .logger import get_logger
@@ -31,12 +31,12 @@ def _append_telemetry(record: dict) -> None:
 class LLMClient:
     """LLM Client — supports claude-cli and codex-cli."""
 
-    def __init__(self, provider: Optional[str] = None):
+    def __init__(self, provider: str | None = None):
         self.provider = (provider or Config.LLM_PROVIDER or "claude-cli").lower()
         if self.provider not in ("claude-cli", "codex-cli"):
             raise ValueError(f"Unsupported LLM provider: {self.provider!r}. Use 'claude-cli' or 'codex-cli'.")
 
-    def _split_system_message(self, messages: List[Dict[str, str]]):
+    def _split_system_message(self, messages: list[dict[str, str]]):
         """Split system message from conversation messages."""
         system_text = None
         conversation = []
@@ -58,10 +58,10 @@ class LLMClient:
 
     def chat(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         temperature: float = 0.7,
         max_tokens: int = 4096,
-        response_format: Optional[Dict] = None
+        response_format: dict | None = None
     ) -> str:
         """Send a chat request via CLI."""
         if self.provider == "codex-cli":
@@ -70,10 +70,10 @@ class LLMClient:
 
     def _chat_claude_cli(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         temperature: float,
         max_tokens: int,
-        response_format: Optional[Dict] = None
+        response_format: dict | None = None
     ) -> str:
         """Chat via Claude Code CLI."""
         system_text, conversation = self._split_system_message(messages)
@@ -130,10 +130,10 @@ class LLMClient:
 
     def _chat_codex_cli(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         temperature: float,
         max_tokens: int,
-        response_format: Optional[Dict] = None
+        response_format: dict | None = None
     ) -> str:
         """Chat via Codex CLI."""
         system_text, conversation = self._split_system_message(messages)
@@ -191,10 +191,10 @@ class LLMClient:
 
     def chat_json(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         temperature: float = 0.3,
         max_tokens: int = 4096
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Send a chat request and return parsed JSON."""
         response = self.chat(
             messages=messages,

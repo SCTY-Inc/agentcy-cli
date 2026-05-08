@@ -8,8 +8,7 @@ humans set policies, system operates within them.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from enum import Enum
-from typing import Any
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -17,7 +16,7 @@ from agentcy.brand.core.config import utc_now
 from agentcy.brand.core.decision import Decision, DecisionStatus, DecisionType
 
 
-class PolicyVerdict(str, Enum):
+class PolicyVerdict(StrEnum):
     """Result of policy evaluation."""
 
     ALLOW = "allow"  # Execute autonomously
@@ -253,7 +252,6 @@ class PolicyEngine:
         policy: BrandPolicy,
     ) -> PolicyEvaluation:
         """Evaluate decision against a specific rule."""
-        reasons: list[str] = []
         escalate_reasons: list[str] = []
 
         # Confidence check

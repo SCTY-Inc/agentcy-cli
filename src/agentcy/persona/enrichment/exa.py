@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC
 from typing import TYPE_CHECKING
 
 from agentcy.persona.clients import get_exa_client
@@ -67,6 +68,6 @@ def enrich_from_exa(persona: Persona, query: str | None = None) -> Persona:
 
 def _now_iso() -> str:
     """Return current UTC time in ISO format."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()

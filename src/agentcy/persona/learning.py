@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -78,7 +78,7 @@ class InteractionLog:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "InteractionLog":
+    def from_dict(cls, data: dict) -> InteractionLog:
         return cls(**data)
 
 
@@ -111,7 +111,7 @@ class LearningState:
             )
 
     @classmethod
-    def load(cls, persona_name: str) -> "LearningState":
+    def load(cls, persona_name: str) -> LearningState:
         """Load learning state from disk."""
         state = cls(persona_name=persona_name)
         if not state.log_path.exists():
@@ -143,7 +143,7 @@ def log_interaction(
     state = LearningState.load(persona.name)
     state.interactions.append(
         InteractionLog(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             messages=messages,
             feedback=feedback,
             drift_score=drift_score,
@@ -230,7 +230,7 @@ def self_critique(
     )
 
     state.improvement_history.append({
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "critique": critique,
         "applied": False,
     })

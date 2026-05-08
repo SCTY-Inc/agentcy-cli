@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import builtins
 import json
 import os
 import shutil
 import uuid
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any
 
 from .config import Config
 
@@ -19,7 +21,7 @@ def _now() -> str:
 class RunStore:
     """File-backed storage for immutable run artifacts."""
 
-    def __init__(self, root_dir: Optional[str] = None):
+    def __init__(self, root_dir: str | None = None):
         self.root_dir = os.path.abspath(root_dir or os.path.join(Config.UPLOAD_FOLDER, "runs"))
         os.makedirs(self.root_dir, exist_ok=True)
 
@@ -35,8 +37,8 @@ class RunStore:
         source_files: Iterable[str],
         project_name: str = "Unnamed Project",
         brief_path: str | None = None,
-        imported_lineage: Dict[str, Any] | None = None,
-    ) -> Dict[str, Any]:
+        imported_lineage: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         run_id = f"run_{uuid.uuid4().hex[:12]}"
         run_dir = self.run_dir(run_id)
         os.makedirs(run_dir, exist_ok=True)
@@ -75,7 +77,7 @@ class RunStore:
         self.save(manifest)
         return manifest
 
-    def save(self, manifest: Dict[str, Any]) -> Dict[str, Any]:
+    def save(self, manifest: dict[str, Any]) -> dict[str, Any]:
         manifest = dict(manifest)
         manifest["updated_at"] = _now()
         path = self.manifest_path(manifest["run_id"])
@@ -85,20 +87,20 @@ class RunStore:
         os.replace(tmp_path, path)
         return manifest
 
-    def load(self, run_id: str) -> Dict[str, Any]:
+    def load(self, run_id: str) -> dict[str, Any]:
         path = self.manifest_path(run_id)
         if not os.path.exists(path):
             raise FileNotFoundError(f"Run not found: {run_id}")
-        with open(path, "r", encoding="utf-8") as handle:
+        with open(path, encoding="utf-8") as handle:
             return json.load(handle)
 
-    def update(self, run_id: str, **changes: Any) -> Dict[str, Any]:
+    def update(self, run_id: str, **changes: Any) -> dict[str, Any]:
         manifest = self.load(run_id)
         manifest.update(changes)
         return self.save(manifest)
 
-    def list(self, limit: int = 20) -> List[Dict[str, Any]]:
-        manifests: List[Dict[str, Any]] = []
+    def list(self, limit: int = 20) -> builtins.list[dict[str, Any]]:
+        manifests: list[dict[str, Any]] = []
         for item in os.listdir(self.root_dir):
             path = self.manifest_path(item)
             if not os.path.exists(path):
@@ -124,7 +126,7 @@ class RunStore:
             handle.write(content)
         return output_path
 
-    def copy_file(self, run_id: str, source_path: str, rel_path: str) -> Optional[str]:
+    def copy_file(self, run_id: str, source_path: str, rel_path: str) -> str | None:
         if not os.path.exists(source_path):
             return None
         output_path = os.path.join(self.run_dir(run_id), rel_path)
@@ -132,7 +134,7 @@ class RunStore:
         shutil.copy2(source_path, output_path)
         return output_path
 
-    def copy_tree(self, run_id: str, source_dir: str, rel_dir: str) -> Optional[str]:
+    def copy_tree(self, run_id: str, source_dir: str, rel_dir: str) -> str | None:
         if not os.path.exists(source_dir):
             return None
         output_dir = os.path.join(self.run_dir(run_id), rel_dir)
@@ -146,8 +148,8 @@ class RunStore:
                 shutil.copy2(src, dst)
         return output_dir
 
-    def freeze_source_files(self, run_id: str, source_files: Iterable[str]) -> List[str]:
-        copied: List[str] = []
+    def freeze_source_files(self, run_id: str, source_files: Iterable[str]) -> builtins.list[str]:
+        copied: list[str] = []
         for index, source_path in enumerate(source_files, start=1):
             absolute = os.path.abspath(source_path)
             if not os.path.exists(absolute):
@@ -159,7 +161,7 @@ class RunStore:
                 copied.append(output)
         return copied
 
-    def record_artifact(self, run_id: str, key: str, rel_path: str) -> Dict[str, Any]:
+    def record_artifact(self, run_id: str, key: str, rel_path: str) -> dict[str, Any]:
         manifest = self.load(run_id)
         artifacts = dict(manifest.get("artifacts", {}))
         artifacts[key] = rel_path

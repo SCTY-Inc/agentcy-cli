@@ -5,7 +5,7 @@ import os
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..config import Config
 
@@ -17,13 +17,13 @@ class WorkbenchSessionState:
     session_id: str
     created_at: str
     updated_at: str
-    project_id: Optional[str] = None
-    graph_id: Optional[str] = None
-    simulation_id: Optional[str] = None
-    report_id: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    project_id: str | None = None
+    graph_id: str | None = None
+    simulation_id: str | None = None
+    report_id: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "session_id": self.session_id,
             "created_at": self.created_at,
@@ -36,7 +36,7 @@ class WorkbenchSessionState:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "WorkbenchSessionState":
+    def from_dict(cls, data: dict[str, Any]) -> "WorkbenchSessionState":
         return cls(
             session_id=data["session_id"],
             created_at=data.get("created_at", datetime.now().isoformat()),
@@ -71,11 +71,11 @@ class SessionManager:
 
     def create(
         self,
-        project_id: Optional[str] = None,
-        graph_id: Optional[str] = None,
-        simulation_id: Optional[str] = None,
-        report_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        project_id: str | None = None,
+        graph_id: str | None = None,
+        simulation_id: str | None = None,
+        report_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> WorkbenchSessionState:
         now = datetime.now().isoformat()
         state = WorkbenchSessionState(
@@ -90,15 +90,15 @@ class SessionManager:
         )
         return self.save(state)
 
-    def get(self, session_id: str) -> Optional[WorkbenchSessionState]:
+    def get(self, session_id: str) -> WorkbenchSessionState | None:
         path = self._session_path(session_id)
         if not os.path.exists(path):
             return None
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return WorkbenchSessionState.from_dict(json.load(f))
 
-    def list(self) -> List[WorkbenchSessionState]:
-        states: List[WorkbenchSessionState] = []
+    def list(self) -> list[WorkbenchSessionState]:
+        states: list[WorkbenchSessionState] = []
         if not os.path.exists(self.STORAGE_DIR):
             return states
         for filename in os.listdir(self.STORAGE_DIR):
@@ -112,11 +112,11 @@ class SessionManager:
 
     def find_latest(
         self,
-        project_id: Optional[str] = None,
-        graph_id: Optional[str] = None,
-        simulation_id: Optional[str] = None,
-        report_id: Optional[str] = None,
-    ) -> Optional[WorkbenchSessionState]:
+        project_id: str | None = None,
+        graph_id: str | None = None,
+        simulation_id: str | None = None,
+        report_id: str | None = None,
+    ) -> WorkbenchSessionState | None:
         for state in self.list():
             if project_id and state.project_id == project_id:
                 return state
@@ -130,11 +130,11 @@ class SessionManager:
 
     def get_or_create(
         self,
-        project_id: Optional[str] = None,
-        graph_id: Optional[str] = None,
-        simulation_id: Optional[str] = None,
-        report_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        project_id: str | None = None,
+        graph_id: str | None = None,
+        simulation_id: str | None = None,
+        report_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> WorkbenchSessionState:
         existing = self.find_latest(
             project_id=project_id,
@@ -171,12 +171,12 @@ class SessionManager:
     def attach(
         self,
         session_id: str,
-        project_id: Optional[str] = None,
-        graph_id: Optional[str] = None,
-        simulation_id: Optional[str] = None,
-        report_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Optional[WorkbenchSessionState]:
+        project_id: str | None = None,
+        graph_id: str | None = None,
+        simulation_id: str | None = None,
+        report_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> WorkbenchSessionState | None:
         state = self.get(session_id)
         if state is None:
             return None

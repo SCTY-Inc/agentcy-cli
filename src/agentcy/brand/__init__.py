@@ -3,6 +3,11 @@
 __version__ = "0.1.0"
 
 # Core
+from agentcy.brand.core.brands import (
+    discover_brands,
+    load_brand_config,
+    load_brand_profile,
+)
 from agentcy.brand.core.identity import (
     BrandProfile,
     Example,
@@ -10,12 +15,29 @@ from agentcy.brand.core.identity import (
     Visual,
     Voice,
 )
-from agentcy.brand.core.brands import (
-    discover_brands,
-    load_brand_config,
-    load_brand_profile,
-)
 from agentcy.brand.core.llm import complete, complete_json, get_provider
+
+# Eval
+from agentcy.brand.eval import (
+    aggregate_learnings,
+    grade_content,
+    heal_content,
+    load_rubric,
+    parse_rubric,
+)
+
+# Intel
+from agentcy.brand.intel import (
+    detect_outliers,
+    extract_hooks,
+    run_intel_pipeline,
+)
+
+# Monitor
+from agentcy.brand.monitor import (
+    generate_report,
+    send_report,
+)
 
 # Persona
 from agentcy.brand.persona import (
@@ -26,21 +48,6 @@ from agentcy.brand.persona import (
     list_personas,
     load_persona,
     save_persona,
-)
-
-# Intel
-from agentcy.brand.intel import (
-    detect_outliers,
-    extract_hooks,
-    run_intel_pipeline,
-)
-
-# Signals
-from agentcy.brand.signals import (
-    append_signals,
-    filter_signals,
-    query_signals,
-    score_relevance,
 )
 
 # Plan
@@ -62,15 +69,6 @@ from agentcy.brand.produce import (
     generate_video,
 )
 
-# Eval
-from agentcy.brand.eval import (
-    aggregate_learnings,
-    grade_content,
-    heal_content,
-    load_rubric,
-    parse_rubric,
-)
-
 # Publish
 from agentcy.brand.publish import (
     add_to_queue,
@@ -79,10 +77,12 @@ from agentcy.brand.publish import (
     remove_from_queue,
 )
 
-# Monitor
-from agentcy.brand.monitor import (
-    generate_report,
-    send_report,
+# Signals
+from agentcy.brand.signals import (
+    append_signals,
+    filter_signals,
+    query_signals,
+    score_relevance,
 )
 
 __all__ = [

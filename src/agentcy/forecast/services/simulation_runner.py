@@ -3,18 +3,18 @@ OASIS Simulation Runner
 Runs simulations in the background and records each Agent's actions, with real-time status monitoring
 """
 
-import os
-import sys
 import json
-import time
-import threading
-import subprocess
+import os
 import signal
-from typing import Dict, Any, List, Optional
+import subprocess
+import sys
+import threading
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from queue import Queue
+from typing import Any
 
 from ..utils.logger import get_logger
 from .graph_memory_updater import GraphMemoryManager
@@ -29,7 +29,7 @@ def _now_iso() -> str:
 
 
 def _load_json_file(path: str) -> Any:
-    with open(path, 'r', encoding='utf-8') as handle:
+    with open(path, encoding='utf-8') as handle:
         return json.load(handle)
 
 
@@ -47,7 +47,7 @@ def _safe_close(handle: Any) -> None:
         return
 
 
-def _json_object_or_none(line: str) -> Optional[Dict[str, Any]]:
+def _json_object_or_none(line: str) -> dict[str, Any] | None:
     try:
         payload = json.loads(line)
     except json.JSONDecodeError:
@@ -59,7 +59,7 @@ def _json_object_or_none(line: str) -> Optional[Dict[str, Any]]:
 IS_WINDOWS = sys.platform == 'win32'
 
 
-class RunnerStatus(str, Enum):
+class RunnerStatus(StrEnum):
     """Runner status"""
     IDLE = "idle"
     STARTING = "starting"
@@ -80,11 +80,11 @@ class AgentAction:
     agent_id: int
     agent_name: str
     action_type: str  # CREATE_POST, LIKE_POST, etc.
-    action_args: Dict[str, Any] = field(default_factory=dict)
-    result: Optional[str] = None
+    action_args: dict[str, Any] = field(default_factory=dict)
+    result: str | None = None
     success: bool = True
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "round_num": self.round_num,
             "timestamp": self.timestamp,
@@ -103,14 +103,14 @@ class RoundSummary:
     """Round summary"""
     round_num: int
     start_time: str
-    end_time: Optional[str] = None
+    end_time: str | None = None
     simulated_hour: int = 0
     twitter_actions: int = 0
     reddit_actions: int = 0
-    active_agents: List[int] = field(default_factory=list)
-    actions: List[AgentAction] = field(default_factory=list)
+    active_agents: list[int] = field(default_factory=list)
+    actions: list[AgentAction] = field(default_factory=list)
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "round_num": self.round_num,
             "start_time": self.start_time,
@@ -153,22 +153,22 @@ class SimulationRunState:
     reddit_completed: bool = False
     
     # Round summaries
-    rounds: List[RoundSummary] = field(default_factory=list)
+    rounds: list[RoundSummary] = field(default_factory=list)
     
     # Recent actions (for real-time frontend display)
-    recent_actions: List[AgentAction] = field(default_factory=list)
+    recent_actions: list[AgentAction] = field(default_factory=list)
     max_recent_actions: int = 50
     
     # Timestamps
-    started_at: Optional[str] = None
+    started_at: str | None = None
     updated_at: str = field(default_factory=_now_iso)
-    completed_at: Optional[str] = None
+    completed_at: str | None = None
     
     # Error information
-    error: Optional[str] = None
+    error: str | None = None
 
     # Process ID (used for stopping)
-    process_pid: Optional[int] = None
+    process_pid: int | None = None
     
     def add_action(self, action: AgentAction):
         """Add action to the recent actions list"""
@@ -183,7 +183,7 @@ class SimulationRunState:
         
         self.updated_at = _now_iso()
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "simulation_id": self.simulation_id,
             "runner_status": self.runner_status.value,
@@ -211,7 +211,7 @@ class SimulationRunState:
             "process_pid": self.process_pid,
         }
     
-    def to_detail_dict(self) -> Dict[str, Any]:
+    def to_detail_dict(self) -> dict[str, Any]:
         """Detailed information including recent actions"""
         result = self.to_dict()
         result["recent_actions"] = [a.to_dict() for a in self.recent_actions]
@@ -243,18 +243,18 @@ class SimulationRunner:
     )
     
     # In-memory run states
-    _run_states: Dict[str, SimulationRunState] = {}
-    _processes: Dict[str, subprocess.Popen] = {}
-    _action_queues: Dict[str, Queue] = {}
-    _monitor_threads: Dict[str, threading.Thread] = {}
-    _stdout_files: Dict[str, Any] = {}  # Store stdout file handles
-    _stderr_files: Dict[str, Any] = {}  # Store stderr file handles
+    _run_states: dict[str, SimulationRunState] = {}
+    _processes: dict[str, subprocess.Popen] = {}
+    _action_queues: dict[str, Queue] = {}
+    _monitor_threads: dict[str, threading.Thread] = {}
+    _stdout_files: dict[str, Any] = {}  # Store stdout file handles
+    _stderr_files: dict[str, Any] = {}  # Store stderr file handles
     
     # Graph memory update configuration
-    _graph_memory_enabled: Dict[str, bool] = {}  # simulation_id -> enabled
+    _graph_memory_enabled: dict[str, bool] = {}  # simulation_id -> enabled
     
     @classmethod
-    def get_run_state(cls, simulation_id: str) -> Optional[SimulationRunState]:
+    def get_run_state(cls, simulation_id: str) -> SimulationRunState | None:
         """Get run status"""
         if simulation_id in cls._run_states:
             return cls._run_states[simulation_id]
@@ -266,7 +266,7 @@ class SimulationRunner:
         return state
     
     @classmethod
-    def _load_run_state(cls, simulation_id: str) -> Optional[SimulationRunState]:
+    def _load_run_state(cls, simulation_id: str) -> SimulationRunState | None:
         """Load run status from file"""
         state_file = os.path.join(cls.RUN_STATE_DIR, simulation_id, "run_state.json")
         if not os.path.exists(state_file):
@@ -394,7 +394,7 @@ class SimulationRunner:
         config_path = os.path.join(sim_dir, "simulation_config.json")
         
         if not os.path.exists(config_path):
-            raise ValueError(f"Simulation configuration does not exist, please call /prepare first")
+            raise ValueError("Simulation configuration does not exist, please call /prepare first")
         
         config = _load_json_file(config_path)
         if not isinstance(config, dict):
@@ -587,7 +587,7 @@ class SimulationRunner:
                 error_info = ""
                 try:
                     if os.path.exists(main_log_path):
-                        with open(main_log_path, 'r', encoding='utf-8') as f:
+                        with open(main_log_path, encoding='utf-8') as f:
                             error_info = f.read()[-2000:]  # Get last 2000 characters
                 except OSError:
                     pass
@@ -645,7 +645,7 @@ class SimulationRunner:
             graph_updater = GraphMemoryManager.get_updater(state.simulation_id)
         
         try:
-            with open(log_path, 'r', encoding='utf-8') as f:
+            with open(log_path, encoding='utf-8') as f:
                 f.seek(position)
                 for line in f:
                     line = line.strip()
@@ -836,11 +836,11 @@ class SimulationRunner:
     def _read_actions_from_file(
         cls,
         file_path: str,
-        default_platform: Optional[str] = None,
-        platform_filter: Optional[str] = None,
-        agent_id: Optional[int] = None,
-        round_num: Optional[int] = None
-    ) -> List[AgentAction]:
+        default_platform: str | None = None,
+        platform_filter: str | None = None,
+        agent_id: int | None = None,
+        round_num: int | None = None
+    ) -> list[AgentAction]:
         """
         Read actions from a single action file
 
@@ -856,7 +856,7 @@ class SimulationRunner:
         
         actions = []
         
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -905,10 +905,10 @@ class SimulationRunner:
     def get_all_actions(
         cls,
         simulation_id: str,
-        platform: Optional[str] = None,
-        agent_id: Optional[int] = None,
-        round_num: Optional[int] = None
-    ) -> List[AgentAction]:
+        platform: str | None = None,
+        agent_id: int | None = None,
+        round_num: int | None = None
+    ) -> list[AgentAction]:
         """
         Get complete action history for all platforms (no pagination limit)
 
@@ -969,10 +969,10 @@ class SimulationRunner:
         simulation_id: str,
         limit: int = 100,
         offset: int = 0,
-        platform: Optional[str] = None,
-        agent_id: Optional[int] = None,
-        round_num: Optional[int] = None
-    ) -> List[AgentAction]:
+        platform: str | None = None,
+        agent_id: int | None = None,
+        round_num: int | None = None
+    ) -> list[AgentAction]:
         """
         Get action history (with pagination)
 
@@ -1002,8 +1002,8 @@ class SimulationRunner:
         cls,
         simulation_id: str,
         start_round: int = 0,
-        end_round: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
+        end_round: int | None = None
+    ) -> list[dict[str, Any]]:
         """
         Get simulation timeline (summarized by round)
 
@@ -1019,7 +1019,7 @@ class SimulationRunner:
         actions.sort(key=lambda x: x.timestamp)
 
         # Group by round
-        rounds: Dict[int, Dict[str, Any]] = {}
+        rounds: dict[int, dict[str, Any]] = {}
         
         for action in actions:
             round_num = action.round_num
@@ -1092,7 +1092,7 @@ class SimulationRunner:
         return result
     
     @classmethod
-    def get_agent_stats(cls, simulation_id: str) -> List[Dict[str, Any]]:
+    def get_agent_stats(cls, simulation_id: str) -> list[dict[str, Any]]:
         """
         Get statistics for each Agent
 
@@ -1102,7 +1102,7 @@ class SimulationRunner:
         actions = cls.get_all_actions(simulation_id)
         actions.sort(key=lambda x: x.timestamp)
 
-        agent_stats: Dict[int, Dict[str, Any]] = {}
+        agent_stats: dict[int, dict[str, Any]] = {}
         
         for action in actions:
             agent_id = action.agent_id
@@ -1139,7 +1139,7 @@ class SimulationRunner:
         return result
     
     @classmethod
-    def cleanup_simulation_logs(cls, simulation_id: str) -> Dict[str, Any]:
+    def cleanup_simulation_logs(cls, simulation_id: str) -> dict[str, Any]:
         """
         Clean up simulation run logs (for forcing a fresh restart of simulation)
 
@@ -1336,10 +1336,10 @@ class SimulationRunner:
     def interview_agents_batch(
         cls,
         simulation_id: str,
-        interviews: List[Dict[str, Any]],
+        interviews: list[dict[str, Any]],
         platform: str = None,
         timeout: float = 120.0
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Batch interview multiple Agents
 
@@ -1397,9 +1397,9 @@ class SimulationRunner:
         cls,
         db_path: str,
         platform_name: str,
-        agent_id: Optional[int] = None,
+        agent_id: int | None = None,
         limit: int = 100
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get Interview history from a single database"""
         import sqlite3
         
@@ -1453,9 +1453,9 @@ class SimulationRunner:
         cls,
         simulation_id: str,
         platform: str = None,
-        agent_id: Optional[int] = None,
+        agent_id: int | None = None,
         limit: int = 100
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get Interview history (read from database)
 

@@ -1,7 +1,7 @@
 """Tool for building a graph from a project ontology and extracted text."""
 
 import threading
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ..config import Config
 from ..core.session_manager import SessionManager
@@ -21,10 +21,10 @@ class BuildGraphTool:
 
     def __init__(
         self,
-        project_store: Optional[ProjectStore] = None,
-        document_store: Optional[DocumentStore] = None,
-        task_manager: Optional[TaskManager] = None,
-        session_manager: Optional[SessionManager] = None,
+        project_store: ProjectStore | None = None,
+        document_store: DocumentStore | None = None,
+        task_manager: TaskManager | None = None,
+        session_manager: SessionManager | None = None,
     ):
         self.project_store = project_store or ProjectStore()
         self.document_store = document_store or DocumentStore()
@@ -34,12 +34,12 @@ class BuildGraphTool:
     def start(
         self,
         project_id: str,
-        graph_name: Optional[str] = None,
-        chunk_size: Optional[int] = None,
-        chunk_overlap: Optional[int] = None,
+        graph_name: str | None = None,
+        chunk_size: int | None = None,
+        chunk_overlap: int | None = None,
         force: bool = False,
-        session_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
         project = self.project_store.get(project_id)
         if not project:
             raise FileNotFoundError(f"Project not found: {project_id}")

@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import timedelta
 
 import typer
-
-from agentcy.brand.core.config import utc_now
 from rich.console import Console
 from rich.table import Table
 
 from agentcy.brand.cli_utils import emit
+from agentcy.brand.core.config import utc_now
 
 console = Console()
 
@@ -142,7 +140,7 @@ def loop_test(
     )
 
     evaluation = engine.evaluate(test_decision, policy, [])
-    console.print(f"\n[bold]Test decision evaluation:[/bold]")
+    console.print("\n[bold]Test decision evaluation:[/bold]")
     console.print(f"  Verdict: {evaluation.verdict.value}")
     console.print(f"  Rule matched: {evaluation.rule_matched or 'none'}")
     console.print(f"  Reasons: {', '.join(evaluation.reasons)}")
@@ -368,12 +366,12 @@ def policy_test(
         "deny": "red",
     }.get(evaluation.verdict.value, "white")
 
-    console.print(f"\n[bold]Policy Evaluation Result[/bold]")
+    console.print("\n[bold]Policy Evaluation Result[/bold]")
     console.print(f"  Decision type: {decision_type}")
     console.print(f"  Confidence: {confidence}")
     console.print(f"  Verdict: [{verdict_color}]{evaluation.verdict.value}[/{verdict_color}]")
     console.print(f"  Rule matched: {evaluation.rule_matched or 'none'}")
-    console.print(f"  Reasons:")
+    console.print("  Reasons:")
     for reason in evaluation.reasons:
         console.print(f"    - {reason}")
 
@@ -433,7 +431,7 @@ def learn_metrics(
     console.print()
 
     # Rates
-    console.print(f"[cyan]Rates:[/cyan]")
+    console.print("[cyan]Rates:[/cyan]")
     console.print(f"  Approval: {metrics.approval_rate:.0%}")
     console.print(f"  Rejection: {metrics.rejection_rate:.0%}")
     console.print(f"  Auto-executed: {metrics.auto_executed_rate:.0%}")
@@ -441,7 +439,7 @@ def learn_metrics(
     console.print()
 
     # Confidence calibration
-    console.print(f"[cyan]Confidence Calibration:[/cyan]")
+    console.print("[cyan]Confidence Calibration:[/cyan]")
     console.print(f"  Avg approved: {metrics.avg_confidence_approved:.2f}")
     console.print(f"  Avg rejected: {metrics.avg_confidence_rejected:.2f}")
     if metrics.confidence_threshold_recommendation:

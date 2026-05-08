@@ -3,9 +3,9 @@ Ontology Generation Service
 Interface 1: Analyze text content and generate entity and relationship type definitions suitable for social simulation
 """
 
-from typing import Dict, Any, List, Optional
-from ..utils.llm_client import LLMClient
+from typing import Any
 
+from ..utils.llm_client import LLMClient
 
 # System prompt for ontology generation
 ONTOLOGY_SYSTEM_PROMPT = """You are a professional knowledge graph ontology design expert. Your task is to analyze the given text content and simulation requirements, and design entity types and relationship types suitable for **social media opinion simulation**.
@@ -160,15 +160,15 @@ class OntologyGenerator:
     Analyzes text content and generates entity and relationship type definitions
     """
 
-    def __init__(self, llm_client: Optional[LLMClient] = None):
+    def __init__(self, llm_client: LLMClient | None = None):
         self.llm_client = llm_client or LLMClient()
 
     def generate(
         self,
-        document_texts: List[str],
+        document_texts: list[str],
         simulation_requirement: str,
-        additional_context: Optional[str] = None
-    ) -> Dict[str, Any]:
+        additional_context: str | None = None
+    ) -> dict[str, Any]:
         """
         Generate ontology definitions
 
@@ -209,9 +209,9 @@ class OntologyGenerator:
 
     def _build_user_message(
         self,
-        document_texts: List[str],
+        document_texts: list[str],
         simulation_requirement: str,
-        additional_context: Optional[str]
+        additional_context: str | None
     ) -> str:
         """Build user message"""
 
@@ -253,7 +253,7 @@ Based on the above content, design entity types and relationship types suitable 
 
         return message
 
-    def _validate_and_process(self, result: Dict[str, Any]) -> Dict[str, Any]:
+    def _validate_and_process(self, result: dict[str, Any]) -> dict[str, Any]:
         """Validate and post-process results"""
 
         # Ensure required fields exist
@@ -342,7 +342,7 @@ Based on the above content, design entity types and relationship types suitable 
 
         return result
 
-    def generate_python_code(self, ontology: Dict[str, Any]) -> str:
+    def generate_python_code(self, ontology: dict[str, Any]) -> str:
         """
         Convert ontology definition to Python code (similar to ontology.py)
 
@@ -380,8 +380,8 @@ Based on the above content, design entity types and relationship types suitable 
                     attr_desc = attr.get("description", attr_name)
                     code_lines.append(f'    {attr_name}: EntityText = Field(')
                     code_lines.append(f'        description="{attr_desc}",')
-                    code_lines.append(f'        default=None')
-                    code_lines.append(f'    )')
+                    code_lines.append('        default=None')
+                    code_lines.append('    )')
             else:
                 code_lines.append('    pass')
 
@@ -406,8 +406,8 @@ Based on the above content, design entity types and relationship types suitable 
                     attr_desc = attr.get("description", attr_name)
                     code_lines.append(f'    {attr_name}: EntityText = Field(')
                     code_lines.append(f'        description="{attr_desc}",')
-                    code_lines.append(f'        default=None')
-                    code_lines.append(f'    )')
+                    code_lines.append('        default=None')
+                    code_lines.append('    )')
             else:
                 code_lines.append('    pass')
 

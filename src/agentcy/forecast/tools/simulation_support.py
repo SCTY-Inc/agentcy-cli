@@ -3,7 +3,7 @@
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from ..config import Config
 from ..utils.logger import get_logger
@@ -11,7 +11,7 @@ from ..utils.logger import get_logger
 logger = get_logger("mirofish.tools.simulation_support")
 
 
-PreparedState = Tuple[bool, Dict[str, Any]]
+PreparedState = tuple[bool, dict[str, Any]]
 
 
 def _simulation_dir(simulation_id: str) -> str:
@@ -19,11 +19,11 @@ def _simulation_dir(simulation_id: str) -> str:
 
 
 def _load_json_file(path: str) -> Any:
-    with open(path, "r", encoding="utf-8") as handle:
+    with open(path, encoding="utf-8") as handle:
         return json.load(handle)
 
 
-def _save_state_file(path: str, state_data: Dict[str, Any]) -> None:
+def _save_state_file(path: str, state_data: dict[str, Any]) -> None:
     with open(path, "w", encoding="utf-8") as handle:
         json.dump(state_data, handle, ensure_ascii=False, indent=2)
 

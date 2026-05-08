@@ -13,8 +13,6 @@ import logging
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any
 
 from agentcy.brand.core.config import utc_now
 

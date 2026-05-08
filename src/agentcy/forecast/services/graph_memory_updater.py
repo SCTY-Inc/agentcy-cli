@@ -4,12 +4,12 @@ Dynamically updates the knowledge graph with agent activities from simulation.
 Built on local KuzuDB graph storage.
 """
 
-import time
 import threading
-from typing import Dict, Any, List, Optional
+import time
 from dataclasses import dataclass
 from datetime import datetime
-from queue import Queue, Empty
+from queue import Empty, Queue
+from typing import Any
 
 from ..utils.logger import get_logger
 from .graph_db import GraphDatabase
@@ -25,7 +25,7 @@ class AgentActivity:
     agent_id: int
     agent_name: str
     action_type: str        # CREATE_POST, LIKE_POST, etc.
-    action_args: Dict[str, Any]
+    action_args: dict[str, Any]
     round_num: int
     timestamp: str
 
@@ -192,8 +192,8 @@ class GraphMemoryUpdater:
     def __init__(
         self,
         graph_id: str,
-        api_key: Optional[str] = None,
-        storage: Optional[GraphStorage] = None,
+        api_key: str | None = None,
+        storage: GraphStorage | None = None,
     ):
         """
         Initialize the updater.
@@ -207,13 +207,13 @@ class GraphMemoryUpdater:
         self.storage = storage
 
         self._activity_queue: Queue = Queue()
-        self._platform_buffers: Dict[str, List[AgentActivity]] = {
+        self._platform_buffers: dict[str, list[AgentActivity]] = {
             'twitter': [],
             'reddit': [],
         }
         self._buffer_lock = threading.Lock()
         self._running = False
-        self._worker_thread: Optional[threading.Thread] = None
+        self._worker_thread: threading.Thread | None = None
 
         self._total_activities = 0
         self._total_sent = 0
@@ -261,7 +261,7 @@ class GraphMemoryUpdater:
         self._total_activities += 1
         logger.debug(f"Activity queued: {activity.agent_name} - {activity.action_type}")
 
-    def add_activity_from_dict(self, data: Dict[str, Any], platform: str):
+    def add_activity_from_dict(self, data: dict[str, Any], platform: str):
         """Add activity from parsed dict data"""
         if "event_type" in data:
             return
@@ -298,7 +298,7 @@ class GraphMemoryUpdater:
                 logger.error(f"Worker loop error: {e}")
                 time.sleep(1)
 
-    def _send_batch_activities(self, activities: List[AgentActivity], platform: str):
+    def _send_batch_activities(self, activities: list[AgentActivity], platform: str):
         """Send a batch of activities to the graph as an episode"""
         if not activities:
             return
@@ -360,7 +360,7 @@ class GraphMemoryUpdater:
             for platform in self._platform_buffers:
                 self._platform_buffers[platform] = []
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get statistics"""
         with self._buffer_lock:
             buffer_sizes = {p: len(b) for p, b in self._platform_buffers.items()}
@@ -384,7 +384,7 @@ class GraphMemoryManager:
     Each simulation has its own updater instance.
     """
 
-    _updaters: Dict[str, GraphMemoryUpdater] = {}
+    _updaters: dict[str, GraphMemoryUpdater] = {}
     _lock = threading.Lock()
 
     @classmethod
@@ -392,7 +392,7 @@ class GraphMemoryManager:
         cls,
         simulation_id: str,
         graph_id: str,
-        storage: Optional[GraphStorage] = None,
+        storage: GraphStorage | None = None,
     ) -> GraphMemoryUpdater:
         """Create a graph memory updater for a simulation"""
         with cls._lock:
@@ -405,7 +405,7 @@ class GraphMemoryManager:
             return updater
 
     @classmethod
-    def get_updater(cls, simulation_id: str) -> Optional[GraphMemoryUpdater]:
+    def get_updater(cls, simulation_id: str) -> GraphMemoryUpdater | None:
         return cls._updaters.get(simulation_id)
 
     @classmethod
@@ -434,7 +434,7 @@ class GraphMemoryManager:
             logger.info("All graph memory updaters stopped")
 
     @classmethod
-    def get_all_stats(cls) -> Dict[str, Dict[str, Any]]:
+    def get_all_stats(cls) -> dict[str, dict[str, Any]]:
         return {
             sim_id: updater.get_stats()
             for sim_id, updater in cls._updaters.items()

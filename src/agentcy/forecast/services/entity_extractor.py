@@ -5,11 +5,11 @@ Uses the configured LLM to extract entities and relationships from text chunks.
 """
 
 import json
-from typing import Dict, Any, List, Optional
+from typing import Any
 
-from .graph_storage import GraphStorage
 from ..utils.llm_client import LLMClient
 from ..utils.logger import get_logger
+from .graph_storage import GraphStorage
 
 logger = get_logger('mirofish.entity_extractor')
 
@@ -57,8 +57,8 @@ class EntityExtractor:
 
     def __init__(
         self,
-        llm_client: Optional[LLMClient] = None,
-        storage: Optional[GraphStorage] = None,
+        llm_client: LLMClient | None = None,
+        storage: GraphStorage | None = None,
     ):
         self.llm = llm_client or LLMClient()
         self.storage = storage
@@ -66,9 +66,9 @@ class EntityExtractor:
     def extract(
         self,
         text: str,
-        ontology: Dict[str, Any],
+        ontology: dict[str, Any],
         max_text_length: int = 8000
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Extract entities and relationships from a text chunk.
 
@@ -126,10 +126,10 @@ Extract all entities and relationships from the text above that match the ontolo
 
     def extract_batch(
         self,
-        chunks: List[str],
-        ontology: Dict[str, Any],
+        chunks: list[str],
+        ontology: dict[str, Any],
         progress_callback=None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Extract entities and relationships from multiple text chunks,
         merging results across chunks.
@@ -198,7 +198,7 @@ Extract all entities and relationships from the text above that match the ontolo
             "relationships": all_relationships,
         }
 
-    def _format_entity_types(self, ontology: Dict[str, Any]) -> str:
+    def _format_entity_types(self, ontology: dict[str, Any]) -> str:
         """Format entity types for the prompt"""
         lines = []
         for et in ontology.get("entity_types", []):
@@ -212,7 +212,7 @@ Extract all entities and relationships from the text above that match the ontolo
             lines.append(line)
         return "\n".join(lines) if lines else "No specific entity types defined."
 
-    def _format_edge_types(self, ontology: Dict[str, Any]) -> str:
+    def _format_edge_types(self, ontology: dict[str, Any]) -> str:
         """Format edge types for the prompt"""
         lines = []
         for et in ontology.get("edge_types", []):

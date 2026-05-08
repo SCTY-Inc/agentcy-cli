@@ -2,7 +2,7 @@
 Text Processing Service
 """
 
-from typing import List
+
 from ..utils.file_parser import FileParser, split_text_into_chunks
 
 
@@ -10,7 +10,7 @@ class TextProcessor:
     """Text processor"""
     
     @staticmethod
-    def extract_from_files(file_paths: List[str]) -> str:
+    def extract_from_files(file_paths: list[str]) -> str:
         """Extract text from multiple files"""
         return FileParser.extract_from_multiple(file_paths)
     
@@ -19,7 +19,7 @@ class TextProcessor:
         text: str,
         chunk_size: int = 500,
         overlap: int = 50
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Split text
 

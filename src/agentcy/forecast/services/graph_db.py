@@ -10,11 +10,11 @@ import shutil
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from .graph_storage import GraphStorage, JSONStorage
 from ..config import Config
 from ..utils.logger import get_logger
+from .graph_storage import GraphStorage, JSONStorage
 
 logger = get_logger("mirofish.graph_db")
 
@@ -25,14 +25,14 @@ class GraphNode:
 
     uuid_: str
     name: str
-    labels: List[str] = field(default_factory=lambda: ["Entity"])
+    labels: list[str] = field(default_factory=lambda: ["Entity"])
     summary: str = ""
-    attributes: Dict[str, Any] = field(default_factory=dict)
-    facts: List[str] = field(default_factory=list)
+    attributes: dict[str, Any] = field(default_factory=dict)
+    facts: list[str] = field(default_factory=list)
     created_at: str = ""
     updated_at: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "uuid": self.uuid_,
             "name": self.name,
@@ -55,15 +55,15 @@ class GraphEdge:
     fact_type: str = ""
     source_node_uuid: str = ""
     target_node_uuid: str = ""
-    attributes: Dict[str, Any] = field(default_factory=dict)
+    attributes: dict[str, Any] = field(default_factory=dict)
     weight: float = 1.0
     created_at: str = ""
-    valid_at: Optional[str] = None
-    invalid_at: Optional[str] = None
-    expired_at: Optional[str] = None
-    episodes: List[str] = field(default_factory=list)
+    valid_at: str | None = None
+    invalid_at: str | None = None
+    expired_at: str | None = None
+    episodes: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "uuid": self.uuid_,
             "name": self.name,
@@ -88,7 +88,7 @@ class Episode:
     uuid_: str
     data: str
     type: str = "document"
-    node_ids: List[str] = field(default_factory=list)
+    node_ids: list[str] = field(default_factory=list)
     processed: bool = False
     created_at: str = ""
 
@@ -103,8 +103,8 @@ class GraphDatabase:
 
     def __init__(
         self,
-        base_path: Optional[str] = None,
-        storage_backend: Optional[str] = None,
+        base_path: str | None = None,
+        storage_backend: str | None = None,
     ):
         _ = storage_backend
         self.base_path = base_path or Config.DATA_DIR
@@ -125,19 +125,19 @@ class GraphDatabase:
         """Return the storage backend for a specific graph."""
         return self._make_storage(graph_id, create=create)
 
-    def _node_label_to_list(self, label: str) -> List[str]:
+    def _node_label_to_list(self, label: str) -> list[str]:
         labels = ["Entity"]
         if label and label not in {"Entity", "Node"}:
             labels.append(label)
         return labels
 
-    def _node_list_to_label(self, labels: List[str]) -> str:
+    def _node_list_to_label(self, labels: list[str]) -> str:
         for label in labels:
             if label not in {"Entity", "Node"}:
                 return label
         return "Entity"
 
-    def _dict_to_node(self, node: Dict[str, Any]) -> GraphNode:
+    def _dict_to_node(self, node: dict[str, Any]) -> GraphNode:
         return GraphNode(
             uuid_=node.get("id", ""),
             name=node.get("name", ""),
@@ -149,7 +149,7 @@ class GraphDatabase:
             updated_at=node.get("updated_at", ""),
         )
 
-    def _dict_to_edge(self, edge: Dict[str, Any]) -> GraphEdge:
+    def _dict_to_edge(self, edge: dict[str, Any]) -> GraphEdge:
         return GraphEdge(
             uuid_=edge.get("id", ""),
             name=edge.get("relation", ""),
@@ -166,7 +166,7 @@ class GraphDatabase:
             episodes=edge.get("episodes", []),
         )
 
-    def _dict_to_episode(self, episode: Dict[str, Any]) -> Episode:
+    def _dict_to_episode(self, episode: dict[str, Any]) -> Episode:
         return Episode(
             uuid_=episode.get("id", ""),
             data=episode.get("content", ""),
@@ -217,7 +217,7 @@ class GraphDatabase:
     def graph_exists(self, graph_id: str) -> bool:
         return os.path.isdir(self._graph_dir(graph_id))
 
-    def set_ontology(self, graph_id: str, ontology: Dict[str, Any]):
+    def set_ontology(self, graph_id: str, ontology: dict[str, Any]):
         storage = self.get_storage(graph_id)
         self._set_metadata(storage, "ontology", ontology)
         logger.info(
@@ -227,7 +227,7 @@ class GraphDatabase:
             len(ontology.get("edge_types", [])),
         )
 
-    def get_ontology(self, graph_id: str) -> Optional[Dict[str, Any]]:
+    def get_ontology(self, graph_id: str) -> dict[str, Any] | None:
         storage = self.get_storage(graph_id)
         ontology = self._get_metadata(storage, "ontology")
         return ontology if isinstance(ontology, dict) else None
@@ -247,7 +247,7 @@ class GraphDatabase:
         storage.add_episode(episode)
         return self._dict_to_episode(episode)
 
-    def add_episodes_batch(self, graph_id: str, texts: List[str]) -> List[Episode]:
+    def add_episodes_batch(self, graph_id: str, texts: list[str]) -> list[Episode]:
         storage = self.get_storage(graph_id)
         now = datetime.now().isoformat()
         episodes = []
@@ -268,7 +268,7 @@ class GraphDatabase:
         storage = self.get_storage(graph_id)
         storage.mark_episode_processed(episode_uuid)
 
-    def get_episode(self, graph_id: str, episode_uuid: str) -> Optional[Episode]:
+    def get_episode(self, graph_id: str, episode_uuid: str) -> Episode | None:
         storage = self.get_storage(graph_id)
         if not hasattr(storage, "get_episode"):
             return None
@@ -281,10 +281,10 @@ class GraphDatabase:
         self,
         graph_id: str,
         name: str,
-        labels: List[str],
+        labels: list[str],
         summary: str = "",
-        attributes: Optional[Dict[str, Any]] = None,
-        node_uuid: Optional[str] = None,
+        attributes: dict[str, Any] | None = None,
+        node_uuid: str | None = None,
     ) -> GraphNode:
         storage = self.get_storage(graph_id)
         node = {
@@ -301,21 +301,21 @@ class GraphDatabase:
         stored = storage.get_node(node_id)
         return self._dict_to_node(stored or node)
 
-    def get_node(self, graph_id: str, node_uuid: str) -> Optional[GraphNode]:
+    def get_node(self, graph_id: str, node_uuid: str) -> GraphNode | None:
         storage = self.get_storage(graph_id)
         node = storage.get_node(node_uuid)
         return self._dict_to_node(node) if node else None
 
-    def get_node_by_name(self, graph_id: str, name: str) -> Optional[GraphNode]:
+    def get_node_by_name(self, graph_id: str, name: str) -> GraphNode | None:
         storage = self.get_storage(graph_id)
         node = storage.get_node_by_name(name)
         return self._dict_to_node(node) if node else None
 
-    def get_all_nodes(self, graph_id: str) -> List[GraphNode]:
+    def get_all_nodes(self, graph_id: str) -> list[GraphNode]:
         storage = self.get_storage(graph_id)
         return [self._dict_to_node(node) for node in storage.list_nodes()]
 
-    def get_node_edges(self, graph_id: str, node_uuid: str) -> List[GraphEdge]:
+    def get_node_edges(self, graph_id: str, node_uuid: str) -> list[GraphEdge]:
         storage = self.get_storage(graph_id)
         edges = storage.get_edges(source_id=node_uuid) + storage.get_edges(target_id=node_uuid)
         seen = set()
@@ -337,8 +337,8 @@ class GraphDatabase:
         name: str,
         fact: str = "",
         fact_type: str = "",
-        attributes: Optional[Dict[str, Any]] = None,
-        episode_uuid: Optional[str] = None,
+        attributes: dict[str, Any] | None = None,
+        episode_uuid: str | None = None,
     ) -> GraphEdge:
         storage = self.get_storage(graph_id)
         edge = {
@@ -359,13 +359,13 @@ class GraphDatabase:
         stored = next((item for item in storage.get_edges() if item["id"] == edge_id), edge)
         return self._dict_to_edge(stored)
 
-    def get_all_edges(self, graph_id: str) -> List[GraphEdge]:
+    def get_all_edges(self, graph_id: str) -> list[GraphEdge]:
         storage = self.get_storage(graph_id)
         return [self._dict_to_edge(edge) for edge in storage.get_edges()]
 
     # ========== Search ==========
 
-    def search(self, graph_id: str, query: str, limit: int = 10, scope: str = "edges") -> List[Dict[str, Any]]:
+    def search(self, graph_id: str, query: str, limit: int = 10, scope: str = "edges") -> list[dict[str, Any]]:
         query_terms = [term for term in query.lower().split() if term]
         results = []
         storage = self.get_storage(graph_id)
@@ -418,7 +418,7 @@ class GraphDatabase:
 
     # ========== Graph Data Export ==========
 
-    def get_graph_data(self, graph_id: str) -> Dict[str, Any]:
+    def get_graph_data(self, graph_id: str) -> dict[str, Any]:
         nodes = self.get_all_nodes(graph_id)
         edges = self.get_all_edges(graph_id)
         node_map = {node.uuid_: node.name for node in nodes}
@@ -439,17 +439,17 @@ class GraphDatabase:
             "edge_count": len(edges_data),
         }
 
-    def get_graph_statistics(self, graph_id: str) -> Dict[str, Any]:
+    def get_graph_statistics(self, graph_id: str) -> dict[str, Any]:
         nodes = self.get_all_nodes(graph_id)
         edges = self.get_all_edges(graph_id)
 
-        type_counts: Dict[str, int] = {}
+        type_counts: dict[str, int] = {}
         for node in nodes:
             for label in node.labels:
                 if label not in {"Entity", "Node"}:
                     type_counts[label] = type_counts.get(label, 0) + 1
 
-        relation_counts: Dict[str, int] = {}
+        relation_counts: dict[str, int] = {}
         for edge in edges:
             relation_counts[edge.name] = relation_counts.get(edge.name, 0) + 1
 

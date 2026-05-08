@@ -5,7 +5,6 @@ from typing import Any
 
 from agentcy.brand.core.llm import complete_json
 
-
 HOOK_SYSTEM = """You are an expert at analyzing viral content patterns.
 Extract the "hooks" - the specific elements that make content engaging.
 

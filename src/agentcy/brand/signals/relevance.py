@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from typing import Any
-import re
 
 
 def score_relevance(

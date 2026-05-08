@@ -1,6 +1,5 @@
 """Project persistence adapter."""
 
-from typing import List, Optional
 
 from ...models.project import Project, ProjectManager
 
@@ -11,13 +10,13 @@ class ProjectStore:
     def create(self, name: str = "Unnamed Project") -> Project:
         return ProjectManager.create_project(name=name)
 
-    def get(self, project_id: str) -> Optional[Project]:
+    def get(self, project_id: str) -> Project | None:
         return ProjectManager.get_project(project_id)
 
     def save(self, project: Project):
         ProjectManager.save_project(project)
 
-    def list(self, limit: int = 50) -> List[Project]:
+    def list(self, limit: int = 50) -> list[Project]:
         return ProjectManager.list_projects(limit=limit)
 
     def delete(self, project_id: str) -> bool:
@@ -29,5 +28,5 @@ class ProjectStore:
     def save_extracted_text(self, project_id: str, text: str):
         ProjectManager.save_extracted_text(project_id, text)
 
-    def get_extracted_text(self, project_id: str) -> Optional[str]:
+    def get_extracted_text(self, project_id: str) -> str | None:
         return ProjectManager.get_extracted_text(project_id)

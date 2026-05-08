@@ -7,7 +7,8 @@ from __future__ import annotations
 import json
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Optional
+from collections.abc import Iterable
+from typing import Any
 
 from ..utils.logger import get_logger
 
@@ -22,7 +23,7 @@ def _json_dumps(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
-def _parse_json_dict(value: Any) -> Dict[str, Any]:
+def _parse_json_dict(value: Any) -> dict[str, Any]:
     if not value:
         return {}
     if isinstance(value, dict):
@@ -60,7 +61,7 @@ def _parse_bool(value: Any) -> bool:
     return bool(value)
 
 
-def _node_payload(node: Dict[str, Any]) -> Dict[str, Any]:
+def _node_payload(node: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": str(node.get("id", "")),
         "name": str(node.get("name", "")).strip(),
@@ -73,7 +74,7 @@ def _node_payload(node: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _edge_payload(edge: Dict[str, Any]) -> Dict[str, Any]:
+def _edge_payload(edge: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": str(edge.get("id", "")),
         "source_id": str(edge.get("source_id", "")),
@@ -90,7 +91,7 @@ def _edge_payload(edge: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _episode_payload(episode: Dict[str, Any]) -> Dict[str, Any]:
+def _episode_payload(episode: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": str(episode.get("id", "")),
         "content": str(episode.get("content", "") or ""),
@@ -107,11 +108,11 @@ class GraphStorage(ABC):
         ...
 
     @abstractmethod
-    def get_node(self, node_id: str) -> Optional[dict]:
+    def get_node(self, node_id: str) -> dict | None:
         ...
 
     @abstractmethod
-    def get_node_by_name(self, name: str) -> Optional[dict]:
+    def get_node_by_name(self, name: str) -> dict | None:
         ...
 
     @abstractmethod
@@ -123,7 +124,7 @@ class GraphStorage(ABC):
         ...
 
     @abstractmethod
-    def list_nodes(self, label: Optional[str] = None) -> list[dict]:
+    def list_nodes(self, label: str | None = None) -> list[dict]:
         ...
 
     @abstractmethod
@@ -133,9 +134,9 @@ class GraphStorage(ABC):
     @abstractmethod
     def get_edges(
         self,
-        source_id: Optional[str] = None,
-        target_id: Optional[str] = None,
-        relation: Optional[str] = None,
+        source_id: str | None = None,
+        target_id: str | None = None,
+        relation: str | None = None,
     ) -> list[dict]:
         ...
 
@@ -152,7 +153,7 @@ class GraphStorage(ABC):
         ...
 
     @abstractmethod
-    def search_nodes(self, query: str, label: Optional[str] = None, limit: int = 10) -> list[dict]:
+    def search_nodes(self, query: str, label: str | None = None, limit: int = 10) -> list[dict]:
         ...
 
     @abstractmethod
@@ -194,7 +195,7 @@ class JSONStorage(GraphStorage):
     def _load_json(self, path: str, default: Any) -> Any:
         if not os.path.exists(path):
             return default
-        with open(path, "r", encoding="utf-8") as handle:
+        with open(path, encoding="utf-8") as handle:
             return json.load(handle)
 
     def _save_json(self, path: str, value: Any) -> None:
@@ -240,13 +241,13 @@ class JSONStorage(GraphStorage):
         self._save_nodes(nodes)
         return payload["id"]
 
-    def get_node(self, node_id: str) -> Optional[dict]:
+    def get_node(self, node_id: str) -> dict | None:
         for node in self._load_nodes():
             if node["id"] == node_id:
                 return node
         return None
 
-    def get_node_by_name(self, name: str) -> Optional[dict]:
+    def get_node_by_name(self, name: str) -> dict | None:
         normalized = name.strip().lower()
         for node in self._load_nodes():
             if node["name"].lower() == normalized:
@@ -278,7 +279,7 @@ class JSONStorage(GraphStorage):
         )
         return True
 
-    def list_nodes(self, label: Optional[str] = None) -> list[dict]:
+    def list_nodes(self, label: str | None = None) -> list[dict]:
         nodes = sorted(self._load_nodes(), key=lambda item: item.get("name", ""))
         if label:
             return [node for node in nodes if node.get("label") == label]
@@ -298,9 +299,9 @@ class JSONStorage(GraphStorage):
 
     def get_edges(
         self,
-        source_id: Optional[str] = None,
-        target_id: Optional[str] = None,
-        relation: Optional[str] = None,
+        source_id: str | None = None,
+        target_id: str | None = None,
+        relation: str | None = None,
     ) -> list[dict]:
         edges = self._load_edges()
         filtered = []
@@ -321,7 +322,7 @@ class JSONStorage(GraphStorage):
         self._save_episodes(episodes)
         return payload["id"]
 
-    def get_episode(self, episode_id: str) -> Optional[dict]:
+    def get_episode(self, episode_id: str) -> dict | None:
         for episode in self._load_episodes():
             if episode["id"] == episode_id:
                 return episode
@@ -342,7 +343,7 @@ class JSONStorage(GraphStorage):
             return True
         return False
 
-    def search_nodes(self, query: str, label: Optional[str] = None, limit: int = 10) -> list[dict]:
+    def search_nodes(self, query: str, label: str | None = None, limit: int = 10) -> list[dict]:
         query_terms = [term for term in query.lower().split() if term]
         scored = []
         for node in self.list_nodes(label=label):

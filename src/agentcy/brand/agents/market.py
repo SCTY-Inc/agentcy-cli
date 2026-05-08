@@ -8,7 +8,6 @@ from agentcy.brand.agents.base import AgentContext, BaseAgent
 from agentcy.brand.core.decision import Decision, DecisionType
 from agentcy.brand.core.llm import acomplete_json
 
-
 ANALYSIS_SYSTEM = """You are a market analyst for brand intelligence.
 Analyze signals for trends, opportunities, and risks.
 Be specific and actionable. Output valid JSON only."""

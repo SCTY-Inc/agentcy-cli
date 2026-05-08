@@ -2,21 +2,20 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Optional
-
+from collections.abc import Iterable
 
 CONTENT_PLATFORMS = ("twitter", "reddit")
 RUN_PLATFORMS = CONTENT_PLATFORMS + ("parallel",)
 
 
 def _normalize_platform(
-    value: Optional[str],
+    value: str | None,
     *,
     allowed: Iterable[str],
     label: str,
-    default: Optional[str] = None,
+    default: str | None = None,
     allow_none: bool = False,
-) -> Optional[str]:
+) -> str | None:
     if value is None:
         if allow_none:
             return None
@@ -41,12 +40,12 @@ def _normalize_platform(
 
 
 def normalize_content_platform(
-    value: Optional[str],
+    value: str | None,
     *,
-    default: Optional[str] = None,
+    default: str | None = None,
     allow_none: bool = False,
     label: str = "platform",
-) -> Optional[str]:
+) -> str | None:
     return _normalize_platform(
         value,
         allowed=CONTENT_PLATFORMS,
@@ -56,7 +55,7 @@ def normalize_content_platform(
     )
 
 
-def normalize_run_platform(value: Optional[str], *, default: str = "parallel") -> str:
+def normalize_run_platform(value: str | None, *, default: str = "parallel") -> str:
     return _normalize_platform(
         value,
         allowed=RUN_PLATFORMS,

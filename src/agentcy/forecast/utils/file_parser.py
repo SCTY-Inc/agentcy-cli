@@ -4,7 +4,6 @@ Supports text extraction from PDF, Markdown, and TXT files
 """
 
 from pathlib import Path
-from typing import List
 
 
 def _read_text_with_fallback(file_path: str) -> str:
@@ -122,7 +121,7 @@ class FileParser:
         return _read_text_with_fallback(file_path)
     
     @classmethod
-    def extract_from_multiple(cls, file_paths: List[str]) -> str:
+    def extract_from_multiple(cls, file_paths: list[str]) -> str:
         """
         Extract text from multiple files and merge
 
@@ -151,7 +150,7 @@ def split_text_into_chunks(
     text: str, 
     chunk_size: int = 500, 
     overlap: int = 50
-) -> List[str]:
+) -> list[str]:
     """
     Split text into smaller chunks
 

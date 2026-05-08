@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from agentcy.brand.core.config import utc_now
 
 
-class SignalSource(str, Enum):
+class SignalSource(StrEnum):
     """Known signal sources."""
 
     NEWS = "news"
@@ -28,7 +28,7 @@ class SignalSource(str, Enum):
     CUSTOM = "custom"
 
 
-class SignalType(str, Enum):
+class SignalType(StrEnum):
     """Types of signals."""
 
     NEWS = "news"
@@ -43,7 +43,7 @@ class SignalType(str, Enum):
     ALERT = "alert"
 
 
-class Urgency(str, Enum):
+class Urgency(StrEnum):
     """Signal urgency levels."""
 
     LOW = "low"

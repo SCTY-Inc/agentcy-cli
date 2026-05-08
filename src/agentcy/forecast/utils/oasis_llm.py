@@ -7,7 +7,7 @@ import os
 import sys
 import time
 import uuid
-from typing import Any, Dict, List
+from typing import Any
 
 try:
     from camel.models.openai_model import OpenAIModel
@@ -35,7 +35,7 @@ _MISSING = object()
 def get_simulation_runtime_preflight(
     version_info: Any | None = None,
     camel_import_error: ImportError | None | object = _MISSING,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Return machine-readable simulation runtime readiness details."""
     version_info = version_info or sys.version_info
     if camel_import_error is _MISSING:
@@ -111,7 +111,7 @@ class CLIModel(OpenAIModel):
         self,
         model_type: str,
         provider: str,
-        model_config_dict: Dict[str, Any] | None = None,
+        model_config_dict: dict[str, Any] | None = None,
         api_key: str | None = None,
         url: str | None = None,
         timeout: float | None = None,
@@ -139,7 +139,7 @@ class CLIModel(OpenAIModel):
             return self._estimate_tokens(json.dumps(value, ensure_ascii=False))
         return self._estimate_tokens(str(value))
 
-    def _build_completion(self, messages: List[Dict[str, Any]], content: str) -> ChatCompletion:
+    def _build_completion(self, messages: list[dict[str, Any]], content: str) -> ChatCompletion:
         prompt_tokens = sum(self._estimate_tokens(message.get('content')) for message in messages)
         completion_tokens = self._estimate_tokens(content)
 
@@ -169,8 +169,8 @@ class CLIModel(OpenAIModel):
 
     def _request_chat_completion(
         self,
-        messages: List[Dict[str, Any]],
-        tools: List[Dict[str, Any]] | None = None,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
     ) -> ChatCompletion:
         if tools:
             logger.warning('CLIModel ignores tool schemas; tool calling is not supported in OASIS CLI mode')
@@ -186,16 +186,16 @@ class CLIModel(OpenAIModel):
 
     async def _arequest_chat_completion(
         self,
-        messages: List[Dict[str, Any]],
-        tools: List[Dict[str, Any]] | None = None,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
     ) -> ChatCompletion:
         return await asyncio.to_thread(self._request_chat_completion, messages, tools)
 
     def _request_parse(
         self,
-        messages: List[Dict[str, Any]],
+        messages: list[dict[str, Any]],
         response_format,
-        tools: List[Dict[str, Any]] | None = None,
+        tools: list[dict[str, Any]] | None = None,
     ) -> ChatCompletion:
         if tools:
             logger.warning('CLIModel ignores tool schemas during structured output requests')
@@ -211,14 +211,14 @@ class CLIModel(OpenAIModel):
 
     async def _arequest_parse(
         self,
-        messages: List[Dict[str, Any]],
+        messages: list[dict[str, Any]],
         response_format,
-        tools: List[Dict[str, Any]] | None = None,
+        tools: list[dict[str, Any]] | None = None,
     ) -> ChatCompletion:
         return await asyncio.to_thread(self._request_parse, messages, response_format, tools)
 
 
-def create_oasis_model(config: Dict[str, Any], use_boost: bool = False):
+def create_oasis_model(config: dict[str, Any], use_boost: bool = False):
     """Create the CAMEL model used by OASIS simulations."""
     _ = use_boost
     require_simulation_runtime()
@@ -241,7 +241,7 @@ def create_oasis_model(config: Dict[str, Any], use_boost: bool = False):
     )
 
 
-def get_oasis_semaphore(config: Dict[str, Any], use_boost: bool = False) -> int:
+def get_oasis_semaphore(config: dict[str, Any], use_boost: bool = False) -> int:
     """Get CLI-appropriate OASIS concurrency limit."""
     _ = (config, use_boost)
     return int(os.environ.get('OASIS_CLI_SEMAPHORE', str(DEFAULT_CLI_SEMAPHORE)))

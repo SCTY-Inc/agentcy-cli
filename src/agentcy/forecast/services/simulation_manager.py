@@ -4,13 +4,14 @@ Manages Twitter and Reddit dual-platform parallel simulations
 Uses preset scripts + LLM-powered intelligent configuration parameter generation
 """
 
-import os
 import csv
 import json
-from typing import Dict, Any, List, Optional
+import os
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
+from typing import Any
 
 from ..utils.logger import get_logger
 from .entity_reader import EntityReader
@@ -21,7 +22,7 @@ from .simulation_platforms import normalize_content_platform
 logger = get_logger('mirofish.simulation')
 
 
-class SimulationStatus(str, Enum):
+class SimulationStatus(StrEnum):
     """Simulation status"""
     CREATED = "created"
     PREPARING = "preparing"
@@ -33,7 +34,7 @@ class SimulationStatus(str, Enum):
     FAILED = "failed"
 
 
-class PlatformType(str, Enum):
+class PlatformType(StrEnum):
     """Platform type"""
     TWITTER = "twitter"
     REDDIT = "reddit"
@@ -56,7 +57,7 @@ class SimulationState:
     # Preparation phase data
     entities_count: int = 0
     profiles_count: int = 0
-    entity_types: List[str] = field(default_factory=list)
+    entity_types: list[str] = field(default_factory=list)
     
     # Configuration generation info
     config_generated: bool = False
@@ -72,9 +73,9 @@ class SimulationState:
     updated_at: str = field(default_factory=lambda: datetime.now().isoformat())
     
     # Error information
-    error: Optional[str] = None
+    error: str | None = None
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Full state dict (internal use)"""
         return {
             "simulation_id": self.simulation_id,
@@ -96,7 +97,7 @@ class SimulationState:
             "error": self.error,
         }
     
-    def to_simple_dict(self) -> Dict[str, Any]:
+    def to_simple_dict(self) -> dict[str, Any]:
         """Simplified state dict (for API responses)"""
         return {
             "simulation_id": self.simulation_id,
@@ -133,7 +134,7 @@ class SimulationManager:
         os.makedirs(self.SIMULATION_DATA_DIR, exist_ok=True)
 
         # In-memory simulation state cache
-        self._simulations: Dict[str, SimulationState] = {}
+        self._simulations: dict[str, SimulationState] = {}
     
     def _get_simulation_dir(self, simulation_id: str) -> str:
         """Get simulation data directory"""
@@ -142,11 +143,11 @@ class SimulationManager:
         return sim_dir
     
     @staticmethod
-    def _load_twitter_profiles_csv(profile_path: str) -> List[Dict[str, Any]]:
+    def _load_twitter_profiles_csv(profile_path: str) -> list[dict[str, Any]]:
         """Load Twitter profiles from the OASIS CSV format and normalize them for the app."""
-        profiles: List[Dict[str, Any]] = []
+        profiles: list[dict[str, Any]] = []
 
-        with open(profile_path, 'r', encoding='utf-8') as f:
+        with open(profile_path, encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 user_id = row.get("user_id", "")
@@ -198,7 +199,7 @@ class SimulationManager:
 
         self._simulations[state.simulation_id] = state
     
-    def _load_simulation_state(self, simulation_id: str) -> Optional[SimulationState]:
+    def _load_simulation_state(self, simulation_id: str) -> SimulationState | None:
         """Load simulation state from file"""
         if simulation_id in self._simulations:
             return self._simulations[simulation_id]
@@ -209,7 +210,7 @@ class SimulationManager:
         if not os.path.exists(state_file):
             return None
         
-        with open(state_file, 'r', encoding='utf-8') as f:
+        with open(state_file, encoding='utf-8') as f:
             data = json.load(f)
         
         state = SimulationState(
@@ -276,9 +277,9 @@ class SimulationManager:
         simulation_id: str,
         simulation_requirement: str,
         document_text: str,
-        defined_entity_types: Optional[List[str]] = None,
+        defined_entity_types: list[str] | None = None,
         use_llm_for_profiles: bool = True,
-        progress_callback: Optional[callable] = None,
+        progress_callback: Callable | None = None,
         parallel_profile_count: int = 3
     ) -> SimulationState:
         """
@@ -502,11 +503,11 @@ class SimulationManager:
             self._save_simulation_state(state)
             raise
     
-    def get_simulation(self, simulation_id: str) -> Optional[SimulationState]:
+    def get_simulation(self, simulation_id: str) -> SimulationState | None:
         """Get simulation state"""
         return self._load_simulation_state(simulation_id)
     
-    def list_simulations(self, project_id: Optional[str] = None) -> List[SimulationState]:
+    def list_simulations(self, project_id: str | None = None) -> list[SimulationState]:
         """List all simulations"""
         simulations = []
         
@@ -524,9 +525,8 @@ class SimulationManager:
         
         return simulations
     
-    def get_profiles(self, simulation_id: str, platform: str = "reddit") -> List[Dict[str, Any]]:
+    def get_profiles(self, simulation_id: str, platform: str = "reddit") -> list[dict[str, Any]]:
         """Get simulation Agent profiles in a normalized JSON shape."""
-        import csv
 
         state = self._load_simulation_state(simulation_id)
         if not state:
@@ -545,10 +545,10 @@ class SimulationManager:
         if not os.path.exists(profile_path):
             return []
 
-        with open(profile_path, 'r', encoding='utf-8') as f:
+        with open(profile_path, encoding='utf-8') as f:
             return json.load(f)
     
-    def get_simulation_config(self, simulation_id: str) -> Optional[Dict[str, Any]]:
+    def get_simulation_config(self, simulation_id: str) -> dict[str, Any] | None:
         """Get simulation configuration"""
         sim_dir = self._get_simulation_dir(simulation_id)
         config_path = os.path.join(sim_dir, "simulation_config.json")
@@ -556,10 +556,10 @@ class SimulationManager:
         if not os.path.exists(config_path):
             return None
         
-        with open(config_path, 'r', encoding='utf-8') as f:
+        with open(config_path, encoding='utf-8') as f:
             return json.load(f)
     
-    def get_run_instructions(self, simulation_id: str) -> Dict[str, str]:
+    def get_run_instructions(self, simulation_id: str) -> dict[str, str]:
         """Get run instructions"""
         sim_dir = self._get_simulation_dir(simulation_id)
         config_path = os.path.join(sim_dir, "simulation_config.json")

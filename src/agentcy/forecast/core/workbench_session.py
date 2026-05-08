@@ -1,10 +1,7 @@
 """Session-centric orchestration for the foresight workbench."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from .resource_loader import ResourceLoader, WorkbenchResources
-from .session_manager import SessionManager, WorkbenchSessionState
-from .task_manager import TaskManager
 from ..tools import (
     BuildGraphTool,
     GenerateOntologyTool,
@@ -12,6 +9,9 @@ from ..tools import (
     PrepareSimulationTool,
     RunSimulationTool,
 )
+from .resource_loader import ResourceLoader, WorkbenchResources
+from .session_manager import SessionManager, WorkbenchSessionState
+from .task_manager import TaskManager
 
 
 class WorkbenchSession:
@@ -19,10 +19,10 @@ class WorkbenchSession:
 
     def __init__(
         self,
-        state: Optional[WorkbenchSessionState] = None,
-        resource_loader: Optional[ResourceLoader] = None,
-        session_manager: Optional[SessionManager] = None,
-        task_manager: Optional[TaskManager] = None,
+        state: WorkbenchSessionState | None = None,
+        resource_loader: ResourceLoader | None = None,
+        session_manager: SessionManager | None = None,
+        task_manager: TaskManager | None = None,
     ):
         self.session_manager = session_manager or SessionManager()
         self.task_manager = task_manager or TaskManager()
@@ -65,11 +65,11 @@ class WorkbenchSession:
     @classmethod
     def open(
         cls,
-        project_id: Optional[str] = None,
-        graph_id: Optional[str] = None,
-        simulation_id: Optional[str] = None,
-        report_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        project_id: str | None = None,
+        graph_id: str | None = None,
+        simulation_id: str | None = None,
+        report_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> "WorkbenchSession":
         session_manager = SessionManager()
         state = session_manager.get_or_create(
@@ -85,17 +85,17 @@ class WorkbenchSession:
     def session_id(self) -> str:
         return self.state.session_id
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return self.state.to_dict()
 
     def attach(
         self,
-        project_id: Optional[str] = None,
-        graph_id: Optional[str] = None,
-        simulation_id: Optional[str] = None,
-        report_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        project_id: str | None = None,
+        graph_id: str | None = None,
+        simulation_id: str | None = None,
+        report_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         updated = self.session_manager.attach(
             self.session_id,
             project_id=project_id,
@@ -111,10 +111,10 @@ class WorkbenchSession:
     def generate_ontology(
         self,
         simulation_requirement: str,
-        uploaded_files: List[Any],
+        uploaded_files: list[Any],
         project_name: str = "Unnamed Project",
-        additional_context: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        additional_context: str | None = None,
+    ) -> dict[str, Any]:
         result = self.generate_ontology_tool.execute(
             simulation_requirement=simulation_requirement,
             uploaded_files=uploaded_files,
@@ -128,11 +128,11 @@ class WorkbenchSession:
     def start_graph_build(
         self,
         project_id: str,
-        graph_name: Optional[str] = None,
-        chunk_size: Optional[int] = None,
-        chunk_overlap: Optional[int] = None,
+        graph_name: str | None = None,
+        chunk_size: int | None = None,
+        chunk_overlap: int | None = None,
         force: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         result = self.build_graph_tool.start(
             project_id=project_id,
             graph_name=graph_name,
@@ -168,11 +168,11 @@ class WorkbenchSession:
     def start_simulation_preparation(
         self,
         simulation_id: str,
-        entity_types: Optional[List[str]] = None,
+        entity_types: list[str] | None = None,
         use_llm_for_profiles: bool = True,
         parallel_profile_count: int = 5,
         force_regenerate: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         result = self.prepare_simulation_tool.start(
             simulation_id=simulation_id,
             entity_types=entity_types,
@@ -188,11 +188,11 @@ class WorkbenchSession:
         self,
         simulation_id: str,
         platform: str = "parallel",
-        max_rounds: Optional[int] = None,
+        max_rounds: int | None = None,
         enable_graph_memory_update: bool = False,
         force: bool = False,
         wait_for_commands: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         result = self.run_simulation_tool.start(
             simulation_id=simulation_id,
             platform=platform,
@@ -209,7 +209,7 @@ class WorkbenchSession:
         self,
         simulation_id: str,
         force_regenerate: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         result = self.generate_report_tool.start(
             simulation_id=simulation_id,
             force_regenerate=force_regenerate,

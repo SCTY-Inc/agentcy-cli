@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pytest
-
 
 from agentcy.forecast.utils.file_parser import FileParser
 

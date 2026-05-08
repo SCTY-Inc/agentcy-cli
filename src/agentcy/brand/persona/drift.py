@@ -1,8 +1,6 @@
 """Persona drift detection - check response consistency."""
 from __future__ import annotations
 
-from typing import Any
-
 from pydantic import BaseModel
 
 from agentcy.brand.core.llm import complete_json

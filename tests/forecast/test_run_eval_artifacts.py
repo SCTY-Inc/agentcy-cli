@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from agentcy.forecast.cli import main
 from agentcy.forecast.config import Config
 from agentcy.forecast.run_artifacts import RunStore

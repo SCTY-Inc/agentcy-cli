@@ -10,17 +10,17 @@ Optimizations:
 
 import json
 import random
-import time
-from typing import Dict, Any, List, Optional
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any
 
 from ..config import Config
-from .graph_db import GraphDatabase
-from .graph_storage import GraphStorage
 from ..utils.llm_client import LLMClient
 from ..utils.logger import get_logger
 from .entity_reader import EntityNode
+from .graph_db import GraphDatabase
+from .graph_storage import GraphStorage
 
 logger = get_logger('mirofish.oasis_profile')
 
@@ -44,20 +44,20 @@ class OasisAgentProfile:
     statuses_count: int = 500
 
     # Additional persona information
-    age: Optional[int] = None
-    gender: Optional[str] = None
-    mbti: Optional[str] = None
-    country: Optional[str] = None
-    profession: Optional[str] = None
-    interested_topics: List[str] = field(default_factory=list)
+    age: int | None = None
+    gender: str | None = None
+    mbti: str | None = None
+    country: str | None = None
+    profession: str | None = None
+    interested_topics: list[str] = field(default_factory=list)
 
     # Source entity information
-    source_entity_uuid: Optional[str] = None
-    source_entity_type: Optional[str] = None
+    source_entity_uuid: str | None = None
+    source_entity_type: str | None = None
 
     created_at: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
 
-    def to_reddit_format(self) -> Dict[str, Any]:
+    def to_reddit_format(self) -> dict[str, Any]:
         """Convert to Reddit platform format"""
         profile = {
             "user_id": self.user_id,
@@ -85,7 +85,7 @@ class OasisAgentProfile:
 
         return profile
 
-    def to_twitter_format(self) -> Dict[str, Any]:
+    def to_twitter_format(self) -> dict[str, Any]:
         """Convert to Twitter platform format"""
         profile = {
             "user_id": self.user_id,
@@ -115,7 +115,7 @@ class OasisAgentProfile:
 
         return profile
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to full dictionary format"""
         return {
             "user_id": self.user_id,
@@ -179,9 +179,9 @@ class OasisProfileGenerator:
 
     def __init__(
         self,
-        graph_id: Optional[str] = None,
-        storage: Optional[GraphStorage] = None,
-        provider: Optional[str] = None
+        graph_id: str | None = None,
+        storage: GraphStorage | None = None,
+        provider: str | None = None
     ):
         self.provider = (provider or Config.LLM_PROVIDER or "claude-cli").lower()
         self.llm = LLMClient(provider=self.provider)
@@ -266,7 +266,7 @@ class OasisProfileGenerator:
         suffix = random.randint(100, 999)
         return f"{username}_{suffix}"
 
-    def _search_kuzu_for_entity(self, entity: EntityNode) -> Dict[str, Any]:
+    def _search_kuzu_for_entity(self, entity: EntityNode) -> dict[str, Any]:
         """
         Search the knowledge graph to retrieve rich information about the entity.
 
@@ -433,9 +433,9 @@ class OasisProfileGenerator:
         entity_name: str,
         entity_type: str,
         entity_summary: str,
-        entity_attributes: Dict[str, Any],
+        entity_attributes: dict[str, Any],
         context: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Use LLM to generate a highly detailed persona
 
@@ -506,7 +506,6 @@ class OasisProfileGenerator:
 
     def _fix_truncated_json(self, content: str) -> str:
         """Fix truncated JSON (output was cut off by max_tokens limit)"""
-        import re
 
         # If JSON was truncated, try to close it
         content = content.strip()
@@ -527,7 +526,7 @@ class OasisProfileGenerator:
 
         return content
 
-    def _try_fix_json(self, content: str, entity_name: str, entity_type: str, entity_summary: str = "") -> Dict[str, Any]:
+    def _try_fix_json(self, content: str, entity_name: str, entity_type: str, entity_summary: str = "") -> dict[str, Any]:
         """Attempt to fix corrupted JSON"""
         import re
 
@@ -557,7 +556,7 @@ class OasisProfileGenerator:
                 result = json.loads(json_str)
                 result["_fixed"] = True
                 return result
-            except json.JSONDecodeError as e:
+            except json.JSONDecodeError:
                 # 5. If still failing, try more aggressive fixes
                 try:
                     # Remove all control characters
@@ -579,7 +578,7 @@ class OasisProfileGenerator:
 
         # If meaningful content was extracted, mark as fixed
         if bio_match or persona_match:
-            logger.info(f"Extracted partial information from corrupted JSON")
+            logger.info("Extracted partial information from corrupted JSON")
             return {
                 "bio": bio,
                 "persona": persona,
@@ -587,7 +586,7 @@ class OasisProfileGenerator:
             }
 
         # 7. Complete failure, return basic structure
-        logger.warning(f"JSON repair failed, returning basic structure")
+        logger.warning("JSON repair failed, returning basic structure")
         return {
             "bio": entity_summary[:200] if entity_summary else f"{entity_type}: {entity_name}",
             "persona": entity_summary or f"{entity_name} is a {entity_type}."
@@ -603,7 +602,7 @@ class OasisProfileGenerator:
         entity_name: str,
         entity_type: str,
         entity_summary: str,
-        entity_attributes: Dict[str, Any],
+        entity_attributes: dict[str, Any],
         context: str
     ) -> str:
         """Build the detailed persona prompt for an individual entity"""
@@ -649,7 +648,7 @@ Important:
         entity_name: str,
         entity_type: str,
         entity_summary: str,
-        entity_attributes: Dict[str, Any],
+        entity_attributes: dict[str, Any],
         context: str
     ) -> str:
         """Build the detailed persona prompt for a group/organization entity"""
@@ -694,8 +693,8 @@ Important:
         entity_name: str,
         entity_type: str,
         entity_summary: str,
-        entity_attributes: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        entity_attributes: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate a basic persona using rules"""
 
         entity_type_lower = entity_type.lower()
@@ -714,7 +713,7 @@ Important:
 
         elif entity_type_lower in ["publicfigure", "expert", "faculty"]:
             return {
-                "bio": f"Expert and thought leader in their field.",
+                "bio": "Expert and thought leader in their field.",
                 "persona": f"{entity_name} is a recognized {entity_type.lower()} who shares insights and opinions on important matters. They are known for their expertise and influence in public discourse.",
                 "age": random.randint(35, 60),
                 "gender": random.choice(["male", "female"]),
@@ -767,14 +766,14 @@ Important:
 
     def generate_profiles_from_entities(
         self,
-        entities: List[EntityNode],
+        entities: list[EntityNode],
         use_llm: bool = True,
-        progress_callback: Optional[callable] = None,
-        graph_id: Optional[str] = None,
+        progress_callback: Callable | None = None,
+        graph_id: str | None = None,
         parallel_count: int = 5,
-        realtime_output_path: Optional[str] = None,
+        realtime_output_path: str | None = None,
         output_platform: str = "reddit"
-    ) -> List[OasisAgentProfile]:
+    ) -> list[OasisAgentProfile]:
         """
         Batch generate Agent Profiles from entities (with parallel generation support)
 
@@ -866,7 +865,7 @@ Important:
                     user_name=self._generate_username(entity.name),
                     name=entity.name,
                     bio=f"{entity_type}: {entity.name}",
-                    persona=entity.summary or f"A participant in social discussions.",
+                    persona=entity.summary or "A participant in social discussions.",
                     source_entity_uuid=entity.uuid,
                     source_entity_type=entity_type,
                 )
@@ -942,14 +941,14 @@ Important:
             f"[Generated] {entity_name} ({entity_type})",
             f"{separator}",
             f"Username: {profile.user_name}",
-            f"",
-            f"[Bio]",
+            "",
+            "[Bio]",
             f"{profile.bio}",
-            f"",
-            f"[Detailed Persona]",
+            "",
+            "[Detailed Persona]",
             f"{profile.persona}",
-            f"",
-            f"[Basic Attributes]",
+            "",
+            "[Basic Attributes]",
             f"Age: {profile.age} | Gender: {profile.gender} | MBTI: {profile.mbti}",
             f"Profession: {profile.profession} | Country: {profile.country}",
             f"Interested Topics: {topics_str}",
@@ -961,7 +960,7 @@ Important:
 
     def save_profiles(
         self,
-        profiles: List[OasisAgentProfile],
+        profiles: list[OasisAgentProfile],
         file_path: str,
         platform: str = "reddit"
     ):
@@ -982,7 +981,7 @@ Important:
         else:
             self._save_reddit_json(profiles, file_path)
 
-    def _save_twitter_csv(self, profiles: List[OasisAgentProfile], file_path: str):
+    def _save_twitter_csv(self, profiles: list[OasisAgentProfile], file_path: str):
         """
         Save Twitter Profiles in CSV format (compliant with OASIS official requirements)
 
@@ -1033,7 +1032,7 @@ Important:
 
         logger.info(f"Saved {len(profiles)} Twitter Profiles to {file_path} (OASIS CSV format)")
 
-    def _normalize_gender(self, gender: Optional[str]) -> str:
+    def _normalize_gender(self, gender: str | None) -> str:
         """
         Normalize the gender field to OASIS required English format
 
@@ -1058,7 +1057,7 @@ Important:
 
         return gender_map.get(gender_lower, "other")
 
-    def _save_reddit_json(self, profiles: List[OasisAgentProfile], file_path: str):
+    def _save_reddit_json(self, profiles: list[OasisAgentProfile], file_path: str):
         """
         Save Reddit Profiles in JSON format
 
@@ -1110,7 +1109,7 @@ Important:
     # Keep old method name as alias for backward compatibility
     def save_profiles_to_json(
         self,
-        profiles: List[OasisAgentProfile],
+        profiles: list[OasisAgentProfile],
         file_path: str,
         platform: str = "reddit"
     ):

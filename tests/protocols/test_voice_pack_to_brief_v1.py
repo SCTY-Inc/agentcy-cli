@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import pytest
@@ -9,10 +8,13 @@ from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[2]
 
+from agentcy.brand.plan.brief_v1 import (  # noqa: E402
+    build_brief_v1,
+    load_voice_pack_v1,
+    write_brief_v1,
+)
 from agentcy.persona.exporters import export_voice_pack  # noqa: E402
 from agentcy.persona.persona import Persona  # noqa: E402
-from agentcy.brand.plan.brief_v1 import build_brief_v1, load_voice_pack_v1, write_brief_v1  # noqa: E402
-
 
 PROTOCOLS_DIR = ROOT / "src" / "agentcy" / "protocols"
 EXAMPLES_DIR = PROTOCOLS_DIR / "examples"

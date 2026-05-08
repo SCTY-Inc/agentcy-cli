@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import json
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -15,7 +14,7 @@ from agentcy.brand.core.config import utc_now
 from agentcy.brand.core.storage import data_dir
 
 
-class DecisionType(str, Enum):
+class DecisionType(StrEnum):
     """Types of decisions agents can propose."""
 
     CONTENT_PUBLISH = "content_publish"
@@ -28,7 +27,7 @@ class DecisionType(str, Enum):
     ALERT_ESCALATION = "alert_escalation"
 
 
-class DecisionStatus(str, Enum):
+class DecisionStatus(StrEnum):
     """Decision lifecycle status."""
 
     DRAFT = "draft"

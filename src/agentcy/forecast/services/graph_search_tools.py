@@ -4,15 +4,15 @@ Provides: get_graph_statistics, get_simulation_context,
 insight_forge, panorama_search, quick_search, _generate_sub_queries.
 """
 
-from typing import Dict, Any, List
+from typing import Any
 
-from .graph_models import (
-    SearchResult,
-    NodeInfo,
-    InsightForgeResult,
-    PanoramaResult,
-)
 from ..utils.logger import get_logger
+from .graph_models import (
+    InsightForgeResult,
+    NodeInfo,
+    PanoramaResult,
+    SearchResult,
+)
 
 logger = get_logger('mirofish.graph_tools')
 
@@ -24,7 +24,7 @@ class GraphSearchToolsMixin:
     get_node_detail, llm (LLMClient).
     """
 
-    def get_graph_statistics(self, graph_id: str) -> Dict[str, Any]:
+    def get_graph_statistics(self, graph_id: str) -> dict[str, Any]:
         """
         Get graph statistics
 
@@ -64,7 +64,7 @@ class GraphSearchToolsMixin:
         graph_id: str,
         simulation_requirement: str,
         limit: int = 30
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get simulation-related context information
 
@@ -265,7 +265,7 @@ class GraphSearchToolsMixin:
         simulation_requirement: str,
         report_context: str = "",
         max_queries: int = 5
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Use LLM to generate sub-queries
 
@@ -362,8 +362,8 @@ Return the sub-question list in JSON format."""
                 continue
 
             # Add entity names to facts
-            source_name = node_map.get(edge.source_node_uuid, NodeInfo('', '', [], '', {})).name or edge.source_node_uuid[:8]
-            target_name = node_map.get(edge.target_node_uuid, NodeInfo('', '', [], '', {})).name or edge.target_node_uuid[:8]
+            node_map.get(edge.source_node_uuid, NodeInfo('', '', [], '', {})).name or edge.source_node_uuid[:8]
+            node_map.get(edge.target_node_uuid, NodeInfo('', '', [], '', {})).name or edge.target_node_uuid[:8]
 
             # Determine if expired/invalidated
             is_historical = edge.is_expired or edge.is_invalid

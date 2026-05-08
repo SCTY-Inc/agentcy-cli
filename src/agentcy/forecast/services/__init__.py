@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from importlib import import_module
 
-
 _EXPORTS = {
     "OntologyGenerator": (".ontology_generator", "OntologyGenerator"),
     "GraphBuilderService": (".graph_builder", "GraphBuilderService"),

@@ -15,9 +15,10 @@ overly long content in a single pass:
 import json
 import math
 import re
-from typing import Dict, Any, List, Optional, Callable
-from dataclasses import dataclass, field, asdict
+from collections.abc import Callable
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
+from typing import Any
 
 from ..config import Config
 from ..utils.llm_client import LLMClient
@@ -65,7 +66,7 @@ class AgentActivityConfig:
     comments_per_hour: float = 2.0
 
     # Active hours (24-hour format, 0-23)
-    active_hours: List[int] = field(default_factory=lambda: list(range(8, 23)))
+    active_hours: list[int] = field(default_factory=lambda: list(range(8, 23)))
 
     # Response speed (reaction delay to trending events, in simulated minutes)
     response_delay_min: int = 5
@@ -95,19 +96,19 @@ class TimeSimulationConfig:
     agents_per_hour_max: int = 20
 
     # Peak hours (evening 19-22, most active time)
-    peak_hours: List[int] = field(default_factory=lambda: [19, 20, 21, 22])
+    peak_hours: list[int] = field(default_factory=lambda: [19, 20, 21, 22])
     peak_activity_multiplier: float = 1.5
 
     # Off-peak hours (0-5 AM, almost no activity)
-    off_peak_hours: List[int] = field(default_factory=lambda: [0, 1, 2, 3, 4, 5])
+    off_peak_hours: list[int] = field(default_factory=lambda: [0, 1, 2, 3, 4, 5])
     off_peak_activity_multiplier: float = 0.05  # Extremely low activity in early morning
 
     # Morning hours
-    morning_hours: List[int] = field(default_factory=lambda: [6, 7, 8])
+    morning_hours: list[int] = field(default_factory=lambda: [6, 7, 8])
     morning_activity_multiplier: float = 0.4
 
     # Work hours
-    work_hours: List[int] = field(default_factory=lambda: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18])
+    work_hours: list[int] = field(default_factory=lambda: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18])
     work_activity_multiplier: float = 0.7
 
 
@@ -115,19 +116,19 @@ class TimeSimulationConfig:
 class EventConfig:
     """Event configuration"""
     # Initial events (trigger events at simulation start)
-    initial_posts: List[Dict[str, Any]] = field(default_factory=list)
+    initial_posts: list[dict[str, Any]] = field(default_factory=list)
 
     # Scheduled events (events triggered at specific times)
-    scheduled_events: List[Dict[str, Any]] = field(default_factory=list)
+    scheduled_events: list[dict[str, Any]] = field(default_factory=list)
 
     # Trending topic keywords
-    hot_topics: List[str] = field(default_factory=list)
+    hot_topics: list[str] = field(default_factory=list)
 
     # Narrative direction
     narrative_direction: str = ""
 
     # Taxonomy-driven scenario buckets used to seed simulation coverage
-    scenario_buckets: List[Dict[str, Any]] = field(default_factory=list)
+    scenario_buckets: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -160,14 +161,14 @@ class SimulationParameters:
     time_config: TimeSimulationConfig = field(default_factory=TimeSimulationConfig)
 
     # Agent configuration list
-    agent_configs: List[AgentActivityConfig] = field(default_factory=list)
+    agent_configs: list[AgentActivityConfig] = field(default_factory=list)
 
     # Event configuration
     event_config: EventConfig = field(default_factory=EventConfig)
 
     # Platform configuration
-    twitter_config: Optional[PlatformConfig] = None
-    reddit_config: Optional[PlatformConfig] = None
+    twitter_config: PlatformConfig | None = None
+    reddit_config: PlatformConfig | None = None
 
     # LLM configuration
     llm_provider: str = ""
@@ -178,7 +179,7 @@ class SimulationParameters:
     generated_at: str = field(default_factory=lambda: datetime.now().isoformat())
     generation_reasoning: str = ""  # LLM reasoning explanation
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         time_dict = asdict(self.time_config)
         return {
@@ -228,7 +229,7 @@ class SimulationConfigGenerator:
     AGENT_SUMMARY_LENGTH = 300           # Entity summary in Agent configuration
     ENTITIES_PER_TYPE_DISPLAY = 20       # Number of entities displayed per type
 
-    def __init__(self, provider: Optional[str] = None):
+    def __init__(self, provider: str | None = None):
         self.provider = (provider or Config.LLM_PROVIDER or "claude-cli").lower()
         self.llm = LLMClient(provider=self.provider)
 
@@ -239,10 +240,10 @@ class SimulationConfigGenerator:
         graph_id: str,
         simulation_requirement: str,
         document_text: str,
-        entities: List[EntityNode],
+        entities: list[EntityNode],
         enable_twitter: bool = True,
         enable_reddit: bool = True,
-        progress_callback: Optional[Callable[[int, int, str], None]] = None,
+        progress_callback: Callable[[int, int, str], None] | None = None,
     ) -> SimulationParameters:
         """
         Intelligently generate complete simulation configuration (step-by-step)
@@ -379,7 +380,7 @@ class SimulationConfigGenerator:
         self,
         simulation_requirement: str,
         document_text: str,
-        entities: List[EntityNode]
+        entities: list[EntityNode]
     ) -> str:
         """Build LLM context, truncated to maximum length"""
 
@@ -403,12 +404,12 @@ class SimulationConfigGenerator:
 
         return "\n".join(context_parts)
 
-    def _summarize_entities(self, entities: List[EntityNode]) -> str:
+    def _summarize_entities(self, entities: list[EntityNode]) -> str:
         """Generate entity summary"""
         lines = []
 
         # Group by type
-        by_type: Dict[str, List[EntityNode]] = {}
+        by_type: dict[str, list[EntityNode]] = {}
         for e in entities:
             t = e.get_entity_type() or "Unknown"
             if t not in by_type:
@@ -428,9 +429,8 @@ class SimulationConfigGenerator:
 
         return "\n".join(lines)
 
-    def _call_llm_with_retry(self, prompt: str, system_prompt: str) -> Dict[str, Any]:
+    def _call_llm_with_retry(self, prompt: str, system_prompt: str) -> dict[str, Any]:
         """LLM call with retry logic and JSON repair"""
-        import re
 
         max_attempts = 3
         last_error = None
@@ -485,7 +485,7 @@ class SimulationConfigGenerator:
 
         return content
 
-    def _try_fix_config_json(self, content: str) -> Optional[Dict[str, Any]]:
+    def _try_fix_config_json(self, content: str) -> dict[str, Any] | None:
         """Try to fix configuration JSON"""
         import re
 
@@ -519,7 +519,7 @@ class SimulationConfigGenerator:
 
         return None
 
-    def _generate_time_config(self, context: str, num_entities: int) -> Dict[str, Any]:
+    def _generate_time_config(self, context: str, num_entities: int) -> dict[str, Any]:
         """Generate time configuration"""
         context_truncated = context[:self.TIME_CONFIG_CONTEXT_LENGTH]
 
@@ -578,7 +578,7 @@ Field descriptions:
             logger.warning(f"Time config LLM generation failed: {e}, using default config")
             return self._get_default_time_config(num_entities)
 
-    def _get_default_time_config(self, num_entities: int) -> Dict[str, Any]:
+    def _get_default_time_config(self, num_entities: int) -> dict[str, Any]:
         """Get default time configuration (general daily patterns)"""
         return {
             "total_simulation_hours": 72,
@@ -592,7 +592,7 @@ Field descriptions:
             "reasoning": "Using default daily activity pattern configuration (1 hour per round)"
         }
 
-    def _parse_time_config(self, result: Dict[str, Any], num_entities: int) -> TimeSimulationConfig:
+    def _parse_time_config(self, result: dict[str, Any], num_entities: int) -> TimeSimulationConfig:
         """Parse time configuration result and validate agents_per_hour values do not exceed total agent count"""
         # Get raw values
         agents_per_hour_min = result.get("agents_per_hour_min", max(1, num_entities // 15))
@@ -627,9 +627,9 @@ Field descriptions:
             peak_activity_multiplier=1.5
         )
 
-    def _dedupe_strings(self, values: List[Any], limit: Optional[int] = None) -> List[str]:
+    def _dedupe_strings(self, values: list[Any], limit: int | None = None) -> list[str]:
         seen = set()
-        deduped: List[str] = []
+        deduped: list[str] = []
         for value in values:
             if isinstance(value, str):
                 normalized = " ".join(value.split())
@@ -646,7 +646,7 @@ Field descriptions:
                 break
         return deduped
 
-    def _entity_types_for_taxonomy(self, entities: List[EntityNode]) -> List[str]:
+    def _entity_types_for_taxonomy(self, entities: list[EntityNode]) -> list[str]:
         return self._dedupe_strings(
             [entity.get_entity_type() or "Unknown" for entity in entities],
             limit=6,
@@ -656,7 +656,7 @@ Field descriptions:
         slug = re.sub(r"[^a-z0-9]+", "-", value.strip().lower()).strip("-")
         return slug or "scenario"
 
-    def _extract_requirement_topics(self, simulation_requirement: str) -> List[str]:
+    def _extract_requirement_topics(self, simulation_requirement: str) -> list[str]:
         stopwords = {
             "about",
             "across",
@@ -689,10 +689,10 @@ Field descriptions:
 
     def _normalize_scenario_buckets(
         self,
-        result: Dict[str, Any],
+        result: dict[str, Any],
         simulation_requirement: str,
-        entities: List[EntityNode],
-    ) -> List[Dict[str, Any]]:
+        entities: list[EntityNode],
+    ) -> list[dict[str, Any]]:
         available_types = self._entity_types_for_taxonomy(entities)
         fallback_topics = self._dedupe_strings(
             list(result.get("hot_topics", []) or []) + self._extract_requirement_topics(simulation_requirement),
@@ -731,7 +731,7 @@ Field descriptions:
                 for index, topic in enumerate(fallback_topics[:4])
             ]
 
-        buckets: List[Dict[str, Any]] = []
+        buckets: list[dict[str, Any]] = []
         for index, raw_bucket in enumerate(raw_buckets[:6]):
             bucket = dict(raw_bucket)
             label = str(
@@ -783,11 +783,11 @@ Field descriptions:
 
     def _build_initial_posts_from_buckets(
         self,
-        raw_posts: List[Dict[str, Any]],
-        scenario_buckets: List[Dict[str, Any]],
-    ) -> List[Dict[str, Any]]:
+        raw_posts: list[dict[str, Any]],
+        scenario_buckets: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
         if raw_posts:
-            normalized_posts: List[Dict[str, Any]] = []
+            normalized_posts: list[dict[str, Any]] = []
             for index, post in enumerate(raw_posts):
                 bucket = scenario_buckets[min(index, len(scenario_buckets) - 1)] if scenario_buckets else None
                 normalized = dict(post)
@@ -812,11 +812,11 @@ Field descriptions:
 
     def _build_scheduled_events_from_buckets(
         self,
-        raw_events: List[Dict[str, Any]],
-        scenario_buckets: List[Dict[str, Any]],
-    ) -> List[Dict[str, Any]]:
+        raw_events: list[dict[str, Any]],
+        scenario_buckets: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
         if raw_events:
-            normalized_events: List[Dict[str, Any]] = []
+            normalized_events: list[dict[str, Any]] = []
             for index, event in enumerate(raw_events):
                 bucket = scenario_buckets[min(index, len(scenario_buckets) - 1)] if scenario_buckets else None
                 normalized = dict(event)
@@ -842,12 +842,12 @@ Field descriptions:
         self,
         context: str,
         simulation_requirement: str,
-        entities: List[EntityNode]
-    ) -> Dict[str, Any]:
+        entities: list[EntityNode]
+    ) -> dict[str, Any]:
         """Generate event configuration"""
 
         # Get available entity type list for LLM reference
-        entity_types_available = list(set(
+        list(set(
             e.get_entity_type() or "Unknown" for e in entities
         ))
 
@@ -925,10 +925,10 @@ Return JSON format (no markdown):
 
     def _parse_event_config(
         self,
-        result: Dict[str, Any],
+        result: dict[str, Any],
         *,
         simulation_requirement: str = "",
-        entities: Optional[List[EntityNode]] = None,
+        entities: list[EntityNode] | None = None,
     ) -> EventConfig:
         """Parse event configuration result and normalize taxonomy-driven scenario buckets."""
         scenario_buckets = self._normalize_scenario_buckets(
@@ -960,7 +960,7 @@ Return JSON format (no markdown):
     def _assign_initial_post_agents(
         self,
         event_config: EventConfig,
-        agent_configs: List[AgentActivityConfig]
+        agent_configs: list[AgentActivityConfig]
     ) -> EventConfig:
         """
         Assign suitable publisher Agents to initial posts
@@ -971,7 +971,7 @@ Return JSON format (no markdown):
             return event_config
 
         # Build agent index by entity type
-        agents_by_type: Dict[str, List[AgentActivityConfig]] = {}
+        agents_by_type: dict[str, list[AgentActivityConfig]] = {}
         for agent in agent_configs:
             etype = agent.entity_type.lower()
             if etype not in agents_by_type:
@@ -991,7 +991,7 @@ Return JSON format (no markdown):
         }
 
         # Track used agent index per type to avoid reusing the same agent
-        used_indices: Dict[str, int] = {}
+        used_indices: dict[str, int] = {}
 
         updated_posts = []
         for post in event_config.initial_posts:
@@ -1045,10 +1045,10 @@ Return JSON format (no markdown):
     def _generate_agent_configs_batch(
         self,
         context: str,
-        entities: List[EntityNode],
+        entities: list[EntityNode],
         start_idx: int,
         simulation_requirement: str
-    ) -> List[AgentActivityConfig]:
+    ) -> list[AgentActivityConfig]:
         """Generate Agent configurations in batches"""
 
         # Build entity information (using configured summary length)
@@ -1136,7 +1136,7 @@ Return JSON format (no markdown):
 
         return configs
 
-    def _generate_agent_config_by_rule(self, entity: EntityNode) -> Dict[str, Any]:
+    def _generate_agent_config_by_rule(self, entity: EntityNode) -> dict[str, Any]:
         """Generate a single Agent configuration based on rules (general daily patterns)"""
         entity_type = (entity.get_entity_type() or "Unknown").lower()
 

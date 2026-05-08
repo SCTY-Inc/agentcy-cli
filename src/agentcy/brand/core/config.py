@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +15,7 @@ def utc_now() -> datetime:
 
     Use this instead of datetime.utcnow() which is deprecated in Python 3.12+.
     """
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class BrandOpsConfig(BaseModel):

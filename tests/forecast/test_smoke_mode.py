@@ -1,7 +1,5 @@
 import json
-import sys
 from pathlib import Path
-
 
 from agentcy.forecast.cli import build_parser
 from agentcy.forecast.smoke_mode import build_smoke_outputs

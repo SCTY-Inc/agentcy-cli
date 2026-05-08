@@ -8,28 +8,28 @@ Implements a simple command/response pattern via the file system:
 3. Flask polls the responses directory to get results
 """
 
-import os
 import json
+import os
 import time
 import uuid
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
+from typing import Any
 
 from ..utils.logger import get_logger
 
 logger = get_logger('mirofish.simulation_ipc')
 
 
-class CommandType(str, Enum):
+class CommandType(StrEnum):
     """Command type"""
     INTERVIEW = "interview"           # Single Agent interview
     BATCH_INTERVIEW = "batch_interview"  # Batch interview
     CLOSE_ENV = "close_env"           # Close environment
 
 
-class CommandStatus(str, Enum):
+class CommandStatus(StrEnum):
     """Command status"""
     PENDING = "pending"
     PROCESSING = "processing"
@@ -42,10 +42,10 @@ class IPCCommand:
     """IPC Command"""
     command_id: str
     command_type: CommandType
-    args: Dict[str, Any]
+    args: dict[str, Any]
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "command_id": self.command_id,
             "command_type": self.command_type.value,
@@ -54,7 +54,7 @@ class IPCCommand:
         }
     
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'IPCCommand':
+    def from_dict(cls, data: dict[str, Any]) -> 'IPCCommand':
         return cls(
             command_id=data["command_id"],
             command_type=CommandType(data["command_type"]),
@@ -68,11 +68,11 @@ class IPCResponse:
     """IPC Response"""
     command_id: str
     status: CommandStatus
-    result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    result: dict[str, Any] | None = None
+    error: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "command_id": self.command_id,
             "status": self.status.value,
@@ -82,7 +82,7 @@ class IPCResponse:
         }
     
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'IPCResponse':
+    def from_dict(cls, data: dict[str, Any]) -> 'IPCResponse':
         return cls(
             command_id=data["command_id"],
             status=CommandStatus(data["status"]),
@@ -117,7 +117,7 @@ class SimulationIPCClient:
     def send_command(
         self,
         command_type: CommandType,
-        args: Dict[str, Any],
+        args: dict[str, Any],
         timeout: float = 60.0,
         poll_interval: float = 0.5
     ) -> IPCResponse:
@@ -157,7 +157,7 @@ class SimulationIPCClient:
         while time.time() - start_time < timeout:
             if os.path.exists(response_file):
                 try:
-                    with open(response_file, 'r', encoding='utf-8') as f:
+                    with open(response_file, encoding='utf-8') as f:
                         response_data = json.load(f)
                     response = IPCResponse.from_dict(response_data)
                     
@@ -223,7 +223,7 @@ class SimulationIPCClient:
     
     def send_batch_interview(
         self,
-        interviews: List[Dict[str, Any]],
+        interviews: list[dict[str, Any]],
         platform: str = None,
         timeout: float = 120.0
     ) -> IPCResponse:
@@ -278,7 +278,7 @@ class SimulationIPCClient:
             return False
         
         try:
-            with open(status_file, 'r', encoding='utf-8') as f:
+            with open(status_file, encoding='utf-8') as f:
                 status = json.load(f)
             return status.get("status") == "alive"
         except (json.JSONDecodeError, OSError):
@@ -329,7 +329,7 @@ class SimulationIPCServer:
                 "timestamp": datetime.now().isoformat()
             }, f, ensure_ascii=False, indent=2)
     
-    def poll_commands(self) -> Optional[IPCCommand]:
+    def poll_commands(self) -> IPCCommand | None:
         """
         Poll commands directory, return first pending command
 
@@ -350,7 +350,7 @@ class SimulationIPCServer:
         
         for filepath, _ in command_files:
             try:
-                with open(filepath, 'r', encoding='utf-8') as f:
+                with open(filepath, encoding='utf-8') as f:
                     data = json.load(f)
                 return IPCCommand.from_dict(data)
             except (json.JSONDecodeError, KeyError, OSError) as e:
@@ -377,7 +377,7 @@ class SimulationIPCServer:
         except OSError:
             pass
     
-    def send_success(self, command_id: str, result: Dict[str, Any]):
+    def send_success(self, command_id: str, result: dict[str, Any]):
         """Send success response"""
         self.send_response(IPCResponse(
             command_id=command_id,

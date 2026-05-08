@@ -175,7 +175,7 @@ class Persona(BaseModel):
             if chunk.choices and chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
 
-    def conversation(self, model: str | None = None) -> "Conversation":
+    def conversation(self, model: str | None = None) -> Conversation:
         """Start a multi-turn conversation with this persona.
 
         Args:
@@ -289,7 +289,7 @@ class Conversation:
         """Clear conversation history."""
         self.history = []
 
-    def __enter__(self) -> "Conversation":
+    def __enter__(self) -> Conversation:
         return self
 
     def __exit__(self, *args: Any) -> None:

@@ -2,7 +2,7 @@
 
 import threading
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ..core.session_manager import SessionManager
 from ..core.task_manager import TaskManager, TaskStatus
@@ -20,11 +20,11 @@ class GenerateReportTool:
 
     def __init__(
         self,
-        simulation_store: Optional[SimulationStore] = None,
-        project_store: Optional[ProjectStore] = None,
-        report_store: Optional[ReportStore] = None,
-        task_manager: Optional[TaskManager] = None,
-        session_manager: Optional[SessionManager] = None,
+        simulation_store: SimulationStore | None = None,
+        project_store: ProjectStore | None = None,
+        report_store: ReportStore | None = None,
+        task_manager: TaskManager | None = None,
+        session_manager: SessionManager | None = None,
     ):
         self.simulation_store = simulation_store or SimulationStore()
         self.project_store = project_store or ProjectStore()
@@ -36,8 +36,8 @@ class GenerateReportTool:
         self,
         simulation_id: str,
         force_regenerate: bool = False,
-        session_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
         state = self.simulation_store.get(simulation_id)
         if not state:
             raise FileNotFoundError(f"Simulation not found: {simulation_id}")

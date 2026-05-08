@@ -3,8 +3,6 @@
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from agentcy.persona.persona import Persona, Voice
 
 

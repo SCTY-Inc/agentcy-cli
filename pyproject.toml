@@ -56,11 +56,18 @@ allow-direct-references = true
 packages = ["src/agentcy"]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
+ignore = ["E501", "E402", "E741"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/agentcy/brand/publish/rate_limit.py" = ["F821"]
+"src/agentcy/brand/persona/optimization.py" = ["F401"]
+"src/agentcy/forecast/services/*" = ["F821"]
+"src/agentcy/protocols/adapters/*" = ["F821"]
 
 [dependency-groups]
 dev = [

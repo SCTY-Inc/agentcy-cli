@@ -35,7 +35,7 @@ def fetch_google_news(
             response = client.get(url)
             response.raise_for_status()
             xml_content = response.text
-    except httpx.HTTPError as e:
+    except httpx.HTTPError:
         return []
 
     # Parse RSS XML

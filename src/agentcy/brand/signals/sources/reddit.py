@@ -10,13 +10,10 @@ import hashlib
 import json
 import logging
 import urllib.request
-from datetime import datetime
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
 from agentcy.brand.signals.schema import Signal, SignalSource, SignalType, Urgency
-
 
 # Common subreddits by category for auto-suggestion
 SUBREDDIT_CATEGORIES = {
@@ -233,7 +230,9 @@ def get_subreddits_for_brand(brand_config: dict, use_discovery: bool = True) -> 
         )
         if has_context:
             try:
-                from agentcy.brand.signals.sources.reddit_discover import discover_subreddits_for_brand
+                from agentcy.brand.signals.sources.reddit_discover import (
+                    discover_subreddits_for_brand,
+                )
                 discovered = discover_subreddits_for_brand(brand_config)
                 if discovered:
                     return discovered[:10]  # Limit to top 10

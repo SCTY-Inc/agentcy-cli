@@ -5,7 +5,6 @@ from typing import Any
 
 from agentcy.brand.core.llm import complete_json
 
-
 BOOTSTRAP_SYSTEM = """You are an expert at creating detailed AI persona definitions.
 Generate a comprehensive persona based on the user's description.
 Output valid JSON with these fields:

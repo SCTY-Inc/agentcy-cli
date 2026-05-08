@@ -11,18 +11,9 @@ All callers import GraphToolsService from here; internal layout is an
 implementation detail.
 """
 
-from .graph_models import (
-    SearchResult,
-    NodeInfo,
-    EdgeInfo,
-    InsightForgeResult,
-    PanoramaResult,
-    AgentInterview,
-    InterviewResult,
-)
+from .graph_interview import GraphInterviewMixin
 from .graph_retrieval import GraphRetrievalBase
 from .graph_search_tools import GraphSearchToolsMixin
-from .graph_interview import GraphInterviewMixin
 
 
 class GraphToolsService(GraphRetrievalBase, GraphSearchToolsMixin, GraphInterviewMixin):

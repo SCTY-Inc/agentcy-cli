@@ -4,20 +4,20 @@ Dataclasses for SearchResult, NodeInfo, EdgeInfo, InsightForgeResult,
 PanoramaResult, AgentInterview, and InterviewResult.
 """
 
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
 class SearchResult:
     """Search result"""
-    facts: List[str]
-    edges: List[Dict[str, Any]]
-    nodes: List[Dict[str, Any]]
+    facts: list[str]
+    edges: list[dict[str, Any]]
+    nodes: list[dict[str, Any]]
     query: str
     total_count: int
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "facts": self.facts,
             "edges": self.edges,
@@ -43,11 +43,11 @@ class NodeInfo:
     """Node information"""
     uuid: str
     name: str
-    labels: List[str]
+    labels: list[str]
     summary: str
-    attributes: Dict[str, Any]
+    attributes: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "uuid": self.uuid,
             "name": self.name,
@@ -70,15 +70,15 @@ class EdgeInfo:
     fact: str
     source_node_uuid: str
     target_node_uuid: str
-    source_node_name: Optional[str] = None
-    target_node_name: Optional[str] = None
+    source_node_name: str | None = None
+    target_node_name: str | None = None
     # Temporal information
-    created_at: Optional[str] = None
-    valid_at: Optional[str] = None
-    invalid_at: Optional[str] = None
-    expired_at: Optional[str] = None
+    created_at: str | None = None
+    valid_at: str | None = None
+    invalid_at: str | None = None
+    expired_at: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "uuid": self.uuid,
             "name": self.name,
@@ -127,19 +127,19 @@ class InsightForgeResult:
     """
     query: str
     simulation_requirement: str
-    sub_queries: List[str]
+    sub_queries: list[str]
 
     # Retrieval results by dimension
-    semantic_facts: List[str] = field(default_factory=list)  # Semantic search results
-    entity_insights: List[Dict[str, Any]] = field(default_factory=list)  # Entity insights
-    relationship_chains: List[str] = field(default_factory=list)  # Relationship chains
+    semantic_facts: list[str] = field(default_factory=list)  # Semantic search results
+    entity_insights: list[dict[str, Any]] = field(default_factory=list)  # Entity insights
+    relationship_chains: list[str] = field(default_factory=list)  # Relationship chains
 
     # Statistics
     total_facts: int = 0
     total_entities: int = 0
     total_relationships: int = 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "query": self.query,
             "simulation_requirement": self.simulation_requirement,
@@ -155,10 +155,10 @@ class InsightForgeResult:
     def to_text(self) -> str:
         """Convert to detailed text format for LLM comprehension"""
         text_parts = [
-            f"## Future Prediction Deep Analysis",
+            "## Future Prediction Deep Analysis",
             f"Analysis question: {self.query}",
             f"Prediction scenario: {self.simulation_requirement}",
-            f"\n### Prediction Data Statistics",
+            "\n### Prediction Data Statistics",
             f"- Relevant prediction facts: {self.total_facts} items",
             f"- Entities involved: {self.total_entities} items",
             f"- Relationship chains: {self.total_relationships} items"
@@ -166,19 +166,19 @@ class InsightForgeResult:
 
         # Sub-queries
         if self.sub_queries:
-            text_parts.append(f"\n### Analyzed Sub-queries")
+            text_parts.append("\n### Analyzed Sub-queries")
             for i, sq in enumerate(self.sub_queries, 1):
                 text_parts.append(f"{i}. {sq}")
 
         # Semantic search results
         if self.semantic_facts:
-            text_parts.append(f"\n### [Key Facts] (Please cite these original texts in the report)")
+            text_parts.append("\n### [Key Facts] (Please cite these original texts in the report)")
             for i, fact in enumerate(self.semantic_facts, 1):
                 text_parts.append(f"{i}. \"{fact}\"")
 
         # Entity insights
         if self.entity_insights:
-            text_parts.append(f"\n### [Core Entities]")
+            text_parts.append("\n### [Core Entities]")
             for entity in self.entity_insights:
                 text_parts.append(f"- **{entity.get('name', 'Unknown')}** ({entity.get('type', 'Entity')})")
                 if entity.get('summary'):
@@ -188,7 +188,7 @@ class InsightForgeResult:
 
         # Relationship chains
         if self.relationship_chains:
-            text_parts.append(f"\n### [Relationship Chains]")
+            text_parts.append("\n### [Relationship Chains]")
             for chain in self.relationship_chains:
                 text_parts.append(f"- {chain}")
 
@@ -204,13 +204,13 @@ class PanoramaResult:
     query: str
 
     # All nodes
-    all_nodes: List[NodeInfo] = field(default_factory=list)
+    all_nodes: list[NodeInfo] = field(default_factory=list)
     # All edges (including expired ones)
-    all_edges: List[EdgeInfo] = field(default_factory=list)
+    all_edges: list[EdgeInfo] = field(default_factory=list)
     # Currently valid facts
-    active_facts: List[str] = field(default_factory=list)
+    active_facts: list[str] = field(default_factory=list)
     # Expired/invalidated facts (historical records)
-    historical_facts: List[str] = field(default_factory=list)
+    historical_facts: list[str] = field(default_factory=list)
 
     # Statistics
     total_nodes: int = 0
@@ -218,7 +218,7 @@ class PanoramaResult:
     active_count: int = 0
     historical_count: int = 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "query": self.query,
             "all_nodes": [n.to_dict() for n in self.all_nodes],
@@ -234,9 +234,9 @@ class PanoramaResult:
     def to_text(self) -> str:
         """Convert to text format (full version, no truncation)"""
         text_parts = [
-            f"## Broad Search Results (Future Panoramic View)",
+            "## Broad Search Results (Future Panoramic View)",
             f"Query: {self.query}",
-            f"\n### Statistics",
+            "\n### Statistics",
             f"- Total nodes: {self.total_nodes}",
             f"- Total edges: {self.total_edges}",
             f"- Currently valid facts: {self.active_count} items",
@@ -245,19 +245,19 @@ class PanoramaResult:
 
         # Currently valid facts (full output, no truncation)
         if self.active_facts:
-            text_parts.append(f"\n### [Currently Valid Facts] (Simulation result originals)")
+            text_parts.append("\n### [Currently Valid Facts] (Simulation result originals)")
             for i, fact in enumerate(self.active_facts, 1):
                 text_parts.append(f"{i}. \"{fact}\"")
 
         # Historical/expired facts (full output, no truncation)
         if self.historical_facts:
-            text_parts.append(f"\n### [Historical/Expired Facts] (Evolution process records)")
+            text_parts.append("\n### [Historical/Expired Facts] (Evolution process records)")
             for i, fact in enumerate(self.historical_facts, 1):
                 text_parts.append(f"{i}. \"{fact}\"")
 
         # Key entities (full output, no truncation)
         if self.all_nodes:
-            text_parts.append(f"\n### [Entities Involved]")
+            text_parts.append("\n### [Entities Involved]")
             for node in self.all_nodes:
                 entity_type = next((l for l in node.labels if l not in ["Entity", "Node"]), "Entity")
                 text_parts.append(f"- **{node.name}** ({entity_type})")
@@ -273,9 +273,9 @@ class AgentInterview:
     agent_bio: str  # Biography
     question: str  # Interview question
     response: str  # Interview response
-    key_quotes: List[str] = field(default_factory=list)  # Key quotes
+    key_quotes: list[str] = field(default_factory=list)  # Key quotes
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "agent_name": self.agent_name,
             "agent_role": self.agent_role,
@@ -327,12 +327,12 @@ class InterviewResult:
     Contains interview responses from multiple simulated agents
     """
     interview_topic: str  # Interview topic
-    interview_questions: List[str]  # Interview question list
+    interview_questions: list[str]  # Interview question list
 
     # Agents selected for interview
-    selected_agents: List[Dict[str, Any]] = field(default_factory=list)
+    selected_agents: list[dict[str, Any]] = field(default_factory=list)
     # Interview responses from each agent
-    interviews: List[AgentInterview] = field(default_factory=list)
+    interviews: list[AgentInterview] = field(default_factory=list)
 
     # Reasoning for agent selection
     selection_reasoning: str = ""
@@ -343,7 +343,7 @@ class InterviewResult:
     total_agents: int = 0
     interviewed_count: int = 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "interview_topic": self.interview_topic,
             "interview_questions": self.interview_questions,

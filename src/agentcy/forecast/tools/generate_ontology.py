@@ -1,16 +1,17 @@
 """Tool for document ingestion and ontology generation."""
 
-from typing import Any, Dict, Iterable, Optional
+from collections.abc import Iterable
+from typing import Any
 
 from ..config import Config
+from ..core.session_manager import SessionManager
 from ..models.project import ProjectStatus
+from ..resources.documents import DocumentStore
+from ..resources.projects import ProjectStore
 from ..services.ontology_generator import OntologyGenerator
 from ..services.text_processor import TextProcessor
 from ..utils.file_parser import FileParser
 from ..utils.logger import get_logger
-from ..resources.documents import DocumentStore
-from ..resources.projects import ProjectStore
-from ..core.session_manager import SessionManager
 
 logger = get_logger("mirofish.tools.generate_ontology")
 
@@ -20,9 +21,9 @@ class GenerateOntologyTool:
 
     def __init__(
         self,
-        project_store: Optional[ProjectStore] = None,
-        document_store: Optional[DocumentStore] = None,
-        session_manager: Optional[SessionManager] = None,
+        project_store: ProjectStore | None = None,
+        document_store: DocumentStore | None = None,
+        session_manager: SessionManager | None = None,
     ):
         self.project_store = project_store or ProjectStore()
         self.document_store = document_store or DocumentStore()
@@ -39,9 +40,9 @@ class GenerateOntologyTool:
         simulation_requirement: str,
         uploaded_files: Iterable[Any],
         project_name: str = "Unnamed Project",
-        additional_context: Optional[str] = None,
-        session_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        additional_context: str | None = None,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
         if not simulation_requirement:
             raise ValueError("Please provide simulation requirement (simulation_requirement)")
 

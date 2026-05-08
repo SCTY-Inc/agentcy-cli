@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from agentcy.forecast.services.report_language import _detect_language
 
 

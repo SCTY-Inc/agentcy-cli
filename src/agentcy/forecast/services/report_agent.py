@@ -9,13 +9,14 @@ Features:
 4. Support user conversations with autonomous retrieval tool invocation
 """
 
-import os
 import json
+import os
 import re
-from typing import Dict, Any, List, Optional, Callable
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
+from typing import Any
 
 from ..config import Config
 from ..utils.llm_client import LLMClient
@@ -43,7 +44,7 @@ def _now_iso() -> str:
     return datetime.now().isoformat()
 
 
-class ReportStatus(str, Enum):
+class ReportStatus(StrEnum):
     """Report status"""
     PENDING = "pending"
     PLANNING = "planning"
@@ -58,7 +59,7 @@ class ReportSection:
     title: str
     content: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "title": self.title,
             "content": self.content
@@ -77,9 +78,9 @@ class ReportOutline:
     """Report outline"""
     title: str
     summary: str
-    sections: List[ReportSection]
+    sections: list[ReportSection]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "title": self.title,
             "summary": self.summary,
@@ -103,13 +104,13 @@ class Report:
     graph_id: str
     simulation_requirement: str
     status: ReportStatus
-    outline: Optional[ReportOutline] = None
+    outline: ReportOutline | None = None
     markdown_content: str = ""
     created_at: str = ""
     completed_at: str = ""
-    error: Optional[str] = None
+    error: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "report_id": self.report_id,
             "simulation_id": self.simulation_id,
@@ -547,8 +548,8 @@ class ReportAgent:
         graph_id: str,
         simulation_id: str,
         simulation_requirement: str,
-        llm_client: Optional[LLMClient] = None,
-        graph_tools: Optional[GraphToolsService] = None
+        llm_client: LLMClient | None = None,
+        graph_tools: GraphToolsService | None = None
     ):
         """
         Initialize the Report Agent
@@ -575,16 +576,16 @@ class ReportAgent:
         self.tools = self._define_tools()
 
         # Logger (initialized in generate_report)
-        self.report_logger: Optional[ReportLogger] = None
+        self.report_logger: ReportLogger | None = None
         # Console logger (initialized in generate_report)
-        self.console_logger: Optional[ReportConsoleLogger] = None
+        self.console_logger: ReportConsoleLogger | None = None
 
         logger.info(f"ReportAgent initialized: graph_id={graph_id}, simulation_id={simulation_id}")
 
     def generate_report_fast(
         self,
-        progress_callback: Optional[Callable[[str, int, str], None]] = None,
-        report_id: Optional[str] = None,
+        progress_callback: Callable[[str, int, str], None] | None = None,
+        report_id: str | None = None,
     ) -> Report:
         """Single-pass report generation — one LLM call instead of ReACT loop.
 
@@ -667,7 +668,7 @@ class ReportAgent:
                 timeline_text += f"Round {t['round_num']}: {t['total_actions']} actions ({t['twitter_actions']} twitter, {t['reddit_actions']} reddit)\n"
             timeline_text = timeline_text.strip() or "No timeline data."
 
-            system_prompt = f"""You are an expert analyst writing a prediction report based on a social media simulation.
+            system_prompt = """You are an expert analyst writing a prediction report based on a social media simulation.
 You are writing from a god's-eye view of a simulated future — not describing the present, but predicting what will happen.
 Write in English. Be analytical, specific, and evidence-based. Quote agent statements where relevant.
 Do NOT repeat the same data points across sections. Each section should cover distinct ground."""
@@ -756,7 +757,7 @@ Write a prediction report with:
             logger.error(f"Report generation failed: {exc}")
             raise
 
-    def _define_tools(self) -> Dict[str, Dict[str, Any]]:
+    def _define_tools(self) -> dict[str, dict[str, Any]]:
         """Define available tools"""
         return {
             "insight_forge": {
@@ -793,7 +794,7 @@ Write a prediction report with:
             }
         }
 
-    def _execute_tool(self, tool_name: str, parameters: Dict[str, Any], report_context: str = "") -> str:
+    def _execute_tool(self, tool_name: str, parameters: dict[str, Any], report_context: str = "") -> str:
         """
         Execute a tool invocation
 
@@ -906,7 +907,7 @@ Write a prediction report with:
             return value
         return int(value)
 
-    def _parse_tool_call_json(self, payload: str) -> Optional[Dict[str, Any]]:
+    def _parse_tool_call_json(self, payload: str) -> dict[str, Any] | None:
         try:
             call_data = json.loads(payload)
         except json.JSONDecodeError:
@@ -936,7 +937,7 @@ Write a prediction report with:
         except REPORT_STORAGE_ERRORS:
             logger.debug(debug_message, exc_info=True)
 
-    def _collect_interview_text(self, agent_stats: List[Dict[str, Any]]) -> str:
+    def _collect_interview_text(self, agent_stats: list[dict[str, Any]]) -> str:
         top_agents = sorted(agent_stats, key=lambda x: x.get("total_actions", 0), reverse=True)[:5]
         if not top_agents:
             return ""
@@ -972,7 +973,7 @@ Write a prediction report with:
             report_content += "\n\n... [Report content truncated] ..."
         return report_content
 
-    def _parse_tool_calls(self, response: str) -> List[Dict[str, Any]]:
+    def _parse_tool_calls(self, response: str) -> list[dict[str, Any]]:
         """
         Parse tool calls from LLM response
 
@@ -1033,7 +1034,7 @@ Write a prediction report with:
         self,
         content: str,
         section_title: str,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         section_index: int
     ) -> str:
         """
@@ -1105,7 +1106,7 @@ Write a prediction report with:
 
     def plan_outline(
         self,
-        progress_callback: Optional[Callable] = None
+        progress_callback: Callable | None = None
     ) -> ReportOutline:
         """
         Plan the report outline
@@ -1182,8 +1183,8 @@ Write a prediction report with:
         self,
         section: ReportSection,
         outline: ReportOutline,
-        previous_sections: List[str],
-        progress_callback: Optional[Callable] = None,
+        previous_sections: list[str],
+        progress_callback: Callable | None = None,
         section_index: int = 0
     ) -> str:
         """
@@ -1493,7 +1494,7 @@ Write a prediction report with:
         # Check if LLM returned None during forced finalization
         if response is None:
             logger.error(f"Section {section.title}: LLM returned None during forced finalization, using default error message")
-            final_answer = f"(This section failed to generate: LLM returned empty response, please try again later)"
+            final_answer = "(This section failed to generate: LLM returned empty response, please try again later)"
         elif "Final Answer:" in response:
             final_answer = response.split("Final Answer:")[-1].strip()
         else:
@@ -1521,8 +1522,8 @@ Write a prediction report with:
 
     def generate_report(
         self,
-        progress_callback: Optional[Callable[[str, int, str], None]] = None,
-        report_id: Optional[str] = None
+        progress_callback: Callable[[str, int, str], None] | None = None,
+        report_id: str | None = None
     ) -> Report:
         """
         Generate the complete report (real-time section-by-section output)
@@ -1752,8 +1753,8 @@ Write a prediction report with:
     def chat(
         self,
         message: str,
-        chat_history: List[Dict[str, str]] = None
-    ) -> Dict[str, Any]:
+        chat_history: list[dict[str, str]] = None
+    ) -> dict[str, Any]:
         """
         Chat with the Report Agent
 
@@ -1930,7 +1931,7 @@ class ReportManager:
         return os.path.join(cls._get_report_folder(report_id), "console_log.txt")
 
     @classmethod
-    def get_console_log(cls, report_id: str, from_line: int = 0) -> Dict[str, Any]:
+    def get_console_log(cls, report_id: str, from_line: int = 0) -> dict[str, Any]:
         """
         Get console log content
 
@@ -1962,7 +1963,7 @@ class ReportManager:
         logs = []
         total_lines = 0
 
-        with open(log_path, 'r', encoding='utf-8') as f:
+        with open(log_path, encoding='utf-8') as f:
             for i, line in enumerate(f):
                 total_lines = i + 1
                 if i >= from_line:
@@ -1977,7 +1978,7 @@ class ReportManager:
         }
 
     @classmethod
-    def get_console_log_stream(cls, report_id: str) -> List[str]:
+    def get_console_log_stream(cls, report_id: str) -> list[str]:
         """
         Get the complete console log (retrieve all at once)
 
@@ -1991,7 +1992,7 @@ class ReportManager:
         return result["logs"]
 
     @classmethod
-    def get_agent_log(cls, report_id: str, from_line: int = 0) -> Dict[str, Any]:
+    def get_agent_log(cls, report_id: str, from_line: int = 0) -> dict[str, Any]:
         """
         Get Agent log content
 
@@ -2020,7 +2021,7 @@ class ReportManager:
         logs = []
         total_lines = 0
 
-        with open(log_path, 'r', encoding='utf-8') as f:
+        with open(log_path, encoding='utf-8') as f:
             for i, line in enumerate(f):
                 total_lines = i + 1
                 if i >= from_line:
@@ -2039,7 +2040,7 @@ class ReportManager:
         }
 
     @classmethod
-    def get_agent_log_stream(cls, report_id: str) -> List[Dict[str, Any]]:
+    def get_agent_log_stream(cls, report_id: str) -> list[dict[str, Any]]:
         """
         Get the complete Agent log (retrieve all at once)
 
@@ -2135,7 +2136,7 @@ class ReportManager:
             heading_match = re.match(r'^(#{1,6})\s+(.+)$', stripped)
 
             if heading_match:
-                level = len(heading_match.group(1))
+                len(heading_match.group(1))
                 title_text = heading_match.group(2).strip()
 
                 # Check if this is a duplicate of the section title (skip within first 5 lines)
@@ -2179,7 +2180,7 @@ class ReportManager:
         progress: int,
         message: str,
         current_section: str = None,
-        completed_sections: List[str] = None
+        completed_sections: list[str] = None
     ) -> None:
         """
         Update report generation progress
@@ -2201,18 +2202,18 @@ class ReportManager:
             json.dump(progress_data, f, ensure_ascii=False, indent=2)
 
     @classmethod
-    def get_progress(cls, report_id: str) -> Optional[Dict[str, Any]]:
+    def get_progress(cls, report_id: str) -> dict[str, Any] | None:
         """Get report generation progress"""
         path = cls._get_progress_path(report_id)
 
         if not os.path.exists(path):
             return None
 
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, encoding='utf-8') as f:
             return json.load(f)
 
     @classmethod
-    def get_generated_sections(cls, report_id: str) -> List[Dict[str, Any]]:
+    def get_generated_sections(cls, report_id: str) -> list[dict[str, Any]]:
         """
         Get the list of generated sections
 
@@ -2227,7 +2228,7 @@ class ReportManager:
         for filename in sorted(os.listdir(folder)):
             if filename.startswith('section_') and filename.endswith('.md'):
                 file_path = os.path.join(folder, filename)
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, encoding='utf-8') as f:
                     content = f.read()
 
                 # Parse section index from filename
@@ -2249,12 +2250,12 @@ class ReportManager:
 
         Assemble the full report from saved section files and perform title cleanup
         """
-        folder = cls._get_report_folder(report_id)
+        cls._get_report_folder(report_id)
 
         # Build report header
         md_content = f"# {outline.title}\n\n"
         md_content += f"> {outline.summary}\n\n"
-        md_content += f"---\n\n"
+        md_content += "---\n\n"
 
         # Read all section files in order
         sections = cls.get_generated_sections(report_id)
@@ -2419,7 +2420,7 @@ class ReportManager:
         logger.info(f"Report saved: {report.report_id}")
 
     @classmethod
-    def get_report(cls, report_id: str) -> Optional[Report]:
+    def get_report(cls, report_id: str) -> Report | None:
         """Get report"""
         path = cls._get_report_path(report_id)
 
@@ -2431,7 +2432,7 @@ class ReportManager:
             else:
                 return None
 
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, encoding='utf-8') as f:
             data = json.load(f)
 
         # Reconstruct Report object
@@ -2455,7 +2456,7 @@ class ReportManager:
         if not markdown_content:
             full_report_path = cls._get_report_markdown_path(report_id)
             if os.path.exists(full_report_path):
-                with open(full_report_path, 'r', encoding='utf-8') as f:
+                with open(full_report_path, encoding='utf-8') as f:
                     markdown_content = f.read()
 
         return Report(
@@ -2472,7 +2473,7 @@ class ReportManager:
         )
 
     @classmethod
-    def get_report_by_simulation(cls, simulation_id: str) -> Optional[Report]:
+    def get_report_by_simulation(cls, simulation_id: str) -> Report | None:
         """Get report by simulation ID"""
         cls._ensure_reports_dir()
 
@@ -2493,7 +2494,7 @@ class ReportManager:
         return None
 
     @classmethod
-    def list_reports(cls, simulation_id: Optional[str] = None, limit: int = 50) -> List[Report]:
+    def list_reports(cls, simulation_id: str | None = None, limit: int = 50) -> list[Report]:
         """List reports"""
         cls._ensure_reports_dir()
 

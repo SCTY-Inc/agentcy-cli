@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import pytest
 
-
-from agentcy.forecast.services.simulation_runner import RunnerStatus, SimulationRunState, SimulationRunner
+from agentcy.forecast.services.simulation_runner import (
+    RunnerStatus,
+    SimulationRunner,
+    SimulationRunState,
+)
 
 
 def test_load_run_state_returns_none_for_invalid_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

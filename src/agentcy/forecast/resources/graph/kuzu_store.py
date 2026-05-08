@@ -1,6 +1,6 @@
 """Graph store adapter."""
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ...services.graph_db import GraphDatabase
 
@@ -8,7 +8,7 @@ from ...services.graph_db import GraphDatabase
 class GraphStore:
     """Thin adapter around the graph database."""
 
-    def __init__(self, db: Optional[GraphDatabase] = None):
+    def __init__(self, db: GraphDatabase | None = None):
         self.db = db or GraphDatabase()
 
     def get_database(self) -> GraphDatabase:
@@ -20,16 +20,16 @@ class GraphStore:
     def delete_graph(self, graph_id: str):
         self.db.delete_graph(graph_id)
 
-    def set_ontology(self, graph_id: str, ontology: Dict[str, Any]):
+    def set_ontology(self, graph_id: str, ontology: dict[str, Any]):
         self.db.set_ontology(graph_id, ontology)
 
     def get_ontology(self, graph_id: str):
         return self.db.get_ontology(graph_id)
 
-    def get_graph_data(self, graph_id: str) -> Dict[str, Any]:
+    def get_graph_data(self, graph_id: str) -> dict[str, Any]:
         return self.db.get_graph_data(graph_id)
 
-    def get_graph_statistics(self, graph_id: str) -> Dict[str, Any]:
+    def get_graph_statistics(self, graph_id: str) -> dict[str, Any]:
         return self.db.get_graph_statistics(graph_id)
 
     def search(self, graph_id: str, query: str, limit: int = 10, scope: str = "edges"):

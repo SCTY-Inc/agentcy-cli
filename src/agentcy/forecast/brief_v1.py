@@ -85,7 +85,7 @@ class BriefV1(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def _validate_lineage(self) -> "BriefV1":
+    def _validate_lineage(self) -> BriefV1:
         if self.lineage and self.lineage.source_voice_pack_id is not None:
             if self.lineage.source_voice_pack_id != self.voice_pack_id:
                 raise ValueError("lineage.source_voice_pack_id must equal voice_pack_id")

@@ -71,13 +71,13 @@ def _export_ollama(persona: dict[str, Any]) -> str:
     """Export as Ollama Modelfile format."""
     system_prompt = build_system_prompt(persona)
     lines = [
-        f'FROM llama3.2',
-        f'',
-        f'PARAMETER temperature 0.7',
-        f'',
-        f'SYSTEM """',
+        'FROM llama3.2',
+        '',
+        'PARAMETER temperature 0.7',
+        '',
+        'SYSTEM """',
         system_prompt,
-        f'"""',
+        '"""',
     ]
     return "\n".join(lines)
 

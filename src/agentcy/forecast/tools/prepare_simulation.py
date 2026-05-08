@@ -1,11 +1,10 @@
 """Tool for simulation preparation."""
 
 import threading
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ..core.session_manager import SessionManager
 from ..core.task_manager import TaskManager, TaskStatus
-from ..models.project import ProjectManager
 from ..resources.documents import DocumentStore
 from ..resources.projects import ProjectStore
 from ..resources.simulations import SimulationStore
@@ -26,11 +25,11 @@ class PrepareSimulationTool:
 
     def __init__(
         self,
-        simulation_store: Optional[SimulationStore] = None,
-        project_store: Optional[ProjectStore] = None,
-        document_store: Optional[DocumentStore] = None,
-        task_manager: Optional[TaskManager] = None,
-        session_manager: Optional[SessionManager] = None,
+        simulation_store: SimulationStore | None = None,
+        project_store: ProjectStore | None = None,
+        document_store: DocumentStore | None = None,
+        task_manager: TaskManager | None = None,
+        session_manager: SessionManager | None = None,
     ):
         self.simulation_store = simulation_store or SimulationStore()
         self.project_store = project_store or ProjectStore()
@@ -41,12 +40,12 @@ class PrepareSimulationTool:
     def start(
         self,
         simulation_id: str,
-        entity_types: Optional[List[str]] = None,
+        entity_types: list[str] | None = None,
         use_llm_for_profiles: bool = True,
         parallel_profile_count: int = 5,
         force_regenerate: bool = False,
-        session_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
         state = self.simulation_store.get(simulation_id)
         if not state:
             raise FileNotFoundError(f"Simulation not found: {simulation_id}")

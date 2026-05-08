@@ -11,17 +11,15 @@ humans approve policy changes.
 
 from __future__ import annotations
 
-import json
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
 
 from pydantic import BaseModel, Field
 
 from agentcy.brand.core.config import utc_now
-from agentcy.brand.core.storage import data_dir
 from agentcy.brand.core.decision import Decision, DecisionStatus, DecisionType
+from agentcy.brand.core.storage import data_dir
 
 
 class Outcome(BaseModel):

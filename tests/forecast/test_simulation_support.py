@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import pytest
-
 
 from agentcy.forecast.config import Config
 from agentcy.forecast.tools.simulation_support import check_simulation_prepared

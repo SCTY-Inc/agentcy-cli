@@ -1,9 +1,9 @@
 """Persona chat and conversation API."""
 from __future__ import annotations
 
-from typing import Any, Iterator
+from typing import Any
 
-from agentcy.brand.core.llm import complete, get_provider
+from agentcy.brand.core.llm import complete
 from agentcy.brand.persona.crud import load_persona
 
 

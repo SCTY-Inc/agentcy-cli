@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from agentcy.brand.persona.crud import load_persona, save_persona
+from agentcy.brand.persona.crud import load_persona
 
 
 def optimize_persona(

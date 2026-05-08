@@ -581,7 +581,11 @@ def evals(
     ] = 10,
 ):
     """Inspect saved eval reports for a persona."""
-    from agentcy.persona.eval_store import compare_latest_eval_reports, latest_eval_report, list_eval_reports
+    from agentcy.persona.eval_store import (
+        compare_latest_eval_reports,
+        latest_eval_report,
+        list_eval_reports,
+    )
 
     if compare:
         comparison = compare_latest_eval_reports(name)

@@ -5,9 +5,9 @@ from __future__ import annotations
 import math
 import os
 from collections import defaultdict
+from collections.abc import Iterable
 from html import escape
-from typing import Any, Dict, Iterable, List, Tuple
-
+from typing import Any
 
 PALETTE = (
     "#0F4C5C",
@@ -28,23 +28,23 @@ def _write_svg(path: str, content: str) -> str:
     return path
 
 
-def _label_for_node(node: Dict[str, Any]) -> str:
+def _label_for_node(node: dict[str, Any]) -> str:
     for label in node.get("labels", []):
         if label not in {"Entity", "Node"}:
             return label
     return "Entity"
 
 
-def _color_map(labels: Iterable[str]) -> Dict[str, str]:
-    mapping: Dict[str, str] = {}
+def _color_map(labels: Iterable[str]) -> dict[str, str]:
+    mapping: dict[str, str] = {}
     for index, label in enumerate(sorted(set(labels))):
         mapping[label] = PALETTE[index % len(PALETTE)]
     return mapping
 
 
-def _graph_adjacency(graph_data: Dict[str, Any]) -> Tuple[Dict[str, List[str]], Dict[str, int]]:
-    adjacency: Dict[str, List[str]] = defaultdict(list)
-    degree: Dict[str, int] = defaultdict(int)
+def _graph_adjacency(graph_data: dict[str, Any]) -> tuple[dict[str, list[str]], dict[str, int]]:
+    adjacency: dict[str, list[str]] = defaultdict(list)
+    degree: dict[str, int] = defaultdict(int)
     for edge in graph_data.get("edges", []):
         source = edge.get("source_node_uuid") or edge.get("source_id")
         target = edge.get("target_node_uuid") or edge.get("target_id")
@@ -57,17 +57,17 @@ def _graph_adjacency(graph_data: Dict[str, Any]) -> Tuple[Dict[str, List[str]], 
     return adjacency, degree
 
 
-def _connected_components(graph_data: Dict[str, Any]) -> List[List[Dict[str, Any]]]:
+def _connected_components(graph_data: dict[str, Any]) -> list[list[dict[str, Any]]]:
     node_map = {node.get("uuid"): node for node in graph_data.get("nodes", []) if node.get("uuid")}
     adjacency, _degree = _graph_adjacency(graph_data)
     seen: set[str] = set()
-    components: List[List[Dict[str, Any]]] = []
+    components: list[list[dict[str, Any]]] = []
 
     for node_id, node in node_map.items():
         if node_id in seen:
             continue
         stack = [node_id]
-        component: List[Dict[str, Any]] = []
+        component: list[dict[str, Any]] = []
         while stack:
             current = stack.pop()
             if current in seen:
@@ -85,7 +85,7 @@ def _connected_components(graph_data: Dict[str, Any]) -> List[List[Dict[str, Any
     return components
 
 
-def render_swarm_overview(graph_data: Dict[str, Any], output_path: str) -> str:
+def render_swarm_overview(graph_data: dict[str, Any], output_path: str) -> str:
     width, height = 1200, 900
     cx, cy = width / 2, height / 2
     radius = min(width, height) * 0.34
@@ -94,7 +94,7 @@ def render_swarm_overview(graph_data: Dict[str, Any], output_path: str) -> str:
     labels = [_label_for_node(node) for node in nodes]
     colors = _color_map(labels)
 
-    positions: Dict[str, Tuple[float, float]] = {}
+    positions: dict[str, tuple[float, float]] = {}
     total = max(len(nodes), 1)
     for index, node in enumerate(nodes):
         node_id = node.get("uuid", "")
@@ -150,7 +150,7 @@ def render_swarm_overview(graph_data: Dict[str, Any], output_path: str) -> str:
     return _write_svg(output_path, "".join(parts))
 
 
-def render_cluster_map(graph_data: Dict[str, Any], output_path: str) -> str:
+def render_cluster_map(graph_data: dict[str, Any], output_path: str) -> str:
     width, height = 1200, 800
     components = _connected_components(graph_data)[:8]
     components = [component for component in components if component]
@@ -205,7 +205,7 @@ def render_cluster_map(graph_data: Dict[str, Any], output_path: str) -> str:
     return _write_svg(output_path, "".join(parts))
 
 
-def render_timeline(timeline: List[Dict[str, Any]], output_path: str) -> str:
+def render_timeline(timeline: list[dict[str, Any]], output_path: str) -> str:
     width, height = 1200, 700
     chart_left, chart_top = 80, 120
     chart_width, chart_height = 1050, 500
@@ -247,7 +247,7 @@ def render_timeline(timeline: List[Dict[str, Any]], output_path: str) -> str:
     return _write_svg(output_path, "".join(parts))
 
 
-def render_platform_split(timeline: List[Dict[str, Any]], output_path: str) -> str:
+def render_platform_split(timeline: list[dict[str, Any]], output_path: str) -> str:
     width, height = 1200, 720
     twitter_total = sum(item.get("twitter_actions", 0) for item in timeline)
     reddit_total = sum(item.get("reddit_actions", 0) for item in timeline)
@@ -277,10 +277,10 @@ def render_platform_split(timeline: List[Dict[str, Any]], output_path: str) -> s
 
 
 def generate_visual_snapshots(
-    graph_data: Dict[str, Any],
-    timeline: List[Dict[str, Any]],
+    graph_data: dict[str, Any],
+    timeline: list[dict[str, Any]],
     output_dir: str,
-) -> Dict[str, str]:
+) -> dict[str, str]:
     os.makedirs(output_dir, exist_ok=True)
     artifacts = {
         "swarm_overview": render_swarm_overview(graph_data, os.path.join(output_dir, "swarm-overview.svg")),

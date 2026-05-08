@@ -35,8 +35,9 @@ def copy_cmd(
             voice = config.get("voice")
 
             # Load hooks if available
-            from agentcy.brand.core.brands import get_brand_intel_dir
             import json
+
+            from agentcy.brand.core.brands import get_brand_intel_dir
 
             hooks_file = get_brand_intel_dir(brand) / "hooks.json"
             if hooks_file.exists():
@@ -118,10 +119,11 @@ def explore_cmd(
     format: str = typer.Option("json", "--format", "-f", help="Output format"),
 ) -> None:
     """Full exploration flow: generate copy for multiple platforms and optionally queue."""
+    import json
+
     from agentcy.brand.core.brands import get_brand_intel_dir, load_brand_config
     from agentcy.brand.produce.copy import generate_copy
     from agentcy.brand.produce.queue import enqueue
-    import json
 
     config = load_brand_config(brand)
     voice = config.get("voice")

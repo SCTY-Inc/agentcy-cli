@@ -59,7 +59,7 @@ def post(
         result = publisher(item.content)
 
         if result.get("success"):
-            console.print(f"[green]Posted successfully![/green]")
+            console.print("[green]Posted successfully![/green]")
             if result.get("url"):
                 console.print(f"URL: {result['url']}")
 

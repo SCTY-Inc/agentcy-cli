@@ -12,13 +12,13 @@ import threading
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from enum import StrEnum
+from typing import Any
 
 from ..config import Config
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     """Task status enum."""
 
     PENDING = "pending"
@@ -38,12 +38,12 @@ class Task:
     updated_at: datetime
     progress: int = 0
     message: str = ""
-    result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    progress_detail: Dict[str, Any] = field(default_factory=dict)
+    result: dict[str, Any] | None = None
+    error: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    progress_detail: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "task_id": self.task_id,
             "task_type": self.task_type,
@@ -59,7 +59,7 @@ class Task:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Task":
+    def from_dict(cls, data: dict[str, Any]) -> "Task":
         status = data.get("status", TaskStatus.PENDING)
         if isinstance(status, str):
             status = TaskStatus(status)
@@ -111,15 +111,15 @@ class TaskManager:
             json.dump(task.to_dict(), f, ensure_ascii=False, indent=2)
         os.replace(temp_path, path)
 
-    def _load_task_from_disk(self, task_id: str) -> Optional[Task]:
+    def _load_task_from_disk(self, task_id: str) -> Task | None:
         path = self._task_path(task_id)
         if not os.path.exists(path):
             return None
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         return Task.from_dict(data)
 
-    def create_task(self, task_type: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+    def create_task(self, task_type: str, metadata: dict[str, Any] | None = None) -> str:
         task_id = str(uuid.uuid4())
         now = datetime.now()
         task = Task(
@@ -135,7 +135,7 @@ class TaskManager:
             self._persist_task(task)
         return task_id
 
-    def get_task(self, task_id: str) -> Optional[Task]:
+    def get_task(self, task_id: str) -> Task | None:
         with self._task_lock:
             task = self._tasks.get(task_id)
             if task is not None:
@@ -149,12 +149,12 @@ class TaskManager:
     def update_task(
         self,
         task_id: str,
-        status: Optional[TaskStatus] = None,
-        progress: Optional[int] = None,
-        message: Optional[str] = None,
-        result: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None,
-        progress_detail: Optional[Dict[str, Any]] = None,
+        status: TaskStatus | None = None,
+        progress: int | None = None,
+        message: str | None = None,
+        result: dict[str, Any] | None = None,
+        error: str | None = None,
+        progress_detail: dict[str, Any] | None = None,
     ):
         with self._task_lock:
             task = self._tasks.get(task_id) or self._load_task_from_disk(task_id)
@@ -178,7 +178,7 @@ class TaskManager:
             self._tasks[task_id] = task
             self._persist_task(task)
 
-    def complete_task(self, task_id: str, result: Dict[str, Any]):
+    def complete_task(self, task_id: str, result: dict[str, Any]):
         self.update_task(
             task_id,
             status=TaskStatus.COMPLETED,
@@ -195,9 +195,9 @@ class TaskManager:
             error=error,
         )
 
-    def list_tasks(self, task_type: Optional[str] = None) -> List[Task]:
+    def list_tasks(self, task_type: str | None = None) -> list[Task]:
         self._ensure_storage_dir()
-        tasks: List[Task] = []
+        tasks: list[Task] = []
         seen = set()
 
         with self._task_lock:

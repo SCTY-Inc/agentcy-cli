@@ -5,14 +5,13 @@ get_node_edges, get_entities_by_type, get_entity_summary.
 """
 
 import time
-from typing import Dict, Any, List, Optional
+from typing import Any
 
-from .graph_db import GraphDatabase
-from .graph_storage import GraphStorage
-from .graph_models import SearchResult, NodeInfo, EdgeInfo
-
-from ..utils.logger import get_logger
 from ..utils.llm_client import LLMClient
+from ..utils.logger import get_logger
+from .graph_db import GraphDatabase
+from .graph_models import EdgeInfo, NodeInfo, SearchResult
+from .graph_storage import GraphStorage
 
 logger = get_logger('mirofish.graph_tools')
 
@@ -29,8 +28,8 @@ class GraphRetrievalBase:
 
     def __init__(
         self,
-        llm_client: Optional[LLMClient] = None,
-        storage: Optional[GraphStorage] = None,
+        llm_client: LLMClient | None = None,
+        storage: GraphStorage | None = None,
     ):
         self.db = GraphDatabase()
         self.storage = storage
@@ -49,7 +48,7 @@ class GraphRetrievalBase:
             return getattr(node, attr)
         return node.get(key, default)
 
-    def _node_labels(self, node: Any) -> List[str]:
+    def _node_labels(self, node: Any) -> list[str]:
         if hasattr(node, "labels"):
             return node.labels or []
         label = node.get("label", "Entity")
@@ -258,7 +257,7 @@ class GraphRetrievalBase:
             total_count=len(facts)
         )
 
-    def get_all_nodes(self, graph_id: str) -> List[NodeInfo]:
+    def get_all_nodes(self, graph_id: str) -> list[NodeInfo]:
         """
         Get all nodes in the graph
 
@@ -288,7 +287,7 @@ class GraphRetrievalBase:
         logger.info(f"Fetched {len(result)} nodes")
         return result
 
-    def get_all_edges(self, graph_id: str, include_temporal: bool = True) -> List[EdgeInfo]:
+    def get_all_edges(self, graph_id: str, include_temporal: bool = True) -> list[EdgeInfo]:
         """
         Get all edges in the graph (including temporal information)
 
@@ -328,7 +327,7 @@ class GraphRetrievalBase:
         logger.info(f"Fetched {len(result)} edges")
         return result
 
-    def get_node_detail(self, graph_id: str, node_uuid: str) -> Optional[NodeInfo]:
+    def get_node_detail(self, graph_id: str, node_uuid: str) -> NodeInfo | None:
         """
         Get detailed information for a single node
 
@@ -358,7 +357,7 @@ class GraphRetrievalBase:
             logger.error(f"Failed to get node detail: {str(e)}")
             return None
 
-    def get_node_edges(self, graph_id: str, node_uuid: str) -> List[EdgeInfo]:
+    def get_node_edges(self, graph_id: str, node_uuid: str) -> list[EdgeInfo]:
         """
         Get all edges related to a node
 
@@ -402,7 +401,7 @@ class GraphRetrievalBase:
         self,
         graph_id: str,
         entity_type: str
-    ) -> List[NodeInfo]:
+    ) -> list[NodeInfo]:
         """
         Get entities by type
 
@@ -429,7 +428,7 @@ class GraphRetrievalBase:
         self,
         graph_id: str,
         entity_name: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get relationship summary for a specified entity
 

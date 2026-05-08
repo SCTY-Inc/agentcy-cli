@@ -4,29 +4,29 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import shutil
 import sys
 import time
-from typing import Any, Dict, Iterable, List, Optional
-
-import logging
+from collections.abc import Iterable
+from typing import Any
 
 from .brief_v1 import ImportedBrief, import_brief_v1
 from .cli_display import PipelineDisplay
-from .forecast_v1 import build_completed_forecast_v1
 from .config import Config
 from .core.task_manager import TaskManager, TaskStatus
 from .core.workbench_session import WorkbenchSession
+from .forecast_v1 import build_completed_forecast_v1
 from .resources.reports import ReportStore
 from .run_artifacts import RunStore
 from .run_eval import build_completed_run_eval
 from .services.graph_builder import GraphBuilderService
-from .smoke_mode import build_smoke_outputs
-from .utils.oasis_llm import get_simulation_runtime_preflight, require_simulation_runtime
 from .services.graph_db import GraphDatabase
 from .services.simulation_manager import SimulationManager
 from .services.simulation_runner import RunnerStatus, SimulationRunner
+from .smoke_mode import build_smoke_outputs
+from .utils.oasis_llm import get_simulation_runtime_preflight, require_simulation_runtime
 from .visual_snapshots import generate_visual_snapshots
 
 DEFAULT_PROJECT_NAME = "MiroFish Run"
@@ -59,7 +59,7 @@ class LocalFileInput:
         shutil.copy2(self.path, destination)
 
 
-def _require_existing_files(paths: Iterable[str]) -> List[str]:
+def _require_existing_files(paths: Iterable[str]) -> list[str]:
     resolved = [os.path.abspath(path) for path in paths]
     missing = [path for path in resolved if not os.path.exists(path)]
     if missing:
@@ -67,7 +67,7 @@ def _require_existing_files(paths: Iterable[str]) -> List[str]:
     return resolved
 
 
-def _default_project_name(source_files: List[str]) -> str:
+def _default_project_name(source_files: list[str]) -> str:
     if not source_files:
         return DEFAULT_PROJECT_NAME
     stem = os.path.splitext(os.path.basename(source_files[0]))[0].strip()
@@ -78,7 +78,7 @@ def _default_project_name(source_files: List[str]) -> str:
     return f"{stem} +{len(source_files) - 1}"
 
 
-def _resolve_run_inputs(args: argparse.Namespace) -> tuple[List[str], str, ImportedBrief | None]:
+def _resolve_run_inputs(args: argparse.Namespace) -> tuple[list[str], str, ImportedBrief | None]:
     source_files = _require_existing_files(args.files)
     imported_brief = import_brief_v1(args.brief) if getattr(args, "brief", None) else None
     requirement = imported_brief.requirement if imported_brief else args.requirement
@@ -109,7 +109,7 @@ def _wait_for_task(
         time.sleep(poll_interval)
 
 
-def _get_task_result(task_id: str) -> Optional[Dict[str, Any]]:
+def _get_task_result(task_id: str) -> dict[str, Any] | None:
     task = TaskManager().get_task(task_id)
     return task.result if task else None
 
@@ -131,7 +131,7 @@ def _wait_for_simulation(simulation_id: str, poll_interval: float = 2.0, on_upda
         time.sleep(poll_interval)
 
 
-def _write_action_log(output_path: str, actions: List[Any]) -> str:
+def _write_action_log(output_path: str, actions: list[Any]) -> str:
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     ordered = sorted(actions, key=lambda action: action.timestamp)
     with open(output_path, "w", encoding="utf-8") as handle:
@@ -140,7 +140,7 @@ def _write_action_log(output_path: str, actions: List[Any]) -> str:
     return output_path
 
 
-def _top_agents(agent_stats: List[Dict[str, Any]], limit: int = 20) -> List[Dict[str, Any]]:
+def _top_agents(agent_stats: list[dict[str, Any]], limit: int = 20) -> list[dict[str, Any]]:
     ordered = sorted(agent_stats, key=lambda item: item.get("total_actions", 0), reverse=True)
     return ordered[:limit]
 
@@ -161,9 +161,9 @@ def _record_if_exists(store: RunStore, run_id: str, key: str, rel_path: str) -> 
         store.record_artifact(run_id, key, rel_path)
 
 
-def _resolve_artifact_paths(store: RunStore, manifest: Dict[str, Any]) -> Dict[str, str]:
+def _resolve_artifact_paths(store: RunStore, manifest: dict[str, Any]) -> dict[str, str]:
     run_dir = store.run_dir(manifest["run_id"])
-    resolved: Dict[str, str] = {}
+    resolved: dict[str, str] = {}
     for key, rel_path in manifest.get("artifacts", {}).items():
         absolute_path = os.path.abspath(os.path.join(run_dir, rel_path))
         if os.path.exists(absolute_path):
@@ -171,7 +171,7 @@ def _resolve_artifact_paths(store: RunStore, manifest: Dict[str, Any]) -> Dict[s
     return resolved
 
 
-def _ensure_run_eval_artifact(store: RunStore, manifest: Dict[str, Any]) -> Dict[str, Any]:
+def _ensure_run_eval_artifact(store: RunStore, manifest: dict[str, Any]) -> dict[str, Any]:
     if manifest.get("status") != "completed":
         return manifest
     if manifest.get("artifacts", {}).get("run_eval"):
@@ -182,7 +182,7 @@ def _ensure_run_eval_artifact(store: RunStore, manifest: Dict[str, Any]) -> Dict
     return store.record_artifact(manifest["run_id"], "run_eval", "eval/run_eval.v1.json")
 
 
-def _ensure_forecast_v1_artifact(store: RunStore, manifest: Dict[str, Any]) -> Dict[str, Any]:
+def _ensure_forecast_v1_artifact(store: RunStore, manifest: dict[str, Any]) -> dict[str, Any]:
     if manifest.get("status") != "completed":
         return manifest
     if manifest.get("artifacts", {}).get("forecast_v1"):
@@ -197,7 +197,7 @@ def _ensure_forecast_v1_artifact(store: RunStore, manifest: Dict[str, Any]) -> D
     return manifest
 
 
-def _refresh_run_manifest(store: RunStore, run_id: str) -> Dict[str, Any]:
+def _refresh_run_manifest(store: RunStore, run_id: str) -> dict[str, Any]:
     manifest = store.load(run_id)
     changed = False
 
@@ -259,15 +259,15 @@ def _refresh_run_manifest(store: RunStore, run_id: str) -> Dict[str, Any]:
 
 def _collect_run_outputs(
     store: RunStore,
-    manifest: Dict[str, Any],
-    graph_data: Dict[str, Any],
-    graph_stats: Dict[str, Any],
-    timeline: List[Dict[str, Any]],
-    agent_stats: List[Dict[str, Any]],
-    actions: List[Any],
-    report_payload: Optional[Dict[str, Any]],
+    manifest: dict[str, Any],
+    graph_data: dict[str, Any],
+    graph_stats: dict[str, Any],
+    timeline: list[dict[str, Any]],
+    agent_stats: list[dict[str, Any]],
+    actions: list[Any],
+    report_payload: dict[str, Any] | None,
     report_markdown: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     run_id = manifest["run_id"]
 
     store.write_json(run_id, "graph/graph.json", graph_data)
@@ -320,7 +320,7 @@ def _collect_run_outputs(
     return store.load(run_id)
 
 
-def _run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
+def _run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
     source_files, requirement, imported_brief = _resolve_run_inputs(args)
     project_name = _default_project_name(source_files)
     store = RunStore(root_dir=args.output_dir)
@@ -444,7 +444,7 @@ def _run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
         agent_count = 0
         config_path = os.path.join(sim_dir, "simulation_config.json")
         if os.path.exists(config_path):
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 agent_count = len(json.load(f).get("agent_configs", []))
         display.complete_step("profiles", f"{agent_count} agents")
         store.update(run_id, status="simulation_ready", task_progress=100, task_message="Simulation ready")
@@ -574,7 +574,7 @@ def _run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
             os.environ["AGENTCY_LLM_TELEMETRY_FILE"] = previous_telemetry_path
 
 
-def _handle_command(args: argparse.Namespace) -> Dict[str, Any]:
+def _handle_command(args: argparse.Namespace) -> dict[str, Any]:
     if args.command == "doctor":
         preflight = get_simulation_runtime_preflight()
         return {
@@ -651,7 +651,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 

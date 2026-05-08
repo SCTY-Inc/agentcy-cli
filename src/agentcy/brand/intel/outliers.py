@@ -1,8 +1,8 @@
 """Outlier detection for viral content."""
 from __future__ import annotations
 
-from typing import Any
 import statistics
+from typing import Any
 
 
 def detect_outliers(
@@ -84,7 +84,7 @@ def calculate_engagement(post: dict[str, Any], metric: str = "engagement") -> fl
 
         # If we have views, calculate engagement rate
         if views > 0:
-            engagement_rate = score / views
+            score / views
             # Boost by view count (log scale)
             import math
             score = score * (1 + math.log10(max(views, 1)))

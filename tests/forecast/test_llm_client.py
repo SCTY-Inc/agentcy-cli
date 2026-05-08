@@ -1,10 +1,8 @@
 import json
-import sys
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-
 
 from agentcy.forecast.config import Config
 from agentcy.forecast.utils.llm_client import LLMClient

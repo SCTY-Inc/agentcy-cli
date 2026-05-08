@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -11,7 +11,7 @@ EVALS_DIR = Path.home() / ".prsna" / "evals"
 
 
 def default_eval_report_path(persona_name: str) -> Path:
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
     return EVALS_DIR / persona_name / f"{timestamp}.json"
 
 
@@ -20,7 +20,7 @@ def save_eval_report(persona_name: str, report: dict[str, Any]) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = dict(report)
     payload.setdefault("persona", persona_name)
-    payload.setdefault("saved_at", datetime.now(timezone.utc).isoformat())
+    payload.setdefault("saved_at", datetime.now(UTC).isoformat())
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return path
 

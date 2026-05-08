@@ -5,14 +5,14 @@ Provides: interview_agents and all supporting private helpers
 _generate_interview_questions, _generate_interview_summary).
 """
 
-import json
-import re
-import os
 import csv
-from typing import Dict, Any, List, Optional
+import json
+import os
+import re
+from typing import Any
 
-from .graph_models import AgentInterview, InterviewResult
 from ..utils.logger import get_logger
+from .graph_models import AgentInterview, InterviewResult
 
 logger = get_logger('mirofish.graph_tools')
 
@@ -29,7 +29,7 @@ class GraphInterviewMixin:
         interview_requirement: str,
         simulation_requirement: str = "",
         max_agents: int = 5,
-        custom_questions: List[str] = None
+        custom_questions: list[str] = None
     ) -> InterviewResult:
         """
         [InterviewAgents - In-Depth Interview]
@@ -254,7 +254,7 @@ class GraphInterviewMixin:
                 return match.group(1).replace('\\n', '\n').replace('\\"', '"')
         return response
 
-    def _load_agent_profiles(self, simulation_id: str) -> List[Dict[str, Any]]:
+    def _load_agent_profiles(self, simulation_id: str) -> list[dict[str, Any]]:
         """Load agent profile files for the simulation"""
         # Build profile file path
         sim_dir = os.path.join(
@@ -268,7 +268,7 @@ class GraphInterviewMixin:
         reddit_profile_path = os.path.join(sim_dir, "reddit_profiles.json")
         if os.path.exists(reddit_profile_path):
             try:
-                with open(reddit_profile_path, 'r', encoding='utf-8') as f:
+                with open(reddit_profile_path, encoding='utf-8') as f:
                     profiles = json.load(f)
                 logger.info(f"Loaded {len(profiles)} profiles from reddit_profiles.json")
                 return profiles
@@ -279,7 +279,7 @@ class GraphInterviewMixin:
         twitter_profile_path = os.path.join(sim_dir, "twitter_profiles.csv")
         if os.path.exists(twitter_profile_path):
             try:
-                with open(twitter_profile_path, 'r', encoding='utf-8') as f:
+                with open(twitter_profile_path, encoding='utf-8') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
                         profiles.append({
@@ -298,7 +298,7 @@ class GraphInterviewMixin:
 
     def _select_agents_for_interview(
         self,
-        profiles: List[Dict[str, Any]],
+        profiles: list[dict[str, Any]],
         interview_requirement: str,
         simulation_requirement: str,
         max_agents: int
@@ -383,8 +383,8 @@ Please select up to {max_agents} agents most suitable for interview and explain 
         self,
         interview_requirement: str,
         simulation_requirement: str,
-        selected_agents: List[Dict[str, Any]]
-    ) -> List[str]:
+        selected_agents: list[dict[str, Any]]
+    ) -> list[str]:
         """Use LLM to generate interview questions"""
 
         agent_roles = [a.get("profession", "Unknown") for a in selected_agents]
@@ -430,7 +430,7 @@ Please generate 3-5 interview questions."""
 
     def _generate_interview_summary(
         self,
-        interviews: List[AgentInterview],
+        interviews: list[AgentInterview],
         interview_requirement: str
     ) -> str:
         """Generate interview summary"""

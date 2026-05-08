@@ -60,29 +60,29 @@ class WriteAction:
         """Format decision as readable markdown."""
         lines = [
             f"# {decision.type.value.replace('_', ' ').title()}",
-            f"",
+            "",
             f"**Brand**: {decision.brand}",
             f"**ID**: {decision.id}",
             f"**Created**: {decision.created_at.isoformat()}",
             f"**Confidence**: {decision.confidence:.0%}",
             f"**Status**: {decision.status.value}",
-            f"",
-            f"## Rationale",
-            f"",
+            "",
+            "## Rationale",
+            "",
             decision.rationale,
-            f"",
-            f"## Proposal",
-            f"",
-            f"```json",
+            "",
+            "## Proposal",
+            "",
+            "```json",
             json.dumps(decision.proposal, indent=2, default=str),
-            f"```",
+            "```",
         ]
 
         if analysis:
             lines.extend([
-                f"",
-                f"## Analysis",
-                f"",
+                "",
+                "## Analysis",
+                "",
             ])
 
             if "summary" in analysis:

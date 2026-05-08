@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ..config import Config
 
@@ -46,9 +46,9 @@ class ReportLogger:
         self,
         action: str,
         stage: str,
-        details: Dict[str, Any],
-        section_title: Optional[str] = None,
-        section_index: Optional[int] = None,
+        details: dict[str, Any],
+        section_title: str | None = None,
+        section_index: int | None = None,
     ) -> None:
         """
         Record a log entry
@@ -95,7 +95,7 @@ class ReportLogger:
             details={"message": "Starting report outline planning"},
         )
 
-    def log_planning_context(self, context: Dict[str, Any]) -> None:
+    def log_planning_context(self, context: dict[str, Any]) -> None:
         """Record context information obtained during planning"""
         self.log(
             action="planning_context",
@@ -106,7 +106,7 @@ class ReportLogger:
             },
         )
 
-    def log_planning_complete(self, outline_dict: Dict[str, Any]) -> None:
+    def log_planning_complete(self, outline_dict: dict[str, Any]) -> None:
         """Record outline planning completion"""
         self.log(
             action="planning_complete",
@@ -152,7 +152,7 @@ class ReportLogger:
         section_title: str,
         section_index: int,
         tool_name: str,
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
         iteration: int,
     ) -> None:
         """Record tool invocation"""
@@ -277,7 +277,7 @@ class ReportLogger:
         self,
         error_message: str,
         stage: str,
-        section_title: Optional[str] = None,
+        section_title: str | None = None,
     ) -> None:
         """Record error"""
         self.log(

@@ -9,7 +9,6 @@ from typing import Any
 from agentcy.brand.core.config import utc_now
 from agentcy.brand.core.storage import data_dir
 
-
 # Default rate limits per platform (posts per hour)
 DEFAULT_LIMITS = {
     "twitter": 10,

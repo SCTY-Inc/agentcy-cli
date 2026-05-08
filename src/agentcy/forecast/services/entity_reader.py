@@ -4,8 +4,8 @@ Reads nodes from the graph, filters by entity types.
 Built on local KuzuDB graph storage.
 """
 
-from typing import Dict, Any, List, Optional, Set, TypeVar
 from dataclasses import dataclass, field
+from typing import Any, TypeVar
 
 from ..utils.logger import get_logger
 from .graph_db import GraphDatabase
@@ -21,13 +21,13 @@ class EntityNode:
     """Entity node data structure"""
     uuid: str
     name: str
-    labels: List[str]
+    labels: list[str]
     summary: str
-    attributes: Dict[str, Any]
-    related_edges: List[Dict[str, Any]] = field(default_factory=list)
-    related_nodes: List[Dict[str, Any]] = field(default_factory=list)
+    attributes: dict[str, Any]
+    related_edges: list[dict[str, Any]] = field(default_factory=list)
+    related_nodes: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "uuid": self.uuid,
             "name": self.name,
@@ -38,7 +38,7 @@ class EntityNode:
             "related_nodes": self.related_nodes,
         }
 
-    def get_entity_type(self) -> Optional[str]:
+    def get_entity_type(self) -> str | None:
         """Get entity type (excluding default Entity label)"""
         for label in self.labels:
             if label not in ["Entity", "Node"]:
@@ -49,12 +49,12 @@ class EntityNode:
 @dataclass
 class FilteredEntities:
     """Filtered entity collection"""
-    entities: List[EntityNode]
-    entity_types: Set[str]
+    entities: list[EntityNode]
+    entity_types: set[str]
     total_count: int
     filtered_count: int
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "entities": [e.to_dict() for e in self.entities],
             "entity_types": list(self.entity_types),
@@ -73,12 +73,12 @@ class EntityReader:
     3. Get related edges and associated nodes for each entity
     """
 
-    def __init__(self, api_key: Optional[str] = None, storage: Optional[GraphStorage] = None):
+    def __init__(self, api_key: str | None = None, storage: GraphStorage | None = None):
         # api_key parameter kept for backward compatibility
         self.db = GraphDatabase()
         self.storage = storage
 
-    def _node_labels(self, node: Any) -> List[str]:
+    def _node_labels(self, node: Any) -> list[str]:
         if hasattr(node, "labels"):
             return node.labels
         label = node.get("label", "Entity")
@@ -104,7 +104,7 @@ class EntityReader:
             return self.storage.get_edges()
         return self.db.get_all_edges(graph_id)
 
-    def get_all_nodes(self, graph_id: str) -> List[Dict[str, Any]]:
+    def get_all_nodes(self, graph_id: str) -> list[dict[str, Any]]:
         """
         Get all nodes from the graph.
 
@@ -130,7 +130,7 @@ class EntityReader:
         logger.info(f"Fetched {len(nodes_data)} nodes")
         return nodes_data
 
-    def get_all_edges(self, graph_id: str) -> List[Dict[str, Any]]:
+    def get_all_edges(self, graph_id: str) -> list[dict[str, Any]]:
         """
         Get all edges from the graph.
 
@@ -157,7 +157,7 @@ class EntityReader:
         logger.info(f"Fetched {len(edges_data)} edges")
         return edges_data
 
-    def get_node_edges(self, node_uuid: str, graph_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_node_edges(self, node_uuid: str, graph_id: str | None = None) -> list[dict[str, Any]]:
         """
         Get all edges connected to a node.
 
@@ -195,7 +195,7 @@ class EntityReader:
     def filter_defined_entities(
         self,
         graph_id: str,
-        defined_entity_types: Optional[List[str]] = None,
+        defined_entity_types: list[str] | None = None,
         enrich_with_edges: bool = True
     ) -> FilteredEntities:
         """
@@ -301,7 +301,7 @@ class EntityReader:
         self,
         graph_id: str,
         entity_uuid: str
-    ) -> Optional[EntityNode]:
+    ) -> EntityNode | None:
         """
         Get a single entity with full context (edges and related nodes).
 
@@ -382,7 +382,7 @@ class EntityReader:
         graph_id: str,
         entity_type: str,
         enrich_with_edges: bool = True
-    ) -> List[EntityNode]:
+    ) -> list[EntityNode]:
         """
         Get all entities of a specific type.
 

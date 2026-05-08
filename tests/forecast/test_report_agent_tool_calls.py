@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-
 import pytest
 
 from agentcy.forecast.services.report_agent import ReportAgent

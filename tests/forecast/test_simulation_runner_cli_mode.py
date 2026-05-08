@@ -1,9 +1,7 @@
 import json
-import sys
 from pathlib import Path
 
 import pytest
-
 
 from agentcy.forecast.services.simulation_runner import SimulationRunner
 

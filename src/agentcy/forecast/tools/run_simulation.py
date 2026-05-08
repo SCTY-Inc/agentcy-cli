@@ -1,6 +1,6 @@
 """Tool for starting simulation runs."""
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ..core.session_manager import SessionManager
 from ..models.project import ProjectManager
@@ -20,10 +20,10 @@ class RunSimulationTool:
 
     def __init__(
         self,
-        simulation_store: Optional[SimulationStore] = None,
-        simulation_runtime: Optional[SimulationRuntime] = None,
-        project_store: Optional[ProjectStore] = None,
-        session_manager: Optional[SessionManager] = None,
+        simulation_store: SimulationStore | None = None,
+        simulation_runtime: SimulationRuntime | None = None,
+        project_store: ProjectStore | None = None,
+        session_manager: SessionManager | None = None,
     ):
         self.simulation_store = simulation_store or SimulationStore()
         self.simulation_runtime = simulation_runtime or SimulationRuntime()
@@ -34,12 +34,12 @@ class RunSimulationTool:
         self,
         simulation_id: str,
         platform: str = "parallel",
-        max_rounds: Optional[int] = None,
+        max_rounds: int | None = None,
         enable_graph_memory_update: bool = False,
         force: bool = False,
         wait_for_commands: bool = True,
-        session_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
         require_simulation_runtime()
         platform = normalize_run_platform(platform, default="parallel")
 

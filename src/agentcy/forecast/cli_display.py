@@ -4,13 +4,11 @@ from __future__ import annotations
 
 import sys
 import time
-from typing import Optional
 
 from rich.console import Console, Group
 from rich.live import Live
 from rich.table import Table
 from rich.text import Text
-
 
 STEPS = ["ontology", "graph", "profiles", "simulation", "report", "visuals"]
 
@@ -32,8 +30,8 @@ class StepState:
     def __init__(self) -> None:
         self.status: str = "pending"  # pending | running | done | failed
         self.message: str = ""
-        self.elapsed: Optional[float] = None
-        self._start: Optional[float] = None
+        self.elapsed: float | None = None
+        self._start: float | None = None
 
     def start(self) -> None:
         self.status = "running"
@@ -78,7 +76,7 @@ class PipelineDisplay:
         self._steps = {name: StepState() for name in STEPS}
         self._tick = 0
         self._console = Console(stderr=True)
-        self._live: Optional[Live] = None
+        self._live: Live | None = None
 
     # -- public API --
 

@@ -5,18 +5,19 @@ Builds knowledge graphs using KuzuDB (embedded) + LLM-based entity extraction.
 
 import os
 import shutil
-import uuid
 import threading
-from typing import Dict, Any, List, Optional, Callable
+import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from ..models.task import TaskManager, TaskStatus
-from .text_processor import TextProcessor
+from ..utils.logger import get_logger
+from .entity_extractor import EntityExtractor
 from .graph_db import GraphDatabase
 from .graph_storage import GraphStorage
-from .entity_extractor import EntityExtractor
-from ..utils.logger import get_logger
+from .text_processor import TextProcessor
 
 logger = get_logger('mirofish.graph_builder')
 
@@ -27,9 +28,9 @@ class GraphInfo:
     graph_id: str
     node_count: int
     edge_count: int
-    entity_types: List[str]
+    entity_types: list[str]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "graph_id": self.graph_id,
             "node_count": self.node_count,
@@ -44,7 +45,7 @@ class GraphBuilderService:
     Uses KuzuDB for storage and LLM for entity extraction.
     """
 
-    def __init__(self, api_key: Optional[str] = None, storage: Optional[GraphStorage] = None):
+    def __init__(self, api_key: str | None = None, storage: GraphStorage | None = None):
         # api_key parameter kept for backward compatibility from earlier graph backends
         self.db = GraphDatabase()
         self.storage = storage
@@ -54,11 +55,11 @@ class GraphBuilderService:
     def _get_storage(self, graph_id: str) -> GraphStorage:
         return self.storage or self.db.get_storage(graph_id)
 
-    def _set_storage_metadata(self, key: str, value: Dict[str, Any]) -> None:
+    def _set_storage_metadata(self, key: str, value: dict[str, Any]) -> None:
         if self.storage is not None and hasattr(self.storage, "set_metadata"):
             self.storage.set_metadata(key, value, datetime.now().isoformat())
 
-    def _get_storage_metadata(self, key: str) -> Optional[Dict[str, Any]]:
+    def _get_storage_metadata(self, key: str) -> dict[str, Any] | None:
         if self.storage is not None and hasattr(self.storage, "get_metadata"):
             value = self.storage.get_metadata(key)
             if isinstance(value, dict):
@@ -68,7 +69,7 @@ class GraphBuilderService:
     def build_graph_async(
         self,
         text: str,
-        ontology: Dict[str, Any],
+        ontology: dict[str, Any],
         graph_name: str = "MiroFish Graph",
         chunk_size: int = 500,
         chunk_overlap: int = 50,
@@ -110,7 +111,7 @@ class GraphBuilderService:
         self,
         task_id: str,
         text: str,
-        ontology: Dict[str, Any],
+        ontology: dict[str, Any],
         graph_name: str,
         chunk_size: int,
         chunk_overlap: int,
@@ -233,7 +234,7 @@ class GraphBuilderService:
         self.db.create_graph(graph_id, name, "MiroFish Social Simulation Graph")
         return graph_id
 
-    def set_ontology(self, graph_id: str, ontology: Dict[str, Any]):
+    def set_ontology(self, graph_id: str, ontology: dict[str, Any]):
         """Set graph ontology (public method)"""
         if self.storage is not None:
             self._set_storage_metadata("ontology", ontology)
@@ -243,8 +244,8 @@ class GraphBuilderService:
     def _populate_graph(
         self,
         graph_id: str,
-        extraction_result: Dict[str, Any],
-        episode_uuids: List[str]
+        extraction_result: dict[str, Any],
+        episode_uuids: list[str]
     ):
         """Populate the graph with extracted entities and relationships"""
         entities = extraction_result.get("entities", [])
@@ -258,7 +259,6 @@ class GraphBuilderService:
             if not name:
                 continue
             entity_type = entity.get("type", "Entity")
-            labels = ["Entity", entity_type] if entity_type != "Entity" else ["Entity"]
             summary = entity.get("summary", "")
 
             node_id = storage.add_node(
@@ -337,10 +337,10 @@ class GraphBuilderService:
     def add_text_batches(
         self,
         graph_id: str,
-        chunks: List[str],
+        chunks: list[str],
         batch_size: int = 3,
-        progress_callback: Optional[Callable] = None
-    ) -> List[str]:
+        progress_callback: Callable | None = None
+    ) -> list[str]:
         """
         Add text chunks to graph, extract and populate.
         Returns episode UUIDs.
@@ -381,8 +381,8 @@ class GraphBuilderService:
 
     def _wait_for_episodes(
         self,
-        episode_uuids: List[str],
-        progress_callback: Optional[Callable] = None,
+        episode_uuids: list[str],
+        progress_callback: Callable | None = None,
         timeout: int = 600
     ):
         """
@@ -426,7 +426,7 @@ class GraphBuilderService:
             entity_types=list(entity_types)
         )
 
-    def get_graph_data(self, graph_id: str) -> Dict[str, Any]:
+    def get_graph_data(self, graph_id: str) -> dict[str, Any]:
         """Get complete graph data (nodes and edges with details)"""
         if self.storage is not None:
             nodes = self.storage.list_nodes()

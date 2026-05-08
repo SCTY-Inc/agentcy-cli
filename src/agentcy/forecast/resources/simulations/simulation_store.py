@@ -1,15 +1,16 @@
 """Simulation state and runtime adapters."""
 
-from typing import Any, Dict, List, Optional
+import builtins
+from typing import Any
 
 from ...services.simulation_manager import SimulationManager, SimulationState
-from ...services.simulation_runner import SimulationRunState, SimulationRunner
+from ...services.simulation_runner import SimulationRunner, SimulationRunState
 
 
 class SimulationStore:
     """Adapter around persisted simulation preparation state."""
 
-    def __init__(self, manager: Optional[SimulationManager] = None):
+    def __init__(self, manager: SimulationManager | None = None):
         self.manager = manager or SimulationManager()
 
     def create(
@@ -26,7 +27,7 @@ class SimulationStore:
             enable_reddit=enable_reddit,
         )
 
-    def get(self, simulation_id: str) -> Optional[SimulationState]:
+    def get(self, simulation_id: str) -> SimulationState | None:
         return self.manager.get_simulation(simulation_id)
 
     def save(self, state: SimulationState):
@@ -35,13 +36,13 @@ class SimulationStore:
     def prepare(self, **kwargs) -> SimulationState:
         return self.manager.prepare_simulation(**kwargs)
 
-    def list(self, project_id: Optional[str] = None) -> List[SimulationState]:
+    def list(self, project_id: str | None = None) -> list[SimulationState]:
         return self.manager.list_simulations(project_id=project_id)
 
-    def get_profiles(self, simulation_id: str, platform: str = "reddit") -> List[Dict[str, Any]]:
+    def get_profiles(self, simulation_id: str, platform: str = "reddit") -> builtins.list[dict[str, Any]]:
         return self.manager.get_profiles(simulation_id, platform=platform)
 
-    def get_config(self, simulation_id: str) -> Optional[Dict[str, Any]]:
+    def get_config(self, simulation_id: str) -> dict[str, Any] | None:
         return self.manager.get_simulation_config(simulation_id)
 
 
@@ -51,7 +52,7 @@ class SimulationRuntime:
     def start(self, **kwargs) -> SimulationRunState:
         return SimulationRunner.start_simulation(**kwargs)
 
-    def get_run_state(self, simulation_id: str) -> Optional[SimulationRunState]:
+    def get_run_state(self, simulation_id: str) -> SimulationRunState | None:
         return SimulationRunner.get_run_state(simulation_id)
 
     def stop(self, simulation_id: str) -> SimulationRunState:
