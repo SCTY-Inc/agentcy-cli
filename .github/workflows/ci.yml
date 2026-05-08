@@ -20,7 +20,7 @@ jobs:
           version: '10'
       - uses: astral-sh/setup-uv@v5
       - name: Install Python + dev tools
-        run: uv sync --group dev
+        run: uv sync --extra persona --group dev
       - name: Install studio runtime for protocol seam tests
         run: cd src/studio/runtime && pnpm install --frozen-lockfile
       - name: Python tests
