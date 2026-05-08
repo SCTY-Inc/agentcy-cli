@@ -68,7 +68,7 @@ describe('runtime workflows', () => {
     const root = createWorkspace()
     const runtime = createRuntime({ root })
     suppressImageApiKeys()
-    const briefPath = join(process.cwd(), '..', '..', 'protocols', 'examples', 'brief.v1.rich.json')
+    const briefPath = join(process.cwd(), '..', '..', 'agentcy', 'protocols', 'examples', 'brief.v1.rich.json')
 
     const run = await runtime.runWorkflow({
       workflow: 'social.post',
@@ -318,7 +318,7 @@ describe('runtime workflows', () => {
 
     const runtime = createRuntime({ root })
     suppressImageApiKeys()
-    const briefPath = join(process.cwd(), '..', '..', 'protocols', 'examples', 'brief.v1.rich.json')
+    const briefPath = join(process.cwd(), '..', '..', 'agentcy', 'protocols', 'examples', 'brief.v1.rich.json')
 
     const run = await runtime.runWorkflow({
       workflow: 'social.post',

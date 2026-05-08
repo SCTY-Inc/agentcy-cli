@@ -99,7 +99,7 @@ describe.sequential('runCli', () => {
     process.env.LOOM_ROOT = root
     process.env.HOME = root
     suppressImageApiKeys()
-    const briefPath = join(process.cwd(), '..', '..', 'protocols', 'examples', 'brief.v1.rich.json')
+    const briefPath = join(process.cwd(), '..', '..', 'agentcy', 'protocols', 'examples', 'brief.v1.rich.json')
 
     const { result, stdout } = await captureStdout(() =>
       runCli(['run', 'social.post', '--brand', 'givecare', '--brief-file', briefPath, '--json']),

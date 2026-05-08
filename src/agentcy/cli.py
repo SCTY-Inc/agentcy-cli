@@ -676,13 +676,19 @@ def _run_compass_plan(
 # Subcommands — direct imports for Python, subprocess for TypeScript (loom)
 # ---------------------------------------------------------------------------
 
-from agentcy.persona.cli import app as persona_app
-from agentcy.brand.cli import app as brand_app
-
-app.add_typer(persona_app, name="persona", help="Persona management — create, test, optimize, export")
-app.add_typer(brand_app, name="brand", help="Brand ops — signals, planning, production, loop")
-
 _PASS = {"allow_extra_args": True, "ignore_unknown_options": True}
+
+
+@app.command("persona", context_settings=_PASS, help="Persona management — create, test, optimize, export")
+def persona(ctx: typer.Context) -> None:
+    from agentcy.persona.cli import app as persona_app
+    persona_app(ctx.args, standalone_mode=False)
+
+
+@app.command("brand", context_settings=_PASS, help="Brand ops — signals, planning, production, loop")
+def brand(ctx: typer.Context) -> None:
+    from agentcy.brand.cli import app as brand_app
+    brand_app(ctx.args, standalone_mode=False)
 
 
 @app.command("forecast", context_settings=_PASS, help="Swarm prediction — docs + requirement → forecast")
