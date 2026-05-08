@@ -12,7 +12,7 @@ src/
 │   ├── forecast/  swarm prediction
 │   ├── metrics/   measurement + calibration
 │   ├── protocols/ shared schemas + adapters
-│   ├── extract/   headless design.md extractor
+│   ├── extract/   brand scaffold generator (DESIGN.md + BRAND.md from URL)
 │   └── cli.py     single entry point
 └── studio/        TypeScript — content studio
     └── runtime/   image + video render, platform publish
@@ -79,9 +79,13 @@ npx remotion render givecare-landscape out/givecare.mp4
 npx remotion render scty-vertical out/scty.mp4
 ```
 
-## Design token extraction
+## Brand scaffold from URL
 
 ```bash
+# Full brand scaffold (DESIGN.md + BRAND.md + directory structure)
+node src/agentcy/extract/extract.mjs https://example.com --brand my-brand
+
+# Design tokens only
 node src/agentcy/extract/extract.mjs https://example.com --out design.md
 ```
 

@@ -13,7 +13,7 @@ src/
 │   ├── forecast/       # swarm prediction — docs + requirement → social forecast
 │   ├── metrics/        # measurement + calibration — run_result.v1 → performance.v1
 │   ├── protocols/      # shared schemas, adapters, utilities
-│   └── extract/        # headless design.md extractor (puppeteer-core)
+│   └── extract/        # brand scaffold generator (DESIGN.md + BRAND.md from URL)
 └── studio/             # TypeScript — content studio
     └── runtime/
         └── src/
