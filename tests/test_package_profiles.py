@@ -13,18 +13,13 @@ def _project_metadata() -> dict:
 
 
 def test_root_package_exposes_install_profile_extras() -> None:
-    project = _project_metadata()["project"]
-    extras = project["optional-dependencies"]
+    extras = _project_metadata()["project"]["optional-dependencies"]
 
-    assert extras["echo-simulation"] == ["agentcy-echo[simulation]"]
-    assert extras["compass-all"] == ["agentcy-compass[all]"]
-    assert extras["full-python"] == [
-        "agentcy-compass[all]",
-        "agentcy-echo[simulation]",
-    ]
+    assert "persona" in extras
+    assert "forecast-simulation" in extras
+    assert "brand-all" in extras
+    assert "full" in extras
 
 
 def test_root_package_has_readme_metadata() -> None:
-    project = _project_metadata()["project"]
-
-    assert project["readme"] == "README.md"
+    assert _project_metadata()["project"]["readme"] == "README.md"

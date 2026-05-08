@@ -1,0 +1,9 @@
+{
+  "name": "extract-design",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": { "extract-design": "./extract.mjs" },
+  "dependencies": {
+    "puppeteer-core": "^24.0.0"
+  }
+}

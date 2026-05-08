@@ -1,0 +1,43 @@
+{
+  "artifact_type": "run_result.v1",
+  "schema_version": "v1",
+  "run_id": "givecare.run.social-fall-checkin.publish.2026-04-12t172000z",
+  "brief_id": "givecare.brief.fall-checkin.social-email.2026-04-12",
+  "brand_id": "givecare.brand.core",
+  "writer": {
+    "repo": "cli-phantom",
+    "module": "agentcy-loom"
+  },
+  "workflow": "social.post",
+  "status": "published",
+  "current_step": "publish",
+  "started_at": "2026-04-12T17:20:00Z",
+  "completed_at": "2026-04-12T17:23:11Z",
+  "review": {
+    "decision": "approved",
+    "summary": "Approved after review; published to the selected channels."
+  },
+  "delivery": {
+    "dry_run": false,
+    "platforms": [
+      {
+        "platform": "linkedin",
+        "status": "published",
+        "post_id": "linkedin.ugc.987654321",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:987654321/"
+      },
+      {
+        "platform": "instagram",
+        "status": "published",
+        "post_id": "instagram.media.123456789",
+        "url": "https://www.instagram.com/p/CGiveCare12/"
+      }
+    ],
+    "selected_variant_id": "givecare.variant.fall-checkin.social.v1"
+  },
+  "lineage": {
+    "source_voice_pack_id": "givecare.voice.fall-checkin.v1",
+    "campaign_id": "givecare.campaign.fall-checkin.2026q2",
+    "signal_id": "givecare.signal.support-calls.fall-2026-04"
+  }
+}

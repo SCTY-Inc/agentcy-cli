@@ -1,30 +1,46 @@
 [project]
 name = "agentcy"
-version = "0.1.0"
-description = "Agentcy — single CLI entry point for the agent suite"
+version = "0.2.0"
+description = "Agent CLI suite — persona, brand, forecast, studio, metrics"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "jsonschema>=4.0",
     "typer>=0.12",
     "rich>=13.0",
-    "agentcy-protocols",
-    "agentcy-compass",
-    "agentcy-echo",
-    "agentcy-pulse",
-    "agentcy-vox",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.27",
+    "openai>=1.0.0",
+    "PyMuPDF>=1.24.0",
+    "charset-normalizer>=3.0.0",
+    "chardet>=5.0.0",
 ]
 
 [project.optional-dependencies]
-echo-simulation = [
-    "agentcy-echo[simulation]",
+persona = [
+    "dspy>=2.5",
+    "litellm>=1.40",
+    "exa-py>=1.0",
 ]
-compass-all = [
-    "agentcy-compass[all]",
+brand-gemini = ["google-genai>=1.0"]
+brand-openai = ["litellm>=1.40"]
+brand-intel = ["apify-client>=1.7", "beautifulsoup4>=4.12"]
+brand-video = ["replicate>=1.0", "cartesia>=2.2"]
+brand-server = ["fastapi>=0.115", "uvicorn>=0.32"]
+brand-email = ["resend>=2.0"]
+brand-agents = ["pydantic-ai>=0.0.24"]
+brand-predict = ["statsforecast>=1.7", "pyod>=2.0"]
+brand-workflows = ["python-statemachine>=2.0", "aiosqlite>=0.20"]
+brand-all = [
+    "agentcy[brand-gemini,brand-openai,brand-intel,brand-video,brand-server,brand-email,brand-agents,brand-predict,brand-workflows]",
 ]
-full-python = [
-    "agentcy-compass[all]",
-    "agentcy-echo[simulation]",
+forecast-simulation = [
+    "camel-oasis @ https://files.pythonhosted.org/packages/77/d0/6d62173602433937d0228b7809e2b244e09c11cfb1be9c6754ae3b20d887/camel_oasis-0.2.5-py3-none-any.whl",
+    "camel-ai==0.2.78",
 ]
+full = ["agentcy[persona,brand-all,forecast-simulation]"]
 
 [project.scripts]
 agentcy = "agentcy.cli:app"
@@ -33,18 +49,11 @@ agentcy = "agentcy.cli:app"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/agentcy"]
-
-[tool.uv.workspace]
-members = [".", "protocols", "compass", "echo", "pulse", "vox"]
-
-[tool.uv.sources]
-agentcy-protocols = { workspace = true }
-agentcy-compass  = { workspace = true }
-agentcy-echo     = { workspace = true }
-agentcy-pulse    = { workspace = true }
-agentcy-vox      = { workspace = true }
 
 [tool.ruff]
 line-length = 100
