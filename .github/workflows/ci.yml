@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  python-and-protocols:
+  python:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,16 +19,16 @@ jobs:
         with:
           version: '10'
       - uses: astral-sh/setup-uv@v5
-      - name: Install Python workspace + dev tools
+      - name: Install Python + dev tools
         run: uv sync --group dev
-      - name: Install loom runtime for protocol seam tests
-        run: cd loom/runtime && pnpm install --frozen-lockfile
-      - name: Python + protocol tests
+      - name: Install studio runtime for protocol seam tests
+        run: cd src/studio/runtime && pnpm install --frozen-lockfile
+      - name: Python tests
         run: make check-python
-      - name: Maintained-surface lint
+      - name: Lint
         run: make lint
 
-  loom:
+  studio:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +38,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: '10'
-      - name: Install loom runtime
-        run: cd loom/runtime && pnpm install --frozen-lockfile
-      - name: Loom tests + typecheck
-        run: make check-loom
+      - name: Install studio runtime
+        run: cd src/studio/runtime && pnpm install --frozen-lockfile
+      - name: Studio tests + typecheck
+        run: make check-studio
