@@ -5,19 +5,20 @@ Agent CLI suite — five Python modules + one TypeScript runtime, chained throug
 ## Structure
 
 ```
-src/agentcy/
-├── persona/       persona management — create, test, optimize, export
-├── brand/         brand ops — signals → plan → produce → publish
-├── forecast/      swarm prediction — docs + requirement → forecast
-├── metrics/       measurement + calibration + study
-├── protocols/     shared schemas, adapters, utilities
-├── extract/       headless design.md extractor (puppeteer-core)
-└── cli.py         single CLI entry point
+src/
+├── agentcy/       Python — CLI suite
+│   ├── persona/   persona management
+│   ├── brand/     brand ops — signals, planning, production
+│   ├── forecast/  swarm prediction
+│   ├── metrics/   measurement + calibration
+│   ├── protocols/ shared schemas + adapters
+│   ├── extract/   headless design.md extractor
+│   └── cli.py     single entry point
+└── studio/        TypeScript — content studio
+    └── runtime/   image + video render, platform publish
 
-studio/            content studio — draft, render, publish (TypeScript)
-└── runtime/       brand loader, image + video render, platform publish
-
-tests/             all tests
+brands/            shared brand data (identity, design, assets, I/O)
+tests/             all Python tests
 ```
 
 ## Pipeline
@@ -36,7 +37,7 @@ Each module reads a protocol artifact from the prior step and emits one for the 
 
 ```bash
 uv sync --group dev                  # Python
-cd studio/runtime && pnpm install    # TypeScript
+cd src/studio/runtime && pnpm install # TypeScript
 ```
 
 ## Usage
@@ -73,7 +74,7 @@ make lint           # ruff
 Remotion compositions in `studio/runtime/src/render/video/`. Renders brand-driven social videos:
 
 ```bash
-cd studio/runtime
+cd src/studio/runtime
 npx remotion render givecare-landscape out/givecare.mp4
 npx remotion render scty-vertical out/scty.mp4
 ```
@@ -92,7 +93,7 @@ uv sync --extra persona --group dev          # + persona deps (dspy, litellm)
 uv sync --extra brand-all --group dev        # + all brand extras
 uv sync --extra forecast-simulation          # + OASIS simulation (Python 3.11)
 uv sync --all-extras --group dev             # everything
-cd studio/runtime && pnpm install            # TypeScript runtime
+cd src/studio/runtime && pnpm install            # TypeScript runtime
 ```
 
 ## Protocol contracts

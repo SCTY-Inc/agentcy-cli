@@ -7,7 +7,7 @@ typography:
   headline: "JetBrains Mono, monospace, bold"
   body: "Inter, sans-serif, regular"
   accent: "Space Grotesk, sans-serif, bold, uppercase wide tracking"
-logo: scty.png
+logo: assets/scty.png
 layout: signal-grid
 video:
   textAlign: left

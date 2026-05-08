@@ -128,7 +128,7 @@ def _loom_bin() -> str | None:
     if found := shutil.which("agentcy studio"):
         return found
     root = Path(__file__).parent.parent.parent
-    local = root / "studio" / "runtime" / "bin" / "loom.js"
+    local = root / "src" / "studio" / "runtime" / "bin" / "loom.js"
     if local.exists():
         return str(local)
     return None
@@ -142,7 +142,7 @@ def _loom_command(args: list[str]) -> list[str]:
 
     bin_path = _loom_bin()
     if not bin_path:
-        err.print("[red]error:[/red] studio not found — run: cd studio/runtime && pnpm install")
+        err.print("[red]error:[/red] studio not found — run: cd src/studio/runtime && pnpm install")
         raise typer.Exit(2)
 
     if bin_path.endswith(".js"):

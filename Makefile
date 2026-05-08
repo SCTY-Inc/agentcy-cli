@@ -4,7 +4,7 @@ install:
 	uv sync --all-extras --group dev
 
 install-studio:
-	cd studio/runtime && pnpm install
+	cd src/studio/runtime && pnpm install
 
 install-full: install install-studio
 
@@ -13,7 +13,7 @@ sync:
 
 doctor:
 	uv run agentcy --help > /dev/null
-	cd studio/runtime && node bin/loom.js help --json > /dev/null
+	cd src/studio/runtime && node bin/loom.js help --json > /dev/null
 
 check: check-python check-studio
 
@@ -21,11 +21,11 @@ check-python:
 	uv run pytest tests -q
 
 check-studio:
-	cd studio/runtime && pnpm check
+	cd src/studio/runtime && pnpm check
 
 test:
 	@if [ "$(member)" = "studio" ]; then \
-		cd studio/runtime && pnpm test; \
+		cd src/studio/runtime && pnpm test; \
 	else \
 		uv run pytest tests/$(member) -q; \
 	fi
@@ -41,7 +41,7 @@ pipeline:
 	@echo "==> forecast: predict"
 	uv run agentcy forecast run --files $(files) --brief /tmp/brief.json --json > /tmp/forecast.json
 	@echo "==> studio: render + publish"
-	cd studio/runtime && node bin/loom.js run social.post --brand $(brand) --brief-file /tmp/brief.json --json > /tmp/run_result.json
+	cd src/studio/runtime && node bin/loom.js run social.post --brand $(brand) --brief-file /tmp/brief.json --json > /tmp/run_result.json
 	@echo "==> metrics: measure"
 	uv run agentcy metrics adapt --run-result /tmp/run_result.json --sidecar $(sidecar) --output /tmp/performance.json --json
 	@echo "==> metrics: calibrate"

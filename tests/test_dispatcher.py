@@ -497,7 +497,7 @@ def test_pipeline_update_backfills_run_result_and_performance(tmp_path: Path) ->
 
 
 def test_local_loom_bin_resolves_repo_runtime_bin() -> None:
-    expected = Path(__file__).resolve().parents[1] / "studio" / "runtime" / "bin" / "loom.js"
+    expected = Path(__file__).resolve().parents[1] / "src" / "studio" / "runtime" / "bin" / "loom.js"
     resolved = cli._loom_bin()
 
     assert resolved is not None

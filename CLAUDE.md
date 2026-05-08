@@ -5,28 +5,31 @@ Agent CLI suite. Five modules + one TypeScript runtime, chained through a shared
 ## Structure
 
 ```
-src/agentcy/
-├── cli.py              # single entry point
-├── persona/            # persona management — create, test, optimize, export
-├── brand/              # brand ops — signals → plan → produce → publish
-├── forecast/           # swarm prediction — docs + requirement → social forecast
-├── metrics/            # measurement + calibration — run_result.v1 → performance.v1
-└── protocols/          # shared schemas, adapters, utilities
-    ├── schemas/        # JSON schema files (brief.v1, forecast.v1, etc.)
-    ├── examples/       # canonical fixture examples
-    └── adapters/       # cross-artifact transformers
+src/
+├── agentcy/            # Python — CLI suite
+│   ├── cli.py          # single entry point
+│   ├── persona/        # persona management — create, test, optimize, export
+│   ├── brand/          # brand ops — signals → plan → produce → publish
+│   ├── forecast/       # swarm prediction — docs + requirement → social forecast
+│   ├── metrics/        # measurement + calibration — run_result.v1 → performance.v1
+│   ├── protocols/      # shared schemas, adapters, utilities
+│   └── extract/        # headless design.md extractor (puppeteer-core)
+└── studio/             # TypeScript — content studio
+    └── runtime/
+        └── src/
+            ├── brands/ # brand.md + design.md loader
+            ├── render/ # image (social.ts, card.ts) + video (kino compositions)
+            ├── publish/# platform adapters (Twitter, LinkedIn, Meta, Threads)
+            └── runtime/# SQLite-backed run engine
 
-studio/                 # content studio — draft, render, publish (TypeScript)
-└── runtime/
-    └── src/
-        ├── brands/     # brand.md + design.md loader
-        ├── render/     # image (social.ts, card.ts) + video (kino compositions)
-        ├── publish/    # platform adapters (Twitter, LinkedIn, Meta, Threads)
-        └── runtime/    # SQLite-backed run engine
+brands/                 # shared brand data (both runtimes read from here)
+├── <name>/brand.md     # identity, voice, pillars, offers
+├── <name>/design.md    # palette, typography, composition, video props
+├── <name>/assets/      # logo, fonts
+├── <name>/input/       # briefs, voice packs, docs
+└── <name>/output/      # rendered media, run results (gitignored)
 
-tests/                  # all tests (mirrors src/agentcy/ structure)
-tools/
-└── extract-design/     # headless design.md extractor (puppeteer-core)
+tests/                  # all Python tests
 ```
 
 ## Pipeline
@@ -94,9 +97,12 @@ from agentcy.protocols import SCHEMAS, load_json
 
 ## Brand specs
 
-Each brand has two files in `studio/brands/<name>/`:
+Each brand has its own directory under `brands/<name>/`:
 - `brand.md` — identity, voice, pillars, offers, channels (YAML frontmatter)
 - `design.md` — palette, typography, layout, video props (frontmatter) + style, composition, texture, image prompt (markdown body)
+- `assets/` — logo, fonts
+- `input/` — briefs, voice packs, docs to process
+- `output/` — rendered media, run results (gitignored)
 
 ## Guardrails
 

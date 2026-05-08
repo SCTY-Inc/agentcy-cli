@@ -11,7 +11,7 @@ from jsonschema import Draft202012Validator
 ROOT = Path(__file__).resolve().parents[2]
 PROTOCOLS_DIR = ROOT / "src" / "agentcy" / "protocols"
 EXAMPLES_DIR = PROTOCOLS_DIR / "examples"
-LOOM_RUNTIME_DIR = ROOT / "studio" / "runtime"
+LOOM_RUNTIME_DIR = ROOT / "src" / "studio" / "runtime"
 LOOM_BIN = LOOM_RUNTIME_DIR / "bin" / "loom.js"
 
 

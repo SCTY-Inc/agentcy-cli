@@ -7,7 +7,7 @@ typography:
   headline: "Alegreya Variable, serif, bold, high contrast weight"
   body: "Inter, sans-serif, regular weight, clean"
   accent: "Gabarito, display sans-serif, bold, uppercase wide tracking"
-logo: logo.png
+logo: assets/logo.png
 layout: calm-editorial
 video:
   textAlign: left
