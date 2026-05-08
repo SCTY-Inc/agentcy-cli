@@ -1,3 +1,3 @@
-"""agentcy — single entry point for the agent CLI suite."""
+"""agentcy — agent CLI suite."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

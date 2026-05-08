@@ -50,10 +50,10 @@ def test_quickstart_full_operator_json_lists_python_and_node_steps() -> None:
 
 def test_doctor_reports_member_probe_failures(monkeypatch) -> None:
     fake_bins = {
-        "agentcy-vox": "/tmp/agentcy-vox",
-        "agentcy-compass": "/tmp/agentcy-compass",
-        "agentcy-echo": "/tmp/agentcy-echo",
-        "agentcy-pulse": "/tmp/agentcy-pulse",
+        "agentcy persona": "/tmp/agentcy persona",
+        "agentcy brand": "/tmp/agentcy brand",
+        "agentcy forecast": "/tmp/agentcy forecast",
+        "agentcy metrics": "/tmp/agentcy metrics",
         "node": "/tmp/node",
     }
 
@@ -62,10 +62,10 @@ def test_doctor_reports_member_probe_failures(monkeypatch) -> None:
 
     def fake_probe(command: list[str]) -> bool:
         joined = " ".join(command)
-        return "agentcy-echo" not in joined and " help " not in f" {joined} "
+        return "agentcy forecast" not in joined and " help " not in f" {joined} "
 
     monkeypatch.setattr(cli.shutil, "which", fake_which)
-    monkeypatch.setattr(cli, "_loom_bin", lambda: "/tmp/agentcy-loom")
+    monkeypatch.setattr(cli, "_loom_bin", lambda: "/tmp/agentcy studio")
     monkeypatch.setattr(cli, "_probe_member", fake_probe)
     monkeypatch.setattr(cli, "_capture_optional_json", lambda command: None)
 
@@ -80,15 +80,15 @@ def test_doctor_reports_member_probe_failures(monkeypatch) -> None:
 
 def test_doctor_reports_ok_when_members_are_present_and_reachable(monkeypatch) -> None:
     fake_bins = {
-        "agentcy-vox": "/tmp/agentcy-vox",
-        "agentcy-compass": "/tmp/agentcy-compass",
-        "agentcy-echo": "/tmp/agentcy-echo",
-        "agentcy-pulse": "/tmp/agentcy-pulse",
+        "agentcy persona": "/tmp/agentcy persona",
+        "agentcy brand": "/tmp/agentcy brand",
+        "agentcy forecast": "/tmp/agentcy forecast",
+        "agentcy metrics": "/tmp/agentcy metrics",
         "node": "/tmp/node",
     }
 
     monkeypatch.setattr(cli.shutil, "which", lambda name: fake_bins.get(name))
-    monkeypatch.setattr(cli, "_loom_bin", lambda: "/tmp/agentcy-loom")
+    monkeypatch.setattr(cli, "_loom_bin", lambda: "/tmp/agentcy studio")
     monkeypatch.setattr(cli, "_probe_member", lambda command: True)
     monkeypatch.setattr(cli, "_capture_optional_json", lambda command: {"status": "ok"})
 
@@ -115,79 +115,6 @@ def test_subprocess_env_includes_global_overrides() -> None:
     assert env["CLAUDE_MODEL"] == "haiku"
 
 
-def test_member_json_normalizes_pulse_envelope_payload(monkeypatch) -> None:
-    seen: dict[str, object] = {}
-
-    def fake_run(command, capture_output, text, env):
-        seen["command"] = command
-        return SimpleNamespace(
-            returncode=0,
-            stdout=json.dumps(
-                {
-                    "status": "ok",
-                    "command": "study",
-                    "data": {"study_verdict": "aligned"},
-                }
-            ),
-            stderr="",
-        )
-
-    monkeypatch.setattr(cli, "_resolve_bin", lambda name: f"/tmp/{name}")
-    monkeypatch.setattr(cli.subprocess, "run", fake_run)
-
-    result = runner.invoke(
-        cli.app,
-        ["member", "pulse", "--json", "study", "--manifest", "demo.json"],
-    )
-
-    assert result.exit_code == 0
-    payload = json.loads(result.stdout)
-    assert payload["status"] == "ok"
-    assert payload["command"] == "member"
-    assert payload["data"]["member"] == "pulse"
-    assert payload["data"]["member_command"] == "study"
-    assert payload["data"]["result"] == {"study_verdict": "aligned"}
-    assert seen["command"] == [
-        "/tmp/agentcy-pulse",
-        "--json",
-        "study",
-        "--manifest",
-        "demo.json",
-    ]
-
-
-def test_member_json_normalizes_echo_payload_and_injects_subcommand_json(monkeypatch) -> None:
-    seen: dict[str, object] = {}
-
-    def fake_run(command, capture_output, text, env):
-        seen["command"] = command
-        return SimpleNamespace(
-            returncode=0,
-            stdout=json.dumps({"run_id": "run_demo", "status": "completed"}),
-            stderr="",
-        )
-
-    monkeypatch.setattr(cli, "_resolve_bin", lambda name: f"/tmp/{name}")
-    monkeypatch.setattr(cli.subprocess, "run", fake_run)
-
-    result = runner.invoke(cli.app, ["member", "echo", "--json", "runs", "status", "run_demo"])
-
-    assert result.exit_code == 0
-    payload = json.loads(result.stdout)
-    assert payload["status"] == "ok"
-    assert payload["data"]["member"] == "echo"
-    assert payload["data"]["member_status"] == "ok"
-    assert payload["data"]["result"] == {"run_id": "run_demo", "status": "completed"}
-    assert seen["command"] == [
-        "/tmp/agentcy-echo",
-        "runs",
-        "status",
-        "run_demo",
-        "--json",
-    ]
-
-
-
 def test_pipeline_run_uses_explicit_pipeline_id_and_root_claude_provider_for_compass(
     monkeypatch,
     tmp_path: Path,
@@ -197,11 +124,11 @@ def test_pipeline_run_uses_explicit_pipeline_id_and_root_claude_provider_for_com
     seen: dict[str, str | None] = {}
 
     def fake_member_json(bin_name: str, args: list[str]) -> dict:
-        if bin_name == "agentcy-vox" and args[:2] == ["--json", "export"]:
+        if bin_name == "agentcy persona" and args[:2] == ["--json", "export"]:
             return {"artifact_type": "voice_pack.v1", "voice_pack_id": "voice.demo"}
-        if bin_name == "agentcy-echo" and args[0] == "run":
+        if bin_name == "agentcy forecast" and args[0] == "run":
             return {"run_id": "run_demo"}
-        if bin_name == "agentcy-echo" and args[:2] == ["runs", "export"]:
+        if bin_name == "agentcy forecast" and args[:2] == ["runs", "export"]:
             return {
                 "artifacts": {
                     "forecast_v1": str(tmp_path / "forecast.v1.json"),
@@ -213,7 +140,7 @@ def test_pipeline_run_uses_explicit_pipeline_id_and_root_claude_provider_for_com
         raise AssertionError((bin_name, args))
 
     def fake_run(command, capture_output, text, env, check=False, cwd=None):
-        if "agentcy-compass" in command[0]:
+        if "agentcy brand" in command[0]:
             seen["provider"] = env.get("BRANDOPS_LLM_PROVIDER")
             seen["model"] = env.get("CLAUDE_MODEL")
             output_path = Path(command[command.index("--output") + 1])
@@ -271,11 +198,11 @@ def test_pipeline_run_writes_manifest_with_discovered_artifacts(
     source_file.write_text("seed", encoding="utf-8")
 
     def fake_member_json(bin_name: str, args: list[str]) -> dict:
-        if bin_name == "agentcy-vox" and args[:2] == ["--json", "export"]:
+        if bin_name == "agentcy persona" and args[:2] == ["--json", "export"]:
             return {"artifact_type": "voice_pack.v1", "voice_pack_id": "voice.demo"}
-        if bin_name == "agentcy-echo" and args[0] == "run":
+        if bin_name == "agentcy forecast" and args[0] == "run":
             return {"run_id": "run_demo"}
-        if bin_name == "agentcy-echo" and args[:2] == ["runs", "export"]:
+        if bin_name == "agentcy forecast" and args[:2] == ["runs", "export"]:
             return {
                 "artifacts": {
                     "forecast_v1": str(tmp_path / "forecast.v1.json"),
@@ -287,7 +214,7 @@ def test_pipeline_run_writes_manifest_with_discovered_artifacts(
         raise AssertionError((bin_name, args))
 
     def fake_run(command, capture_output, text, env, check=False, cwd=None):
-        if "agentcy-compass" in command[0]:
+        if "agentcy brand" in command[0]:
             output_path = Path(command[command.index("--output") + 1])
             output_path.write_text(
                 json.dumps({"activation": {"channels": ["twitter"]}}),
@@ -342,17 +269,17 @@ def test_pipeline_run_can_record_persona_eval_and_optional_loom_branch(
     source_file.write_text("seed", encoding="utf-8")
 
     def fake_member_json(bin_name: str, args: list[str]) -> dict:
-        if bin_name == "agentcy-vox" and args[:2] == ["--json", "test"]:
+        if bin_name == "agentcy persona" and args[:2] == ["--json", "test"]:
             return {
                 "persona": "scientist",
                 "score": 0.83,
                 "report_path": str(tmp_path / "persona_eval.json"),
             }
-        if bin_name == "agentcy-vox" and args[:2] == ["--json", "export"]:
+        if bin_name == "agentcy persona" and args[:2] == ["--json", "export"]:
             return {"artifact_type": "voice_pack.v1", "voice_pack_id": "voice.demo"}
-        if bin_name == "agentcy-echo" and args[0] == "run":
+        if bin_name == "agentcy forecast" and args[0] == "run":
             return {"run_id": "run_demo"}
-        if bin_name == "agentcy-echo" and args[:2] == ["runs", "export"]:
+        if bin_name == "agentcy forecast" and args[:2] == ["runs", "export"]:
             return {
                 "artifacts": {
                     "forecast_v1": str(tmp_path / "forecast.v1.json"),
@@ -421,7 +348,7 @@ def test_pipeline_run_can_record_persona_eval_and_optional_loom_branch(
         raise AssertionError(args)
 
     def fake_run(command, capture_output, text, env, check=False, cwd=None):
-        if "agentcy-compass" in command[0]:
+        if "agentcy brand" in command[0]:
             output_path = Path(command[command.index("--output") + 1])
             output_path.write_text(
                 json.dumps({"activation": {"channels": ["twitter"]}}),
@@ -570,7 +497,7 @@ def test_pipeline_update_backfills_run_result_and_performance(tmp_path: Path) ->
 
 
 def test_local_loom_bin_resolves_repo_runtime_bin() -> None:
-    expected = Path(__file__).resolve().parents[1] / "loom" / "runtime" / "bin" / "loom.js"
+    expected = Path(__file__).resolve().parents[1] / "studio" / "runtime" / "bin" / "loom.js"
     resolved = cli._loom_bin()
 
     assert resolved is not None

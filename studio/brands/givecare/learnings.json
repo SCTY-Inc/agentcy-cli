@@ -1,0 +1,144 @@
+{
+  "card_types": [
+    {
+      "id": "hero-stat",
+      "description": "Single dominant number or short phrase, very large, bold serif. Minimal supporting text below.",
+      "example": "$1 TRILLION with one-line context beneath"
+    },
+    {
+      "id": "fact-list",
+      "description": "Eyebrow label + 3-4 short facts stacked. Clean sans-serif. Each fact is one line.",
+      "example": "CARE ECONOMY label + bullet facts about state policy"
+    },
+    {
+      "id": "quote",
+      "description": "Pillar perspective or expert quote. Serif italic, generous margins. Attribution below.",
+      "example": "Caregiving is infrastructure. 63 million people do this work."
+    },
+    {
+      "id": "bold-statement",
+      "description": "Short punchy phrase filling the frame. All-caps or large mixed-case. Alegreya bold.",
+      "example": "CARE IS INFRASTRUCTURE"
+    },
+    {
+      "id": "photo-dominant",
+      "description": "Gemini-generated grounded fragment image. No text overlay. The image speaks alone.",
+      "example": "Warm threshold fragment with single intervention"
+    },
+    {
+      "id": "photo-text",
+      "description": "Gemini image as background with text overlay. Headline + eyebrow. Dark scrim if needed.",
+      "example": "Image with 'The $1 Trillion Gap' overlaid"
+    }
+  ],
+  "eyebrow_labels": [
+    "CARE ECONOMY",
+    "POLICY WATCH",
+    "WEEK IN REVIEW",
+    "CAREGIVER DATA",
+    "AI & CARE",
+    "FIELD NOTE"
+  ],
+  "volume_range": [
+    {
+      "id": "quiet",
+      "background": "#FDF9EC",
+      "text": "#3D1600",
+      "accent": "#FF9F00",
+      "accent_usage": "minimal \u2014 thin rule or single word",
+      "when": "weekly brief, analysis, reflective"
+    },
+    {
+      "id": "warm",
+      "background": "#F0DCC0",
+      "text": "#3D1600",
+      "accent": "#FF9F00",
+      "accent_usage": "moderate \u2014 eyebrow label, stat highlight",
+      "when": "data cards, stats, supporting facts"
+    },
+    {
+      "id": "grounded",
+      "background": "#3D1600",
+      "text": "#FDF9EC",
+      "accent": "#FF9F00",
+      "accent_usage": "bold \u2014 headline or full accent block",
+      "when": "bold statements, urgency, advocacy"
+    }
+  ],
+  "typography_rules": {
+    "headline": "Alegreya serif, bold weight. Warm, humanist, high-contrast. NOT geometric. NOT slab.",
+    "body": "Inter, clean geometric sans-serif. Light weight, generous line-height. NOT serif for body.",
+    "display": "Gabarito, bold uppercase wide tracking. For eyebrow labels and brand mark only.",
+    "hierarchy": "Eyebrow (Gabarito small caps) \u2192 Headline (Alegreya large) \u2192 Body (Inter regular) \u2192 Brand mark (Gabarito)"
+  },
+  "composition_rules": [
+    "Left-aligned, not centered. Asymmetric tension.",
+    "60/40 split \u2014 content occupies 60%, rest is negative space.",
+    "One dominant element per card. Everything else supports it.",
+    "Eyebrow label anchors the top. Brand mark anchors the bottom.",
+    "Accent color used structurally (rules, labels) not decoratively."
+  ],
+  "texture_and_background": {
+    "direction": "Agnes Martin-inspired. The negative space is not blank \u2014 it has presence.",
+    "qualities": [
+      "Faint ruled pencil lines, barely visible, horizontal across the cream field",
+      "Subtle paper grain or canvas tooth \u2014 warm, tactile, not digital-smooth",
+      "Slight warmth variation across the surface, not perfectly uniform",
+      "The texture should feel like aged paper or raw gesso \u2014 quiet luminosity"
+    ],
+    "avoid": [
+      "Perfectly flat digital backgrounds",
+      "Heavy textures that compete with typography",
+      "Geometric patterns, grids, or decorative marks",
+      "Glossy or polished surfaces"
+    ],
+    "reference": "Agnes Martin 'Friendship' (1963), 'The Tree' (1964) \u2014 mathematical calm, pencil on canvas, barely-there structure"
+  },
+  "prompt_history": [
+    {
+      "timestamp": "20260330_231932",
+      "card_type": "hero-stat",
+      "volume": "quiet",
+      "score": 0,
+      "prompt": "`\u2605 Insight \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500`\nThe hero-stat card type works best when the dominant number is treated as sculpture \u2014 the surrounding negative space isn't emptiness, it's pressure. The Agnes Martin texture direction is specific to this brand: barely-visible horizontal pencil lines give the cream field a mathematical calm that makes the bold serif stat feel grounded rather than floating.\n`\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500`\n\n1200x1200 square social card. Pure typographic composition. No photography, no illustration, no icons, no decorative elements.\n\nBACKGROUND: Warm cream #FDF9EC. Texture: faint horizontal pencil-ruled lines barely visible across the full surface, spaced approximately 24px apart, drawn in a slightly cooler tone (#E8E0C8), opacity around 8%. Slight paper grain and warmth variation \u2014 feels like aged gesso or raw linen, not a flat digital fill. No geometric patterns. No gradients.\n\nLAYOUT: Left-aligned. Content occupies the left 60% of the",
+      "eval": {
+        "score": 0,
+        "pass": false,
+        "feedback": [
+          "no json found"
+        ],
+        "what_worked": []
+      }
+    },
+    {
+      "timestamp": "20260330_231932",
+      "card_type": "hero-stat",
+      "volume": "quiet",
+      "score": 0,
+      "prompt": "1200x1200 square social card. Pure typographic composition. No photography, no illustration, no icons, no decorative elements.\n\nBACKGROUND: Warm cream #FDF9EC. Texture: faint horizontal pencil-ruled lines barely visible across the full surface, spaced approximately 24px apart, drawn in a slightly cooler tone (#E8E0C8), opacity around 8%. Slight paper grain and warmth variation \u2014 feels like aged gesso or raw linen, not a flat digital fill. No geometric patterns. No gradients.\n\nLAYOUT: Left-aligned. Content occupies the left 60% of the frame. Right 40% is active negative space \u2014 do not fill it. Asymmetric vertical rhythm.\n\nTOP ELEMENT \u2014 EYEBROW LABEL, top-left, approximately x:72px y:80px:\nText: \"WEEK IN REVIEW\"\nFont: bold geometric sans-serif with wide uppercase tracking, similar to Gabarito. Small caps style. Letter-spacing very wide.\nSize: approximately 18px\nColor: #FF9F00\nBelow the eyebrow label: a thin horizontal rule, 2px height, color #FF9F00, width approximately 160px, positioned",
+      "eval": {
+        "score": 0,
+        "pass": false,
+        "feedback": [
+          "no json"
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "timestamp": "20260330_231932",
+      "card_type": "hero-stat",
+      "volume": "quiet",
+      "score": 0,
+      "prompt": "```\n\u2605 Insight \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nGemini image generation prompts work best as natural visual\ndescriptions, not CSS/layout specs. Pixel coordinates and\nopacity values are DOM concepts \u2014 the model interprets intent,\nnot measurements. Verbose technical specs also increase the\nchance the model falls back to text-only output.\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n```\n\nA square 1200\u00d71200 typographic social card. Pure type composition \u2014 no photography, illustration, icons, or decorative elements.\n\nBackground: warm cream, like aged gesso or raw linen. Faint horizontal pencil-ruled lines barely visible across the surface at very low opacity. No gradients. No geometric patterns.\n\nLayout: left-aligned, asymmetric. Content anchored to the left half. The right side is open negative space.\n\nTop-left: small all-caps label \"WEEK IN REVIEW\" in bold wide-tracked geometric sans-serif, amber orange. A short thin orange rule sits beneath it.\n\nBelow that, large and dominant: t",
+      "eval": {
+        "score": 0,
+        "pass": false,
+        "feedback": [
+          "no json"
+        ]
+      },
+      "attempt": 3
+    }
+  ]
+}

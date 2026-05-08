@@ -1,114 +1,115 @@
 # CLAUDE.md — agentcy monorepo
 
-Agent CLI suite. Six tools that chain sequentially through a shared protocol layer.
+Agent CLI suite. Five modules + one TypeScript runtime, chained through a shared protocol layer.
 
-## Members
+## Structure
 
-| Dir | Bin | Role |
-|-----|-----|------|
-| `protocols/` | (lib) | Shared schemas + adapters + narrow helper utilities — `agentcy-protocols` pip package |
-| `vox/` | `agentcy-vox` | Persona management — create, test, optimize, export |
-| `compass/` | `agentcy-compass` | Brand ops — signals → plan → produce → publish |
-| `echo/` | `agentcy-echo` | Swarm prediction — docs + requirement → social forecast |
-| `loom/` | `agentcy-loom` | Comms runtime — brief → draft → render → publish (TypeScript) |
-| `pulse/` | `agentcy-pulse` | Measurement + calibration + study — run_result.v1 → performance.v1 |
+```
+src/agentcy/
+├── cli.py              # single entry point
+├── persona/            # persona management — create, test, optimize, export
+├── brand/              # brand ops — signals → plan → produce → publish
+├── forecast/           # swarm prediction — docs + requirement → social forecast
+├── metrics/            # measurement + calibration — run_result.v1 → performance.v1
+└── protocols/          # shared schemas, adapters, utilities
+    ├── schemas/        # JSON schema files (brief.v1, forecast.v1, etc.)
+    ├── examples/       # canonical fixture examples
+    └── adapters/       # cross-artifact transformers
+
+studio/                 # content studio — draft, render, publish (TypeScript)
+└── runtime/
+    └── src/
+        ├── brands/     # brand.md + design.md loader
+        ├── render/     # image (social.ts, card.ts) + video (kino compositions)
+        ├── publish/    # platform adapters (Twitter, LinkedIn, Meta, Threads)
+        └── runtime/    # SQLite-backed run engine
+
+tests/                  # all tests (mirrors src/agentcy/ structure)
+tools/
+└── extract-design/     # headless design.md extractor (puppeteer-core)
+```
 
 ## Pipeline
 
 ```
-agentcy-vox --json export <persona> --to voice-pack.v1                                → voice_pack.v1
-agentcy-compass plan run "<brief>" --brand <id> --voice-pack-input <voice_pack> \
-  --brief-v1-output <brief.v1.json> -f json                                           → brief.v1
-agentcy-echo run --files docs/ --brief brief.v1.json --json                           → forecast.v1
-agentcy-loom run social.post --brand <id> --brief-file brief.v1.json --json           → run_result.v1
-agentcy-pulse adapt --run-result ... --sidecar ... --output performance.v1.json --json → performance.v1
-agentcy-pulse calibrate --forecast ... --performance ... --json                        → calibration
+agentcy persona --json export <persona> --to voice-pack.v1             → voice_pack.v1
+agentcy brand plan run "<brief>" --brand <id> --json                   → brief.v1
+agentcy forecast run --files docs/ --brief brief.v1.json --json        → forecast.v1
+agentcy studio run social.post --brand <id> --brief-file ... --json    → run_result.v1
+agentcy metrics adapt --run-result ... --sidecar ... --json            → performance.v1
+agentcy metrics calibrate --forecast ... --performance ... --json      → calibration
 ```
 
-Each tool reads a protocol artifact from the prior step and emits one for the next.
+Each module reads a protocol artifact from the prior step and emits one for the next.
 
-The root dispatcher now also exposes a lightweight pipeline layer:
-- `agentcy pipeline run ...` persists a pipeline manifest under `artifacts/pipelines/<pipeline_id>/manifest.json`, writes a module-first bundle (`vox/`, `compass/`, `echo/`, `loom/`, `pulse/`, `reports/`), supports stable named folders via `--pipeline-id`, can save `--persona-eval`, and can optionally kick off `--loom-workflow ...`
-- `agentcy pipeline run --mode preview` auto-approves/publishes loom as a dry run and writes an honest `pulse/preview.json` note instead of pretending a canonical `performance.v1` exists
-- `agentcy pipeline update --manifest ... --run-result ... --performance ...` backfills later-stage canonical artifact paths after loom publish / pulse adapt finish
-- `agentcy pipeline study --manifest ...` reopens that manifest and runs `agentcy-pulse study` with auto-discovered forecast / echo / persona sidecars
-- root `--provider` and `--model` flags are forwarded as `LLM_PROVIDER` / `CLAUDE_MODEL` to members that support them; the pipeline layer also maps compatible values onto Compass as `BRANDOPS_LLM_PROVIDER` / `BRANDOPS_LLM_MODEL`
+Pipeline orchestration: `agentcy pipeline run/update/study --json`
 
 ## Setup
 
 ```bash
-# Python tools + repo-local dev commands
-uv sync --group dev
+uv sync --group dev                      # Python
+uv sync --all-extras --group dev         # with optional deps
+cd studio/runtime && pnpm install        # TypeScript (studio)
 
-# Optional extras
-uv sync --all-extras --group dev
-
-# TypeScript (loom)
-cd loom/runtime && pnpm install
-# Protocol seam tests call the loom launcher, so this install is also required for `make check-python`
-
-# Full live pipeline (echo simulation requires Python 3.11 + simulation extra)
+make check                               # run all tests
+make test member=brand                   # single module
 make pipeline brand=givecare persona=my-persona files=docs/ req="predict adoption" sidecar=sidecar.json
-
-# Fixture-backed downstream smoke path
-make pipeline-fixtures sidecar=protocols/tests/fixtures/run_result_to_performance_v1/sidecar.rich.json
 ```
 
 ## Toolchain
 
-- Python: uv workspace (`pyproject.toml` at root)
-- TypeScript: pnpm (standalone in `loom/runtime/`)
+- Python: uv (`pyproject.toml` at root, single package)
+- TypeScript: pnpm (standalone in `studio/runtime/`)
 - Lint: ruff (Python), tsc + vitest (TypeScript)
+- Video: Remotion (in `studio/runtime/src/render/video/`)
 
 ## Protocol contracts
 
-All inter-tool contracts live in `protocols/`:
-- `brief.v1.schema.json` — compass → echo, loom
-- `forecast.v1.schema.json` — echo → pulse calibrate
-- `run_result.v1.schema.json` — loom → pulse adapt
-- `performance.v1.schema.json` — pulse adapt output; pulse calibrate input
-- `voice_pack.v1.schema.json` — vox → compass, loom
+All inter-module contracts live in `src/agentcy/protocols/schemas/`:
+- `brief.v1.schema.json` — brand → forecast, studio
+- `forecast.v1.schema.json` — forecast → metrics calibrate
+- `run_result.v1.schema.json` — studio → metrics adapt
+- `performance.v1.schema.json` — metrics adapt output; metrics calibrate input
+- `voice_pack.v1.schema.json` — persona → brand, studio
+
+## Agent composition
+
+Modules expose clean Python APIs for direct import:
+
+```python
+from agentcy.persona import Persona, bootstrap_from_description
+from agentcy.brand import load_brand_profile, plan
+from agentcy.forecast.config import Config
+from agentcy.metrics import adapt_canonical_run_result_to_performance
+from agentcy.protocols import SCHEMAS, load_json
+```
 
 ## Standard interface
 
-Current operator contract:
-- `agentcy doctor --json` returns the normalized suite-wide readiness envelope
-- `agentcy catalog --json` returns suite/member ownership, install profiles, and positioning metadata in one root envelope
-- `agentcy quickstart --profile ... --json` returns the smallest install path for a chosen suite profile
-- `agentcy-pulse --json` now emits `{"status": "ok"|"error", "command": str, "data": {...}}` for `adapt`, `calibrate`, `study`, and `doctor`
-- `agentcy-vox` uses a global `--json` flag
-- `agentcy-echo` and `agentcy-loom` expose subcommand-level `--json`
-- `agentcy pipeline run/update/study --json` emit root-level normalized envelopes
-- `agentcy member <member> --json ...` wraps any member in one normalized root envelope, even when the member's native JSON contract differs
-- `agentcy-compass` now exposes a global `--json` preference across compatible data-producing commands, plus `--json-envelope` for normalized Compass-local success envelopes
+- `agentcy doctor --json` — suite-wide readiness
+- `agentcy catalog --json` — member ownership + positioning
+- `agentcy quickstart --profile ... --json` — install guidance
+- `agentcy pipeline run/update/study --json` — pipeline orchestration
 - Exit: `0` success, `1` user error, `2` runtime error
 
-Do not assume every member subcommand has the same JSON envelope yet; use the documented command form for each tool.
+## Brand specs
+
+Each brand has two files in `studio/brands/<name>/`:
+- `brand.md` — identity, voice, pillars, offers, channels (YAML frontmatter)
+- `design.md` — palette, typography, layout, video props (frontmatter) + style, composition, texture, image prompt (markdown body)
 
 ## Guardrails
 
-- `trash` not `rm`
 - `git add <files>` never `.`
-- echo's `camel-oasis==0.2.5` / `camel-ai==0.2.78` stay pinned — do not upgrade
-- prefer `agentcy-echo run --smoke` when you need a fast e2e artifact proof on Python 3.12 or when the live OASIS runtime is too slow for validation
-- CLI automation for full echo runs should exit cleanly on its own; command-waiting mode is for debug/service workflows, not the operator happy path
-- Never delete `echo/uploads/runs/` — artifacts are immutable products
-- compass persona subcommands are deprecated — use `agentcy-vox` instead
-- pulse absorbs lab: `agentcy-pulse calibrate` replaces `agentcy-lab calibration`
+- forecast's `camel-oasis==0.2.5` / `camel-ai==0.2.78` stay pinned — do not upgrade
+- prefer `agentcy forecast run --smoke` for fast e2e artifact proof on Python 3.12
+- Never delete `forecast/uploads/runs/` — artifacts are immutable products
 
 ## Writer contract split
 
-Canonical artifact lineage intentionally keeps legacy `writer.repo` values while package/bin names use `agentcy-*`:
+Canonical artifact lineage keeps legacy `writer.repo` values (stable protocol identifiers):
 - `voice_pack.v1` → `{ repo: "cli-prsna", module: "agentcy-vox" }`
 - `brief.v1` → `{ repo: "brand-os", module: "agentcy-compass" }`
 - `forecast.v1` → `{ repo: "cli-mirofish", module: "agentcy-echo" }`
 - `run_result.v1` → `{ repo: "cli-phantom", module: "agentcy-loom" }`
 - `performance.v1` → `{ repo: "cli-metrics", module: "agentcy-pulse" }`
-
-## Module names (Python imports unchanged)
-
-Bins renamed; Python import paths preserved until explicit refactor:
-- compass imports: `brand_os`
-- echo imports: `app`
-- pulse imports: `agentcy_pulse`
-- vox imports: `prsna`

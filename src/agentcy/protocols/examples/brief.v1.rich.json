@@ -1,0 +1,60 @@
+{
+  "artifact_type": "brief.v1",
+  "schema_version": "v1",
+  "brief_id": "givecare.brief.fall-checkin.social-email.2026-04-12",
+  "brand_id": "givecare.brand.core",
+  "voice_pack_id": "givecare.voice.fall-checkin.v1",
+  "writer": {
+    "repo": "brand-os",
+    "module": "agentcy-compass"
+  },
+  "objective": "Increase caregiver response to seasonal planning content and convert high-intent readers to checklist downloads.",
+  "signal": {
+    "source": "support-call-notes",
+    "summary": "Caregivers are asking for simple fall planning guidance before routines become chaotic.",
+    "evidence": [
+      "Support inbox saw a rise in fall planning questions.",
+      "Recent calls mention medication, transportation, and appointment coordination."
+    ]
+  },
+  "strategy": {
+    "angle": "Frame early planning as an act of care that reduces stress for the whole family.",
+    "cta": "Download the fall care checklist and share it with one family member.",
+    "platforms": ["email", "linkedin", "instagram"]
+  },
+  "policy": {
+    "verdict": "approved",
+    "confidence": 0.94,
+    "notes": [
+      "Avoid medical claims.",
+      "Keep advice operational and supportive, not diagnostic."
+    ]
+  },
+  "creative": {
+    "headline": "Before fall gets busy, make caregiving feel lighter",
+    "copy": "Fall routine changes can sneak up on families. GiveCare helps you turn that stress into one clear next step with a checklist you can actually use.",
+    "tone_notes": ["warm", "steady", "actionable"],
+    "deliverables": [
+      {
+        "kind": "email",
+        "channel": "email",
+        "notes": "Lead with reassurance and one concrete next step."
+      },
+      {
+        "kind": "social-post",
+        "channel": "linkedin",
+        "notes": "Emphasize family coordination and practical relief."
+      },
+      {
+        "kind": "social-post",
+        "channel": "instagram",
+        "notes": "Keep copy short and visual-caption friendly."
+      }
+    ]
+  },
+  "lineage": {
+    "source_voice_pack_id": "givecare.voice.fall-checkin.v1",
+    "campaign_id": "givecare.campaign.fall-checkin.2026q2",
+    "signal_id": "givecare.signal.support-calls.fall-2026-04"
+  }
+}

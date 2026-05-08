@@ -1,0 +1,65 @@
+{
+  "artifact_type": "performance.v1",
+  "schema_version": "v1",
+  "performance_id": "givecare.performance.social-fall-checkin.7d.2026-04-19",
+  "run_id": "givecare.run.social-fall-checkin.publish.2026-04-12t172000z",
+  "brief_id": "givecare.brief.fall-checkin.social-email.2026-04-12",
+  "brand_id": "givecare.brand.core",
+  "writer": {
+    "repo": "cli-metrics",
+    "module": "agentcy-pulse"
+  },
+  "workflow": "social.post",
+  "measured_at": "2026-04-19T17:23:11Z",
+  "observations": [
+    {
+      "platform": "linkedin",
+      "metrics": {
+        "impressions": 12640,
+        "reach": 11210,
+        "engagements": 522,
+        "reactions": 341,
+        "likes": 341,
+        "comments": 29,
+        "shares": 18,
+        "saves": 41,
+        "clicks": 93,
+        "engagement_rate": 0.0413,
+        "ctr": 0.0074
+      },
+      "post_id": "linkedin.ugc.987654321",
+      "url": "https://www.linkedin.com/feed/update/urn:li:activity:987654321/",
+      "published_at": "2026-04-12T17:23:11Z",
+      "captured_at": "2026-04-19T17:23:11Z"
+    },
+    {
+      "platform": "instagram",
+      "metrics": {
+        "impressions": 8940,
+        "reach": 7710,
+        "engagements": 408,
+        "likes": 287,
+        "comments": 22,
+        "shares": 34,
+        "saves": 65,
+        "engagement_rate": 0.0456
+      },
+      "post_id": "instagram.media.123456789",
+      "url": "https://www.instagram.com/p/CGiveCare12/",
+      "published_at": "2026-04-12T17:23:11Z",
+      "captured_at": "2026-04-19T17:23:11Z"
+    }
+  ],
+  "lineage": {
+    "source_voice_pack_id": "givecare.voice.fall-checkin.v1",
+    "campaign_id": "givecare.campaign.fall-checkin.2026q2",
+    "signal_id": "givecare.signal.support-calls.fall-2026-04"
+  },
+  "window": "7d-post-publish",
+  "summary": {
+    "notes": [
+      "Aggregate post-level metrics only.",
+      "No audience-level export or user-level identifiers are included in canonical artifacts."
+    ]
+  }
+}

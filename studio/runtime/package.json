@@ -1,0 +1,43 @@
+{
+  "name": "agentcy-loom",
+  "version": "1.0.0",
+  "description": "Comms runtime — brief → draft → render → publish",
+  "type": "module",
+  "bin": {
+    "agentcy-loom": "./bin/loom.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "package.json"
+  ],
+  "scripts": {
+    "cli": "tsx src/cli.ts",
+    "check": "vitest run && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1017.0",
+    "@google/genai": "^0.14.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "canvas": "^3.2.1",
+    "dotenv": "^16.4.7",
+    "js-yaml": "^4.1.0",
+    "tsx": "^4.19.2",
+    "@remotion/cli": "^4.0.458",
+    "@remotion/fonts": "^4.0.458",
+    "@remotion/renderer": "^4.0.458",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "remotion": "^4.0.458"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.18.12",
+    "@vitest/coverage-v8": "^4.0.18",
+    "typescript": "^5.7.3",
+    "vitest": "^4.0.17"
+  }
+}

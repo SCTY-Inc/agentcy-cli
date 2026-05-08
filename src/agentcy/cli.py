@@ -1,16 +1,12 @@
-"""agentcy — dispatcher CLI.
-
-Each member subcommand delegates to its member binary via subprocess,
-passing all arguments through verbatim. JSON output, exit codes,
-and signals are forwarded unchanged.
+"""agentcy — agent CLI suite.
 
 Pipeline:
-    agentcy vox export <persona> --to voice-pack.v1 --json
-    agentcy compass plan --brand <id> --json
-    agentcy echo run --files docs/ --brief brief.v1.json --json
-    agentcy loom run social.post --brand <id> --json
-    agentcy pulse adapt --run-result run.json --sidecar s.json --json
-    agentcy pulse calibrate --forecast f.json --performance p.json
+    agentcy persona --json export <persona> --to voice-pack.v1
+    agentcy brand plan run "<brief>" --brand <id> --json
+    agentcy forecast run --files docs/ --brief brief.v1.json --json
+    agentcy studio run social.post --brand <id> --json
+    agentcy metrics adapt --run-result run.json --sidecar s.json --json
+    agentcy metrics calibrate --forecast f.json --performance p.json
 """
 
 from __future__ import annotations
@@ -32,7 +28,7 @@ from rich.table import Table
 
 app = typer.Typer(
     name="agentcy",
-    help="Agent CLI suite — vox | compass | echo | loom | pulse",
+    help="Agent CLI suite — persona | brand | forecast | studio | metrics",
     no_args_is_help=True,
     add_completion=False,
 )
@@ -128,16 +124,11 @@ def _capture_member_json(bin_name: str, args: list[str]) -> dict[str, Any]:
 
 
 def _loom_bin() -> str | None:
-    """Resolve the loom entry point.
-
-    Priority:
-    1. agentcy-loom in PATH (global install)
-    2. loom/runtime/bin/loom.js relative to monorepo root (local dev)
-    """
-    if found := shutil.which("agentcy-loom"):
+    """Resolve the studio (loom) entry point."""
+    if found := shutil.which("agentcy studio"):
         return found
     root = Path(__file__).parent.parent.parent
-    local = root / "loom" / "runtime" / "bin" / "loom.js"
+    local = root / "studio" / "runtime" / "bin" / "loom.js"
     if local.exists():
         return str(local)
     return None
@@ -151,7 +142,7 @@ def _loom_command(args: list[str]) -> list[str]:
 
     bin_path = _loom_bin()
     if not bin_path:
-        err.print("[red]error:[/red] loom not found — run: cd loom/runtime && pnpm install")
+        err.print("[red]error:[/red] studio not found — run: cd studio/runtime && pnpm install")
         raise typer.Exit(2)
 
     if bin_path.endswith(".js"):
@@ -170,11 +161,11 @@ def _run_node(args: list[str]) -> None:
 
 def _member_specs() -> dict[str, tuple[str, str]]:
     return {
-        "vox": ("agentcy-vox", "global"),
-        "compass": ("agentcy-compass", "global"),
-        "echo": ("agentcy-echo", "subcommand"),
-        "loom": ("agentcy-loom", "global"),
-        "pulse": ("agentcy-pulse", "global"),
+        "persona": ("agentcy persona", "global"),
+        "brand": ("agentcy brand", "global"),
+        "forecast": ("agentcy forecast", "subcommand"),
+        "studio": ("agentcy studio", "global"),
+        "metrics": ("agentcy metrics", "global"),
     }
 
 
@@ -185,101 +176,6 @@ def _normalize_member_name(member: str) -> str:
             "member must be one of: " + ", ".join(sorted(_member_specs()))
         )
     return normalized
-
-
-def _inject_member_json(member: str, args: list[str]) -> tuple[list[str], bool]:
-    if "--json" in args:
-        return list(args), False
-    _, json_style = _member_specs()[member]
-    if json_style == "global":
-        return ["--json", *args], True
-    if member == "echo":
-        if not args:
-            return list(args), False
-        if args[0] in {"doctor", "run"}:
-            return [*args, "--json"], True
-        if args[0] == "runs" and len(args) > 1 and args[1] in {"list", "status", "export"}:
-            return [*args, "--json"], True
-    return list(args), False
-
-
-def _member_command(member: str, args: list[str]) -> list[str]:
-    if member == "loom":
-        return _loom_command(args)
-    bin_name, _ = _member_specs()[member]
-    return [_resolve_bin(bin_name), *args]
-
-
-def _parse_member_output(stdout: str) -> tuple[Any, str]:
-    text = stdout.strip()
-    if not text:
-        return None, "empty"
-    try:
-        return json.loads(text), "json"
-    except json.JSONDecodeError:
-        return text, "text"
-
-
-def _normalize_member_payload(payload: Any) -> dict[str, Any]:
-    normalized = {
-        "member_status": "ok",
-        "member_command": None,
-        "result": payload,
-        "error": None,
-    }
-    if isinstance(payload, dict):
-        if payload.get("status") in {"ok", "error"}:
-            normalized["member_status"] = payload["status"]
-            normalized["member_command"] = payload.get("command")
-            normalized["result"] = payload.get("data")
-            normalized["error"] = payload.get("error")
-            return normalized
-        if isinstance(payload.get("success"), bool):
-            normalized["member_status"] = "ok" if payload["success"] else "error"
-            if payload["success"]:
-                normalized["result"] = payload
-            else:
-                normalized["result"] = None
-                normalized["error"] = {"message": payload.get("error", "member command failed")}
-            return normalized
-    return normalized
-
-
-def _run_member_enveloped(member: str, args: list[str]) -> tuple[dict[str, Any], int]:
-    member = _normalize_member_name(member)
-    command_args, injected_json = _inject_member_json(member, args)
-    command = _member_command(member, command_args)
-    result = subprocess.run(
-        command,
-        capture_output=True,
-        text=True,
-        env=_subprocess_env(),
-    )
-    parsed_output, result_format = _parse_member_output(result.stdout)
-    normalized = _normalize_member_payload(parsed_output)
-    stderr_text = result.stderr.strip() or None
-    payload = {
-        "member": member,
-        "argv": args,
-        "exit_code": result.returncode,
-        "json_invoked": injected_json or "--json" in command_args,
-        "result_format": result_format,
-        "member_status": normalized["member_status"],
-        "member_command": normalized["member_command"],
-        "result": normalized["result"],
-    }
-    if stderr_text:
-        payload["stderr"] = stderr_text
-    if normalized["error"] is not None:
-        payload["error"] = normalized["error"]
-
-    ok = result.returncode == 0 and normalized["member_status"] != "error"
-    envelope = {
-        "status": "ok" if ok else "error",
-        "command": "member",
-        "data": payload,
-    }
-    return envelope, (0 if ok else result.returncode or 1)
 
 
 def _probe_member(command: list[str]) -> bool:
@@ -383,13 +279,13 @@ def _install_profiles() -> dict[str, dict[str, Any]]:
         "echo-simulation": {
             "summary": "Add the full Echo simulation runtime on Python 3.11.",
             "commands": ["uv sync --extra simulation"],
-            "includes": ["camel-oasis runtime for agentcy-echo full runs"],
+            "includes": ["camel-oasis runtime for agentcy forecast full runs"],
             "excludes": ["loom runtime"],
         },
         "loom-runtime": {
-            "summary": "Install the Node runtime needed for agentcy-loom.",
+            "summary": "Install the Node runtime needed for agentcy studio.",
             "commands": ["cd loom/runtime && pnpm install"],
-            "includes": ["agentcy-loom runtime", "loom tests/typecheck"],
+            "includes": ["agentcy studio runtime", "loom tests/typecheck"],
             "excludes": [],
         },
         "full-operator": {
@@ -445,8 +341,8 @@ def _suite_catalog_payload() -> dict[str, Any]:
                 "purpose": "Shared schemas, examples, and adapters",
             },
             "vox": {
-                "package": "agentcy-vox",
-                "bin": "agentcy-vox",
+                "package": "agentcy persona",
+                "bin": "agentcy persona",
                 "dispatcher": "agentcy vox",
                 "runtime": "python",
                 "owns_artifact": "voice_pack.v1",
@@ -454,8 +350,8 @@ def _suite_catalog_payload() -> dict[str, Any]:
                 "purpose": "Persona management and voice-pack export",
             },
             "compass": {
-                "package": "agentcy-compass",
-                "bin": "agentcy-compass",
+                "package": "agentcy brand",
+                "bin": "agentcy brand",
                 "dispatcher": "agentcy compass",
                 "runtime": "python",
                 "owns_artifact": "brief.v1",
@@ -463,8 +359,8 @@ def _suite_catalog_payload() -> dict[str, Any]:
                 "purpose": "Strategy, planning, and brief writing",
             },
             "echo": {
-                "package": "agentcy-echo",
-                "bin": "agentcy-echo",
+                "package": "agentcy forecast",
+                "bin": "agentcy forecast",
                 "dispatcher": "agentcy echo",
                 "runtime": "python",
                 "owns_artifact": "forecast.v1",
@@ -472,8 +368,8 @@ def _suite_catalog_payload() -> dict[str, Any]:
                 "purpose": "Scenario simulation and forecast generation",
             },
             "loom": {
-                "package": "agentcy-loom",
-                "bin": "agentcy-loom",
+                "package": "agentcy studio",
+                "bin": "agentcy studio",
                 "dispatcher": "agentcy loom",
                 "runtime": "node",
                 "owns_artifact": "run_result.v1",
@@ -481,8 +377,8 @@ def _suite_catalog_payload() -> dict[str, Any]:
                 "purpose": "Execution, review, and publish runtime",
             },
             "pulse": {
-                "package": "agentcy-pulse",
-                "bin": "agentcy-pulse",
+                "package": "agentcy metrics",
+                "bin": "agentcy metrics",
                 "dispatcher": "agentcy pulse",
                 "runtime": "python",
                 "owns_artifact": "performance.v1",
@@ -721,7 +617,7 @@ def _echo_artifacts_for_run(run_id: str, output_dir: str | None) -> dict[str, An
     args = ["runs", "export", run_id, "--json"]
     if output_dir:
         args.extend(["--output-dir", output_dir])
-    return _capture_member_json("agentcy-echo", args)
+    return _capture_member_json("agentcy forecast", args)
 
 
 def _pulse_envelope_data(payload: dict[str, Any]) -> dict[str, Any]:
@@ -777,80 +673,33 @@ def _run_compass_plan(
 
 
 # ---------------------------------------------------------------------------
-# Subcommands — each is a transparent pass-through
+# Subcommands — direct imports for Python, subprocess for TypeScript (loom)
 # ---------------------------------------------------------------------------
+
+from agentcy.persona.cli import app as persona_app
+from agentcy.brand.cli import app as brand_app
+
+app.add_typer(persona_app, name="persona", help="Persona management — create, test, optimize, export")
+app.add_typer(brand_app, name="brand", help="Brand ops — signals, planning, production, loop")
 
 _PASS = {"allow_extra_args": True, "ignore_unknown_options": True}
 
 
-@app.command(
-    "vox",
-    context_settings=_PASS,
-    help="Persona management — create, test, optimize, export",
-)
-def vox(ctx: typer.Context) -> None:
-    _run("agentcy-vox", ctx.args)
+@app.command("forecast", context_settings=_PASS, help="Swarm prediction — docs + requirement → forecast")
+def forecast(ctx: typer.Context) -> None:
+    from agentcy.forecast.cli import main as forecast_main
+    raise typer.Exit(forecast_main(ctx.args))
 
 
-@app.command(
-    "compass",
-    context_settings=_PASS,
-    help="Brand ops — signals, planning, production, loop",
-)
-def compass(ctx: typer.Context) -> None:
-    _run("agentcy-compass", ctx.args)
-
-
-@app.command(
-    "echo",
-    context_settings=_PASS,
-    help="Swarm prediction — docs + requirement → forecast",
-)
-def echo(ctx: typer.Context) -> None:
-    _run("agentcy-echo", ctx.args)
-
-
-@app.command(
-    "loom",
-    context_settings=_PASS,
-    help="Comms runtime — brief → draft → render → publish",
-)
-def loom(ctx: typer.Context) -> None:
+@app.command("studio", context_settings=_PASS, help="Content studio — draft, render, publish")
+def studio(ctx: typer.Context) -> None:
     _run_node(ctx.args)
 
 
-@app.command(
-    "pulse",
-    context_settings=_PASS,
-    help="Measurement + calibration — run_result → performance",
-)
-def pulse(ctx: typer.Context) -> None:
-    _run("agentcy-pulse", ctx.args)
-
-
-@app.command(
-    "member",
-    context_settings=_PASS,
-    help="Run a member CLI behind a normalized envelope when --json is set.",
-)
-def member(
-    member: Annotated[str, typer.Argument(help="vox | compass | echo | loom | pulse")],
-    ctx: typer.Context,
-    json_out: Annotated[
-        bool,
-        typer.Option("--json", help="Emit a normalized JSON envelope"),
-    ] = False,
-) -> None:
-    member = _normalize_member_name(member)
-    if not json_out:
-        if member == "loom":
-            _run_node(ctx.args)
-        bin_name, _ = _member_specs()[member]
-        _run(bin_name, ctx.args)
-
-    envelope, exit_code = _run_member_enveloped(member, ctx.args)
-    print(json.dumps(envelope, indent=2))
-    raise typer.Exit(exit_code)
+@app.command("metrics", context_settings=_PASS, help="Measurement + calibration — run_result → performance")
+def metrics(ctx: typer.Context) -> None:
+    from agentcy.metrics.cli import main as metrics_main
+    raise typer.Exit(metrics_main(ctx.args))
 
 
 # ---------------------------------------------------------------------------
@@ -862,7 +711,7 @@ def member(
 def pipeline_run(
     persona: Annotated[
         str,
-        typer.Option("--persona", help="Persona name to export via agentcy-vox"),
+        typer.Option("--persona", help="Persona name to export via agentcy persona"),
     ],
     brand: Annotated[str, typer.Option("--brand", help="Brand name for compass/loom")],
     brief: Annotated[str, typer.Option("--brief", help="Campaign brief text")],
@@ -952,7 +801,7 @@ def pipeline_run(
     try:
         if persona_eval:
             persona_eval_payload = _capture_member_json(
-                "agentcy-vox",
+                "agentcy persona",
                 [
                     "--json",
                     "test",
@@ -979,7 +828,7 @@ def pipeline_run(
 
         voice_pack_path = vox_dir / "voice_pack.v1.json"
         voice_pack_payload = _capture_member_json(
-            "agentcy-vox",
+            "agentcy persona",
             ["--json", "export", persona, "--to", "voice-pack.v1"],
         )
         if voice_pack_payload.get("brand_id") != resolved_brand_id:
@@ -998,7 +847,7 @@ def pipeline_run(
         brief_path = compass_dir / "brief.v1.json"
         compass_output_path = compass_dir / "plan.json"
         compass_command = [
-            _resolve_bin("agentcy-compass"),
+            _resolve_bin("agentcy brand"),
             "plan",
             "run",
             brief,
@@ -1058,7 +907,7 @@ def pipeline_run(
         if max_rounds is not None:
             echo_args.extend(["--max-rounds", str(max_rounds)])
 
-        echo_payload = _capture_member_json("agentcy-echo", echo_args)
+        echo_payload = _capture_member_json("agentcy forecast", echo_args)
         echo_run_id = str(echo_payload.get("run_id"))
         export_payload = _echo_artifacts_for_run(echo_run_id, resolved_echo_output_dir)
         artifacts = dict(export_payload.get("artifacts") or {})
@@ -1348,7 +1197,7 @@ def pipeline_study(
         str(performance_path),
         "--json",
     ]
-    pulse_payload = _capture_member_json("agentcy-pulse", pulse_args)
+    pulse_payload = _capture_member_json("agentcy metrics", pulse_args)
     study_payload = _pulse_envelope_data(pulse_payload)
 
     study_path = _module_dir(manifest.parent, "pulse") / "study.json"
@@ -1456,11 +1305,11 @@ def doctor(
     node = shutil.which("node")
     claude = shutil.which("claude")
     members = [
-        ("vox", "agentcy-vox", "python", ["agentcy-vox", "--version"]),
-        ("compass", "agentcy-compass", "python", ["agentcy-compass", "--help"]),
-        ("echo", "agentcy-echo", "python", ["agentcy-echo", "doctor", "--json"]),
-        ("loom", "agentcy-loom", "node", None),
-        ("pulse", "agentcy-pulse", "python", ["agentcy-pulse", "doctor", "--json"]),
+        ("vox", "agentcy persona", "python", ["agentcy persona", "--version"]),
+        ("compass", "agentcy brand", "python", ["agentcy brand", "--help"]),
+        ("echo", "agentcy forecast", "python", ["agentcy forecast", "doctor", "--json"]),
+        ("loom", "agentcy studio", "node", None),
+        ("pulse", "agentcy metrics", "python", ["agentcy metrics", "doctor", "--json"]),
     ]
 
     results: dict[str, dict[str, Any]] = {}

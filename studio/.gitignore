@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+
+# Virtual environment
+.venv
+venv/
+
+# Environment files
+.env
+.token-expiry.json
+
+# System files
+**/.DS_Store
+.windsurfrules
+.windsurf*
+
+# IDE files
+.claude
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+social_pipeline.log
+
+# Archive
+_archive
+archive/
+
+# Agent/tool configs (local only)
+.agents/
+.pi/
+.claude/
+.codex/
+.openclaw/
+{chain_dir}/
+
+# Output
+output/
+state/
+runtime/coverage/
+runtime/tmp/
+
+# Private notes
+private/
+
+# Brand ephemeral data (track configs + assets, ignore runtime state)
+brands/*/queue.json
+brands/*/intel/
+runtime/fonts/*.woff2
