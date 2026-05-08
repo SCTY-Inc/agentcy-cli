@@ -11,14 +11,13 @@ src/agentcy/
 ├── forecast/      swarm prediction — docs + requirement → forecast
 ├── metrics/       measurement + calibration + study
 ├── protocols/     shared schemas, adapters, utilities
+├── extract/       headless design.md extractor (puppeteer-core)
 └── cli.py         single CLI entry point
 
 studio/            content studio — draft, render, publish (TypeScript)
 └── runtime/       brand loader, image + video render, platform publish
 
 tests/             all tests
-tools/
-└── extract-design/  headless design.md extractor
 ```
 
 ## Pipeline
@@ -82,8 +81,7 @@ npx remotion render scty-vertical out/scty.mp4
 ## Design token extraction
 
 ```bash
-cd tools/extract-design
-node extract.mjs https://example.com --out design.md
+node src/agentcy/extract/extract.mjs https://example.com --out design.md
 ```
 
 ## Install profiles
