@@ -17,15 +17,15 @@ Repo-local fixtures should mirror these validated examples.
 They should not redefine the contract.
 
 Writer ownership for the active family protocol surfaces remains explicit:
-`brand-os` remains the sole canonical writer for `brief.v1` in loop 4; `cli-agency` may inform strategy and research concepts but must not appear as a `brief.v1` writer or protocol authority.
+`agentcy-briefs` remains the sole canonical writer for `brief.v1` in loop 4; `cli-agency` may inform strategy and research concepts but must not appear as a `brief.v1` writer or protocol authority.
 
 | Artifact | Canonical writer repo | Family module |
 | --- | --- | --- |
-| `voice_pack.v1` | `cli-prsna` | `agentcy-vox` |
-| `brief.v1` | `brand-os` | `agentcy-compass` |
-| `run_result.v1` | `cli-phantom` | `agentcy-loom` |
-| `forecast.v1` | `cli-mirofish` | `agentcy-echo` |
-| `performance.v1` | `cli-metrics` / future repo | `agentcy-pulse` |
+| `voice_pack.v1` | `agentcy-voice` | `agentcy-voice` |
+| `brief.v1` | `agentcy-briefs` | `agentcy-briefs` |
+| `run_result.v1` | `agentcy-studio` | `agentcy-studio` |
+| `forecast.v1` | `agentcy-forecast` | `agentcy-forecast` |
+| `performance.v1` | `agentcy-measure` / future repo | `agentcy-measure` |
 
 ## Naming rule for lineage IDs
 
@@ -69,7 +69,7 @@ Rules:
 
 ### `voice_pack_id`
 
-`voice_pack_id` identifies a specific canonical voice artifact written by `cli-prsna`.
+`voice_pack_id` identifies a specific canonical voice artifact written by `agentcy-voice`.
 
 Rules:
 
@@ -80,7 +80,7 @@ Rules:
 
 ### `brief_id`
 
-`brief_id` identifies a specific canonical planning artifact written by `brand-os`.
+`brief_id` identifies a specific canonical planning artifact written by `agentcy-briefs`.
 
 Rules:
 
@@ -91,7 +91,7 @@ Rules:
 
 ### `forecast_id`
 
-`forecast_id` identifies one canonical completed forecast artifact written by `cli-mirofish`.
+`forecast_id` identifies one canonical completed forecast artifact written by `agentcy-forecast`.
 
 Rules:
 
@@ -102,18 +102,18 @@ Rules:
 
 ### `run_id`
 
-`run_id` identifies one canonical loom execution outcome written by `cli-phantom`.
+`run_id` identifies one canonical studio execution outcome written by `agentcy-studio`.
 
 Rules:
 
-1. `run_id` is required in `run_result.v1` and is created by the loom runtime, never copied from upstream planning artifacts.
+1. `run_id` is required in `run_result.v1` and is created by the studio runtime, never copied from upstream planning artifacts.
 2. `run_id` must be globally unique within the family artifact set.
 3. Multiple `run_id` values may point at the same `brief_id` because one brief can be retried, dry-run, or published multiple times.
 4. `run_result.v1.brief_id` must always point at the exact canonical `brief.v1` artifact the runtime executed or simulated.
 
 ### `parent_run_id`
 
-`parent_run_id` is optional lineage used when one loom run is an explicit retry or continuation of an earlier loom run.
+`parent_run_id` is optional lineage used when one studio run is an explicit retry or continuation of an earlier studio run.
 
 Rules:
 
@@ -124,7 +124,7 @@ Rules:
 
 ### `performance_id`
 
-`performance_id` identifies one canonical aggregate measurement snapshot written by future `cli-metrics` / `agentcy-pulse`.
+`performance_id` identifies one canonical aggregate measurement snapshot written by future `agentcy-measure` / `agentcy-measure`.
 
 Rules:
 
@@ -146,12 +146,12 @@ Family lineage rules:
 4. `forecast.v1.lineage.source_brief_id` should equal `forecast.v1.brief_id` so the persisted handoff is explicit even when the forecast artifact is viewed alone.
 5. When upstream family lineage exists in the imported brief, `source_voice_pack_id`, `campaign_id`, and `signal_id` should be carried through unchanged into `forecast.v1.lineage`.
 6. `project_id`, `graph_id`, `simulation_id`, and `report_id` are MiroFish-local provenance identifiers, not family lineage IDs; if exported, they belong under `forecast.v1.provenance`, not under `forecast.v1.lineage`.
-7. `forecast.v1.writer` must remain `{ "repo": "cli-mirofish", "module": "agentcy-echo" }` for canonical exports.
+7. `forecast.v1.writer` must remain `{ "repo": "agentcy-forecast", "module": "agentcy-forecast" }` for canonical exports.
 8. Non-completed canonical forecast statuses are deferred until a later slice defines them intentionally.
 
 ### `run_result.v1` status semantics
 
-`run_result.v1.status` is the canonical family summary of loom execution outcome.
+`run_result.v1.status` is the canonical family summary of studio execution outcome.
 
 Allowed canonical values:
 
@@ -165,7 +165,7 @@ Rules:
 2. `published` is only for real external delivery outcomes, not simulations.
 3. `failed` must include a stable error summary with the failing step and message.
 4. Repo-local internal statuses may be richer, but any exported family artifact must normalize to the canonical `run_result.v1` status set above.
-5. `run_result.v1.writer` must remain `{ "repo": "cli-phantom", "module": "agentcy-loom" }` even when the run consumed a `brief.v1` written elsewhere.
+5. `run_result.v1.writer` must remain `{ "repo": "agentcy-studio", "module": "agentcy-studio" }` even when the run consumed a `brief.v1` written elsewhere.
 
 ### `performance.v1` scope, lineage, and privacy semantics
 
@@ -179,23 +179,23 @@ Family lineage and privacy rules:
 3. `performance.v1.brief_id` must exactly equal the upstream `run_result.v1.brief_id`.
 4. `performance.v1.brand_id` must exactly equal the upstream `run_result.v1.brand_id`.
 5. When upstream family lineage exists in the run result, `source_voice_pack_id`, `campaign_id`, and `signal_id` should be carried through unchanged into `performance.v1.lineage`.
-6. `performance.v1.writer` must remain `{ "repo": "cli-metrics", "module": "agentcy-pulse" }` for canonical exports.
+6. `performance.v1.writer` must remain `{ "repo": "agentcy-measure", "module": "agentcy-measure" }` for canonical exports.
 7. `performance.v1.workflow` must remain `social.post` for this first slice.
 8. Each platform observation must include `platform` plus at least one publish locator: `post_id` and/or `url`.
 9. Metric fields must stay narrow, aggregate, and optional; canonical examples may include values like `impressions`, `reach`, `engagements`, `likes`, `comments`, `shares`, `saves`, `clicks`, `video_views`, `engagement_rate`, and `ctr`, but should not expand into broad warehouse-shaped payloads.
 10. Canonical `performance.v1` artifacts, examples, and tests must include no tokens, secrets, auth material, account credentials, audience-level data, or user-level PII.
 11. Publish locators such as platform `post_id` and public `url` are allowed because they identify the published artifact rather than an audience member.
-12. While `cli-metrics` is still absent, these pulse rules also function as the minimum birth contract for any future repo: do not widen beyond the canonical published `social.post` seam before repo/package/import/CLI naming is chosen intentionally at repo birth.
+12. While `agentcy-measure` is still absent, these pulse rules also function as the minimum birth contract for any future repo: do not widen beyond the canonical published `social.post` seam before repo/package/import/CLI naming is chosen intentionally at repo birth.
 
 ## Cross-artifact invariants
 
 These are the canonical invariants for the active family slices:
 
-1. `voice_pack.v1.writer` must be `{ "repo": "cli-prsna", "module": "agentcy-vox" }`.
-2. `brief.v1.writer` must be `{ "repo": "brand-os", "module": "agentcy-compass" }`.
+1. `voice_pack.v1.writer` must be `{ "repo": "agentcy-voice", "module": "agentcy-voice" }`.
+2. `brief.v1.writer` must be `{ "repo": "agentcy-briefs", "module": "agentcy-briefs" }`.
 2a. No canonical family artifact, example, mirror fixture, or protocol test may restate `cli-agency` as a `brief.v1` writer, alternate writer, or protocol authority.
-3. `run_result.v1.writer` must be `{ "repo": "cli-phantom", "module": "agentcy-loom" }`.
-4. `performance.v1.writer` must be `{ "repo": "cli-metrics", "module": "agentcy-pulse" }`.
+3. `run_result.v1.writer` must be `{ "repo": "agentcy-studio", "module": "agentcy-studio" }`.
+4. `performance.v1.writer` must be `{ "repo": "agentcy-measure", "module": "agentcy-measure" }`.
 5. `brief.v1.brand_id` must equal the referenced voice pack's `brand_id`.
 6. `brief.v1.voice_pack_id` must equal the referenced voice pack's `voice_pack_id`.
 7. `run_result.v1.brand_id` must equal the referenced brief's `brand_id`.

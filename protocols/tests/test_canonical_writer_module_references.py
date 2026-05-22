@@ -8,11 +8,11 @@ PROTOCOLS_DIR = ROOT / "protocols"
 EXAMPLES_DIR = PROTOCOLS_DIR / "examples"
 
 CANONICAL_WRITERS = {
-    "voice_pack.v1": {"repo": "cli-prsna", "module": "agentcy-vox"},
-    "brief.v1": {"repo": "brand-os", "module": "agentcy-compass"},
-    "forecast.v1": {"repo": "cli-mirofish", "module": "agentcy-echo"},
-    "run_result.v1": {"repo": "cli-phantom", "module": "agentcy-loom"},
-    "performance.v1": {"repo": "cli-metrics", "module": "agentcy-pulse"},
+    "voice_pack.v1": {"repo": "agentcy-voice", "module": "agentcy-voice"},
+    "brief.v1": {"repo": "agentcy-briefs", "module": "agentcy-briefs"},
+    "forecast.v1": {"repo": "agentcy-forecast", "module": "agentcy-forecast"},
+    "run_result.v1": {"repo": "agentcy-studio", "module": "agentcy-studio"},
+    "performance.v1": {"repo": "agentcy-measure", "module": "agentcy-measure"},
 }
 
 SCHEMA_FILES = {
@@ -53,7 +53,7 @@ def _load_json(path: Path) -> dict:
     return json.loads(path.read_text())
 
 
-def test_all_canonical_schemas_and_examples_keep_current_repo_and_future_module_pairs():
+def test_canonical_schemas_and_examples_use_agentcy_writer_pairs():
     for artifact_type, expected_writer in CANONICAL_WRITERS.items():
         schema = _load_json(SCHEMA_FILES[artifact_type])
         writer_properties = schema["properties"]["writer"]["properties"]
@@ -66,24 +66,8 @@ def test_all_canonical_schemas_and_examples_keep_current_repo_and_future_module_
             assert payload["writer"] == expected_writer, path.name
 
 
-def test_family_docs_lock_the_writer_repo_writer_module_split_without_authorizing_renames():
-    recap = (ROOT / "AGENTCY_RECAP.md").read_text()
-    stack = (ROOT / "AGENTCY_STACK.md").read_text()
-    progress = (ROOT / "AGENTCY_PROGRESS.md").read_text()
+def test_lineage_rules_pin_canonical_writer_pairs():
     lineage_rules = (PROTOCOLS_DIR / "lineage-rules.md").read_text()
-
-    expected_pairs = [
-        '`voice_pack.v1.writer` must be `{ "repo": "cli-prsna", "module": "agentcy-vox" }`',
-        '`brief.v1.writer` must be `{ "repo": "brand-os", "module": "agentcy-compass" }`',
-        '`run_result.v1.writer` must be `{ "repo": "cli-phantom", "module": "agentcy-loom" }`',
-        '`performance.v1.writer` must be `{ "repo": "cli-metrics", "module": "agentcy-pulse" }`',
-    ]
-    for expected in expected_pairs:
-        assert expected in lineage_rules
-
-    assert "`writer.module`" in stack and "future family naming" in stack
-    assert "`writer.repo` must continue to reflect the current repo name until any literal repo rename actually lands" in stack
-    assert "`writer.module` may remain on the future family-name track" in progress
-    assert "`writer.repo` must still reflect the current repo name until any literal rename actually lands" in progress
-    assert "`writer.repo` should stay on the current literal repo name until a literal repo rename lands" in recap
-    assert "`writer.module` should already carry the future family module name" in recap
+    for artifact_type, expected_writer in CANONICAL_WRITERS.items():
+        assert expected_writer["repo"] in lineage_rules
+        assert artifact_type in lineage_rules

@@ -1,0 +1,44 @@
+[project]
+name = "agentcy-forecast"
+version = "0.1.0"
+description = "Audience and social forecasting — documents + requirement -> simulated response forecast"
+# Base CLI supports current Python 3.11/3.12; the legacy OASIS runtime is installed separately.
+requires-python = ">=3.11,<3.13"
+license = { text = "AGPL-3.0" }
+authors = [
+    { name = "Ali Madad", email = "ali@scty.org" }
+]
+
+dependencies = [
+    "agentcy-protocols",
+    "openai>=1.0.0",
+    "PyMuPDF>=1.24.0",
+    "charset-normalizer>=3.0.0",
+    "chardet>=5.0.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+    "rich>=13.0.0",
+    "typer>=0.12.0",
+]
+
+[project.scripts]
+agentcy-forecast = "agentcy_forecast.cli:main"
+
+[tool.uv.sources]
+agentcy-protocols = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["agentcy_forecast"]

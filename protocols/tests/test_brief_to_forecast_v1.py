@@ -9,15 +9,15 @@ from jsonschema import Draft202012Validator
 ROOT = Path(__file__).resolve().parents[2]
 PROTOCOLS_DIR = ROOT / "protocols"
 EXAMPLES_DIR = PROTOCOLS_DIR / "examples"
-BRAND_OS_DIR = ROOT / "compass"
-ECHO_DIR = ROOT / "echo"
+BRIEFS_DIR = ROOT / "briefs"
+FORECAST_DIR = ROOT / "forecast"
 
-sys.path.insert(0, str(ECHO_DIR))
+sys.path.insert(0, str(FORECAST_DIR))
 
-from app.brief_v1 import import_brief_v1  # noqa: E402
-from app.cli import main  # noqa: E402
-from app.config import Config  # noqa: E402
-from app.run_artifacts import RunStore  # noqa: E402
+from agentcy_forecast.brief_v1 import import_brief_v1  # noqa: E402
+from agentcy_forecast.cli import main  # noqa: E402
+from agentcy_forecast.config import Config  # noqa: E402
+from agentcy_forecast.run_artifacts import RunStore  # noqa: E402
 
 
 def _load_json(path: Path) -> dict:
@@ -129,7 +129,7 @@ def test_canonical_brief_to_forecast_handoff_validates_schema_and_lineage(tmp_pa
     validator.validate(forecast)
 
     assert forecast["artifact_type"] == "forecast.v1"
-    assert forecast["writer"] == {"repo": "cli-mirofish", "module": "agentcy-echo"}
+    assert forecast["writer"] == {"repo": "agentcy-forecast", "module": "agentcy-forecast"}
     assert forecast["brief_id"] == brief["brief_id"]
     assert forecast["brand_id"] == brief["brand_id"]
     assert forecast["lineage"]["source_brief_id"] == brief["brief_id"]
@@ -148,14 +148,14 @@ def test_canonical_brief_to_forecast_handoff_validates_schema_and_lineage(tmp_pa
     assert forecast["provenance"]["simulation_id"] != forecast["forecast_id"]
 
 
-def test_brand_os_mirror_brief_also_round_trips_through_forecast_export(tmp_path, monkeypatch):
+def test_briefs_mirror_brief_also_round_trips_through_forecast_export(tmp_path, monkeypatch):
     monkeypatch.setattr(Config, "UPLOAD_FOLDER", str(tmp_path / "uploads"))
 
     source_file = tmp_path / "seed.md"
     source_file.write_text("seed", encoding="utf-8")
 
     store = RunStore()
-    mirror_path = BRAND_OS_DIR / "tests" / "fixtures" / "brief.v1.rich.mirror.json"
+    mirror_path = BRIEFS_DIR / "tests" / "fixtures" / "brief.v1.rich.mirror.json"
     run_id = _seed_completed_brief_run(store, mirror_path, source_file)
 
     exit_code = main(["runs", "export", run_id, "--artifact", "forecast_v1", "--json"])

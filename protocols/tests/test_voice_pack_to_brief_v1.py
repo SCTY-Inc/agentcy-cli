@@ -8,18 +8,18 @@ import pytest
 from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "vox" / "src"))
-sys.path.insert(0, str(ROOT / "compass" / "src"))
+sys.path.insert(0, str(ROOT / "voice" / "src"))
+sys.path.insert(0, str(ROOT / "briefs" / "src"))
 
-from prsna.exporters import export_voice_pack  # noqa: E402
-from prsna.persona import Persona  # noqa: E402
-from brand_os.plan.brief_v1 import build_brief_v1, load_voice_pack_v1, write_brief_v1  # noqa: E402
+from agentcy_voice.exporters import export_voice_pack  # noqa: E402
+from agentcy_voice.persona import Persona  # noqa: E402
+from agentcy_briefs.plan.brief_v1 import build_brief_v1, load_voice_pack_v1, write_brief_v1  # noqa: E402
 
 
 PROTOCOLS_DIR = ROOT / "protocols"
 EXAMPLES_DIR = PROTOCOLS_DIR / "examples"
-VOICE_FIXTURES_DIR = ROOT / "vox" / "tests" / "fixtures" / "voice_pack"
-BRAND_OS_FIXTURES_DIR = ROOT / "compass" / "tests" / "fixtures"
+VOICE_FIXTURES_DIR = ROOT / "voice" / "tests" / "fixtures" / "voice_pack"
+BRIEFS_FIXTURES_DIR = ROOT / "briefs" / "tests" / "fixtures"
 
 
 class _Voice:
@@ -53,24 +53,24 @@ def lineage_rules() -> str:
     return (PROTOCOLS_DIR / "lineage-rules.md").read_text()
 
 
-def test_cli_prsna_voice_pack_output_validates_against_canonical_schema(voice_pack_schema: dict):
+def test_voice_pack_output_validates_against_canonical_schema(voice_pack_schema: dict):
     persona = Persona.load(VOICE_FIXTURES_DIR / "rich.persona.yaml")
     payload = json.loads(export_voice_pack(persona))
 
     Draft202012Validator(voice_pack_schema).validate(payload)
-    assert payload["writer"] == {"repo": "cli-prsna", "module": "agentcy-vox"}
+    assert payload["writer"] == {"repo": "agentcy-voice", "module": "agentcy-voice"}
     assert payload["voice_pack_id"] == "givecare.voice.fall-checkin.v1"
     assert payload["brand_id"] == "givecare.brand.core"
 
 
-def test_brand_os_brief_output_validates_against_canonical_schema_and_lineage(
+def test_briefs_brief_output_validates_against_canonical_schema_and_lineage(
     monkeypatch: pytest.MonkeyPatch,
     brief_schema: dict,
     lineage_rules: str,
     tmp_path: Path,
 ):
     monkeypatch.setattr(
-        "brand_os.plan.brief_v1.load_brand_profile",
+        "agentcy_briefs.plan.brief_v1.load_brand_profile",
         lambda brand: _Profile(tone="steady", platforms={"email": {}, "linkedin": {}}),
     )
 
@@ -122,22 +122,22 @@ def test_brand_os_brief_output_validates_against_canonical_schema_and_lineage(
     payload = json.loads(brief_path.read_text())
 
     Draft202012Validator(brief_schema).validate(payload)
-    assert payload["writer"] == {"repo": "brand-os", "module": "agentcy-compass"}
+    assert payload["writer"] == {"repo": "agentcy-briefs", "module": "agentcy-briefs"}
     assert payload["writer"]["repo"] != "cli-agency"
     assert payload["brand_id"] == voice_pack.brand_id
     assert payload["voice_pack_id"] == voice_pack.voice_pack_id
     assert payload["lineage"]["source_voice_pack_id"] == voice_pack.voice_pack_id
     assert payload["lineage"]["signal_id"] == "givecare.signal.support-calls.2026-04"
     assert "brief.v1" in lineage_rules and "run_result.v1" in lineage_rules
-    assert "| `brief.v1` | `brand-os` | `agentcy-compass` |" in lineage_rules
+    assert "| `brief.v1` | `agentcy-briefs` | `agentcy-briefs` |" in lineage_rules
     assert "must not appear as a `brief.v1` writer or protocol authority" in lineage_rules
     assert "| `brief.v1` | `cli-agency` |" not in lineage_rules
 
 
-def test_brief_v1_canonical_example_and_brand_os_mirror_still_point_to_brand_os_only():
+def test_brief_v1_canonical_example_and_briefs_mirror_match():
     canonical_payload = json.loads((EXAMPLES_DIR / "brief.v1.rich.json").read_text())
-    mirror_payload = json.loads((BRAND_OS_FIXTURES_DIR / "brief.v1.rich.mirror.json").read_text())
+    mirror_payload = json.loads((BRIEFS_FIXTURES_DIR / "brief.v1.rich.mirror.json").read_text())
 
     assert canonical_payload == mirror_payload
-    assert canonical_payload["writer"] == {"repo": "brand-os", "module": "agentcy-compass"}
+    assert canonical_payload["writer"] == {"repo": "agentcy-briefs", "module": "agentcy-briefs"}
     assert canonical_payload["writer"]["repo"] != "cli-agency"

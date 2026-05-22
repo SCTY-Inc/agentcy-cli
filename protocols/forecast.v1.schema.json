@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agentcy.dev/protocols/forecast.v1.schema.json",
   "title": "forecast.v1",
-  "description": "Canonical Agentcy family completed forecast artifact authored by agentcy-echo / cli-mirofish.",
+  "description": "Canonical Agentcy family completed forecast artifact authored by agentcy-forecast / agentcy-forecast.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -38,8 +38,8 @@
       "additionalProperties": false,
       "required": ["repo", "module"],
       "properties": {
-        "repo": { "const": "cli-mirofish" },
-        "module": { "const": "agentcy-echo" }
+        "repo": { "const": "agentcy-forecast" },
+        "module": { "const": "agentcy-forecast" }
       }
     },
     "status": {

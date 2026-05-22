@@ -32,7 +32,7 @@ def test_forecast_examples_preserve_completed_scope_lineage_and_provenance_bound
     rich = _load_json(EXAMPLES_DIR / "forecast.v1.completed-rich.json")
 
     for payload in [minimal, rich]:
-        assert payload["writer"] == {"repo": "cli-mirofish", "module": "agentcy-echo"}
+        assert payload["writer"] == {"repo": "agentcy-forecast", "module": "agentcy-forecast"}
         assert payload["status"] == "completed"
         assert payload["brief_id"] == brief["brief_id"]
         assert payload["brand_id"] == brief["brand_id"]

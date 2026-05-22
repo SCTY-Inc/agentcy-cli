@@ -5,8 +5,8 @@
   "brief_id": "givecare.brief.fall-checkin.social-email.2026-04-12",
   "brand_id": "givecare.brand.core",
   "writer": {
-    "repo": "cli-phantom",
-    "module": "agentcy-loom"
+    "repo": "agentcy-studio",
+    "module": "agentcy-studio"
   },
   "workflow": "social.post",
   "status": "published",

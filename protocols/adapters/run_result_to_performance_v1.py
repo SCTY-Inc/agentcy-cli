@@ -8,13 +8,23 @@ from jsonschema import Draft202012Validator
 
 from agentcy_protocols.utils import load_json
 
-ROOT = Path(__file__).resolve().parents[2]
-PROTOCOLS_DIR = ROOT / "protocols"
-RUN_RESULT_SCHEMA_PATH = PROTOCOLS_DIR / "run_result.v1.schema.json"
-PERFORMANCE_SCHEMA_PATH = PROTOCOLS_DIR / "performance.v1.schema.json"
+PROTOCOLS_DIR = Path(__file__).resolve().parent
+if not (PROTOCOLS_DIR / "schemas").exists():
+    PROTOCOLS_DIR = PROTOCOLS_DIR.parent
+
+
+def _protocol_file(name: str) -> Path:
+    direct = PROTOCOLS_DIR / name
+    if direct.exists():
+        return direct
+    return PROTOCOLS_DIR / "schemas" / name
+
+
+RUN_RESULT_SCHEMA_PATH = _protocol_file("run_result.v1.schema.json")
+PERFORMANCE_SCHEMA_PATH = _protocol_file("performance.v1.schema.json")
 CANONICAL_RUN_RESULT_PATH = PROTOCOLS_DIR / "examples" / "run_result.v1.published.json"
-RUN_RESULT_WRITER = {"repo": "cli-phantom", "module": "agentcy-loom"}
-PERFORMANCE_WRITER = {"repo": "cli-metrics", "module": "agentcy-pulse"}
+RUN_RESULT_WRITER = {"repo": "agentcy-studio", "module": "agentcy-studio"}
+PERFORMANCE_WRITER = {"repo": "agentcy-measure", "module": "agentcy-measure"}
 ALLOWED_METRIC_KEYS = {
     "impressions",
     "reach",
@@ -55,7 +65,7 @@ def _validate_run_result(run_result: dict[str, Any]) -> None:
     if run_result.get("schema_version") != "v1":
         raise AdapterValidationError("Upstream schema_version must be v1")
     if run_result.get("writer") != RUN_RESULT_WRITER:
-        raise AdapterValidationError("Upstream writer must be cli-phantom / agentcy-loom")
+        raise AdapterValidationError("Upstream writer must be agentcy-studio / agentcy-studio")
     if run_result.get("workflow") != "social.post":
         raise AdapterValidationError("Adapter only supports social.post workflow")
     if run_result.get("status") != "published":
@@ -184,7 +194,7 @@ def adapt_from_paths(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Adapt canonical published run_result.v1 plus a deterministic sidecar into performance.v1; this remains the bounded family-owned pulse seam and minimum future cli-metrics birth-contract adapter surface"
+        description="Adapt canonical published run_result.v1 plus a deterministic sidecar into performance.v1; this remains the bounded family-owned pulse seam and minimum future agentcy-measure birth-contract adapter surface"
     )
     parser.add_argument("sidecar", type=Path, help="Path to deterministic measurement sidecar JSON")
     parser.add_argument(

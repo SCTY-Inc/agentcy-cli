@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agentcy.dev/protocols/voice_pack.v1.schema.json",
   "title": "voice_pack.v1",
-  "description": "Canonical Agentcy family voice artifact authored by agentcy-vox / cli-prsna.",
+  "description": "Canonical Agentcy family voice artifact authored by agentcy-voice / agentcy-voice.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -34,8 +34,8 @@
       "additionalProperties": false,
       "required": ["repo", "module"],
       "properties": {
-        "repo": { "const": "cli-prsna" },
-        "module": { "const": "agentcy-vox" }
+        "repo": { "const": "agentcy-voice" },
+        "module": { "const": "agentcy-voice" }
       }
     },
     "name": {

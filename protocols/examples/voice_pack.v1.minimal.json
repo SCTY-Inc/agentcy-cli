@@ -4,8 +4,8 @@
   "voice_pack_id": "givecare.voice.default.v1",
   "brand_id": "givecare.brand.core",
   "writer": {
-    "repo": "cli-prsna",
-    "module": "agentcy-vox"
+    "repo": "agentcy-voice",
+    "module": "agentcy-voice"
   },
   "name": "GiveCare default voice",
   "summary": "Warm, practical, dignity-first caregiver support voice.",

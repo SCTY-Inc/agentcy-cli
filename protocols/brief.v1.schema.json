@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agentcy.dev/protocols/brief.v1.schema.json",
   "title": "brief.v1",
-  "description": "Canonical Agentcy family planning artifact authored by agentcy-compass / brand-os.",
+  "description": "Canonical Agentcy family planning artifact authored by agentcy-briefs / agentcy-briefs.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -39,8 +39,8 @@
       "additionalProperties": false,
       "required": ["repo", "module"],
       "properties": {
-        "repo": { "const": "brand-os" },
-        "module": { "const": "agentcy-compass" }
+        "repo": { "const": "agentcy-briefs" },
+        "module": { "const": "agentcy-briefs" }
       }
     },
     "objective": {

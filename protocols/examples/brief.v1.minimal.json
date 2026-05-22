@@ -5,8 +5,8 @@
   "brand_id": "givecare.brand.core",
   "voice_pack_id": "givecare.voice.default.v1",
   "writer": {
-    "repo": "brand-os",
-    "module": "agentcy-compass"
+    "repo": "agentcy-briefs",
+    "module": "agentcy-briefs"
   },
   "objective": "Drive caregiver engagement around fall planning.",
   "signal": {

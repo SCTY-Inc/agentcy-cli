@@ -12,16 +12,10 @@ def _project_metadata() -> dict:
         return tomllib.load(fh)
 
 
-def test_root_package_exposes_install_profile_extras() -> None:
+def test_root_package_keeps_install_profiles_out_of_default_metadata() -> None:
     project = _project_metadata()["project"]
-    extras = project["optional-dependencies"]
 
-    assert extras["echo-simulation"] == ["agentcy-echo[simulation]"]
-    assert extras["compass-all"] == ["agentcy-compass[all]"]
-    assert extras["full-python"] == [
-        "agentcy-compass[all]",
-        "agentcy-echo[simulation]",
-    ]
+    assert "optional-dependencies" not in project
 
 
 def test_root_package_has_readme_metadata() -> None:

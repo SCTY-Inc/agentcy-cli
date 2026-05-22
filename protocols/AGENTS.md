@@ -4,11 +4,11 @@ Shared schemas, adapters, fixtures, and utilities for the Agentcy suite. This co
 
 ## Schemas
 
-- `voice_pack.v1` — vox → compass, loom
-- `brief.v1` — compass → echo, loom
-- `forecast.v1` — echo → pulse calibrate; `summary.confidence` is nullable (omitted when `summary.smoke: true`)
-- `run_result.v1` — loom → pulse adapt
-- `performance.v1` — pulse adapt → pulse calibrate
+- `voice_pack.v1` — voice → briefs, studio
+- `brief.v1` — briefs → forecast, studio
+- `forecast.v1` — forecast → measure calibrate; `summary.confidence` is nullable (omitted when `summary.smoke: true`)
+- `run_result.v1` — studio → measure adapt
+- `performance.v1` — measure adapt → measure calibrate
 
 All schemas require `writer = { repo, module, version }`. `writer.repo` intentionally keeps legacy lineage names; do not rename it to match package names.
 

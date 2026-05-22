@@ -6,11 +6,11 @@ Canonical schemas live in `protocols/`. Every inter-tool artifact flows through 
 
 | Schema | From → To | File |
 |--------|-----------|------|
-| `voice_pack.v1` | vox → compass, loom | `voice_pack.v1.schema.json` |
-| `brief.v1` | compass → echo, loom | `brief.v1.schema.json` |
-| `forecast.v1` | echo → pulse calibrate | `forecast.v1.schema.json` |
-| `run_result.v1` | loom → pulse adapt | `run_result.v1.schema.json` |
-| `performance.v1` | pulse adapt → pulse calibrate | `performance.v1.schema.json` |
+| `voice_pack.v1` | voice → briefs, studio | `voice_pack.v1.schema.json` |
+| `brief.v1` | briefs → forecast, studio | `brief.v1.schema.json` |
+| `forecast.v1` | forecast → measure calibrate | `forecast.v1.schema.json` |
+| `run_result.v1` | studio → measure adapt | `run_result.v1.schema.json` |
+| `performance.v1` | measure adapt → measure calibrate | `performance.v1.schema.json` |
 
 ## Versioning
 
@@ -67,4 +67,4 @@ schema = json.loads(SCHEMAS["brief.v1"].read_text())
 jsonschema.validate(artifact, schema)
 ```
 
-CI for all producer members (compass, echo, loom, pulse) should validate output artifacts.
+CI for all producer members (briefs, forecast, studio, measure) should validate output artifacts.

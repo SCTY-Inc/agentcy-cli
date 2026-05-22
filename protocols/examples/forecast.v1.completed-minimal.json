@@ -5,8 +5,8 @@
   "brief_id": "givecare.brief.fall-checkin.social-email.2026-04-12",
   "brand_id": "givecare.brand.core",
   "writer": {
-    "repo": "cli-mirofish",
-    "module": "agentcy-echo"
+    "repo": "agentcy-forecast",
+    "module": "agentcy-forecast"
   },
   "status": "completed",
   "completed_at": "2026-04-12T05:10:00Z",

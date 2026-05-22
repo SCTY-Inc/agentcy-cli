@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agentcy.dev/protocols/run_result.v1.schema.json",
   "title": "run_result.v1",
-  "description": "Canonical Agentcy family execution outcome artifact authored by agentcy-loom / cli-phantom.",
+  "description": "Canonical Agentcy family execution outcome artifact authored by agentcy-studio / agentcy-studio.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -41,8 +41,8 @@
       "additionalProperties": false,
       "required": ["repo", "module"],
       "properties": {
-        "repo": { "const": "cli-phantom" },
-        "module": { "const": "agentcy-loom" }
+        "repo": { "const": "agentcy-studio" },
+        "module": { "const": "agentcy-studio" }
       }
     },
     "workflow": {

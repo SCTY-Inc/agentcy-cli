@@ -14,5 +14,20 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/agentcy_protocols"]
 
-[tool.hatch.build.targets.wheel.sources]
-"schemas" = "agentcy_protocols/schemas"
+[tool.hatch.build.targets.sdist]
+include = [
+    "/adapters",
+    "/examples",
+    "/*.schema.json",
+    "/src/agentcy_protocols",
+    "/pyproject.toml",
+]
+
+[tool.hatch.build.targets.wheel.force-include]
+"adapters/run_result_to_performance_v1.py" = "agentcy_protocols/_run_result_to_performance_v1.py"
+"brief.v1.schema.json" = "agentcy_protocols/schemas/brief.v1.schema.json"
+"forecast.v1.schema.json" = "agentcy_protocols/schemas/forecast.v1.schema.json"
+"performance.v1.schema.json" = "agentcy_protocols/schemas/performance.v1.schema.json"
+"run_result.v1.schema.json" = "agentcy_protocols/schemas/run_result.v1.schema.json"
+"voice_pack.v1.schema.json" = "agentcy_protocols/schemas/voice_pack.v1.schema.json"
+"examples" = "agentcy_protocols/examples"

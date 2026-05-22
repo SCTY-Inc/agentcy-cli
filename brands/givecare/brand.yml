@@ -1,0 +1,182 @@
+# GiveCare — Compass operational config
+# Brand identity lives in studio/brands/givecare/BRAND.md
+# This file contains only signal-monitoring and automation policy
+# that Compass needs and BRAND.md does not carry.
+
+name: givecare
+description: "AI caregiving companion — SMS-first support for America's 53M unpaid caregivers"
+industry: "Digital Health / Caregiving"
+target_audience: "Unpaid family caregivers managing aging parents, chronic illness, or disability"
+
+# Derived from BRAND.md voice — keep in sync with voice.do / voice.dont
+voice:
+  tone: compassionate-practical
+  vocabulary: accessible
+  patterns:
+    - "That sounds incredibly difficult. Many caregivers feel exactly the same way."
+    - "You know your situation best."
+    - "Let's take this one step at a time."
+    - "You have every right to..."
+    - "Here's what often works when..."
+  avoid_phrases:
+    - Just remember to take care of yourself
+    - Everything will be fine
+    - "You should — prefer: many caregivers find..."
+    - The patient
+    - Obviously / Simply / Just
+
+# Derived from BRAND.md visual.palette — keep in sync
+visual:
+  palette:
+    primary: "#2E7D9B"
+    secondary: "#4A9B6F"
+    accent: "#F4A460"
+    background: "#F8F4EF"
+    text: "#2C2C2C"
+  typography:
+    heading: "Georgia, serif"
+    body: "system-ui, sans-serif"
+
+offer:
+  cta: "Text START to try GiveCare free"
+  sms_number: "741741"
+
+handles:
+  twitter: givecareapp
+  instagram: givecareapp
+  linkedin: givecare-app
+
+platforms:
+  twitter:
+    enabled: true
+    max_length: 280
+    hashtag_policy: "max 2 per post; prefer #CaregiverSupport #FamilyCaregiving"
+  linkedin:
+    enabled: true
+    max_length: 3000
+  instagram:
+    enabled: true
+    max_length: 2200
+  sms:
+    enabled: true
+    max_length: 160
+
+# Derived from BRAND.md topics.pillars[].signals — keep in sync
+keywords:
+  - caregiver burnout
+  - caregiver support
+  - family caregiver
+  - caring for aging parents
+  - dementia caregiver
+  - ALS caregiver
+  - Alzheimer's caregiver
+  - caregiver wellbeing
+  - respite care
+  - caregiver resources
+  - unpaid caregiver
+  - sandwich generation
+  - elder care
+  - caregiver isolation
+  - caregiver mental health
+  - hospice support
+  - 53 million caregivers
+  - SMS health support
+  - AI caregiving
+
+# Derived from BRAND.md competitors — keep in sync
+competitors:
+  - Carely
+  - CaringBridge
+  - "Lotsa Helping Hands"
+  - Wellthy
+  - "AARP Caregiver"
+  - "Papa (elder companion)"
+  - Homethrive
+
+# === Compass-only: signal sources ===
+# These are operational config that does not belong in BRAND.md
+
+subreddits:
+  - CaregiverSupport
+  - dementia
+  - AgingParents
+  - AlzheimersCaregiver
+  - eldercare
+  - Parkinsonscaregivers
+  - disability
+  - hospice
+
+feeds:
+  - https://www.caregiver.org/rss.xml
+  - https://www.aarp.org/caregiving/rss.xml
+  - https://www.alzheimers.org.uk/rss.xml
+  - https://news.ycombinator.com/rss
+  - https://medcitynews.com/feed/
+
+stop_phrases:
+  - "caregiver appreciation day"
+  - "sponsored post"
+  - "ad:"
+
+# === Compass-only: automation policy ===
+# Confidence thresholds, cooldowns, rate limits — operational, not brand identity
+
+policy:
+  enabled: true
+  default_verdict: escalate
+  global_min_confidence: 0.75
+  global_cooldown_minutes: 10
+
+  always_allow:
+    - signal_action
+
+  always_escalate:
+    - budget_allocation
+    - alert_escalation
+    - content_publish
+
+  always_deny: []
+
+  rules:
+    - name: empathy-content-escalate
+      description: Escalate anything touching grief, crisis, or mental health
+      decision_types:
+        - content_publish
+        - content_schedule
+      min_confidence: 0.9
+      escalate_keywords:
+        - grief
+        - suicide
+        - crisis
+        - emergency
+        - death
+        - dying
+        - abuse
+        - trauma
+
+    - name: resource-sharing-auto
+      description: Auto-schedule evergreen resource posts with high confidence
+      decision_types:
+        - content_schedule
+      min_confidence: 0.85
+      min_signals: 3
+      max_per_hour: 2
+      max_per_day: 6
+      cooldown_minutes: 120
+      escalate_keywords:
+        - controversial
+        - political
+        - urgent
+
+    - name: threat-monitoring
+      description: Monitor and flag brand threats
+      decision_types:
+        - threat_response
+      min_confidence: 0.85
+      min_signals: 2
+      cooldown_minutes: 60
+      escalate_on_negative_sentiment: true
+
+  notify_on_escalate: true
+  notify_channels:
+    - cli

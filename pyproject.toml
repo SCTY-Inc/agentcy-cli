@@ -8,22 +8,10 @@ dependencies = [
     "typer>=0.12",
     "rich>=13.0",
     "agentcy-protocols",
-    "agentcy-compass",
-    "agentcy-echo",
-    "agentcy-pulse",
-    "agentcy-vox",
-]
-
-[project.optional-dependencies]
-echo-simulation = [
-    "agentcy-echo[simulation]",
-]
-compass-all = [
-    "agentcy-compass[all]",
-]
-full-python = [
-    "agentcy-compass[all]",
-    "agentcy-echo[simulation]",
+    "agentcy-briefs",
+    "agentcy-forecast",
+    "agentcy-measure",
+    "agentcy-voice",
 ]
 
 [project.scripts]
@@ -34,17 +22,17 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agentcy"]
+packages = ["agentcy"]
 
 [tool.uv.workspace]
-members = [".", "protocols", "compass", "echo", "pulse", "vox"]
+members = [".", "protocols", "briefs", "forecast", "measure", "voice"]
 
 [tool.uv.sources]
 agentcy-protocols = { workspace = true }
-agentcy-compass  = { workspace = true }
-agentcy-echo     = { workspace = true }
-agentcy-pulse    = { workspace = true }
-agentcy-vox      = { workspace = true }
+agentcy-briefs   = { workspace = true }
+agentcy-forecast = { workspace = true }
+agentcy-measure  = { workspace = true }
+agentcy-voice    = { workspace = true }
 
 [tool.ruff]
 line-length = 100
@@ -55,7 +43,7 @@ select = ["E", "F", "I", "UP"]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.0",
+    "pytest>=9.0.3",
     "pytest-asyncio>=0.23",
     "ruff>=0.5",
 ]

@@ -2,17 +2,24 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import textwrap
 from pathlib import Path
 
+import pytest
 from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[2]
 PROTOCOLS_DIR = ROOT / "protocols"
 EXAMPLES_DIR = PROTOCOLS_DIR / "examples"
-LOOM_RUNTIME_DIR = ROOT / "loom" / "runtime"
-LOOM_BIN = LOOM_RUNTIME_DIR / "bin" / "loom.js"
+STUDIO_DIR = ROOT / "studio"
+STUDIO_BIN = STUDIO_DIR / "bin" / "studio.js"
+
+requires_studio = pytest.mark.skipif(
+    not (STUDIO_DIR / "node_modules").exists() or shutil.which("node") is None,
+    reason="studio not installed — run `cd studio && pnpm install` to enable Studio seam tests",
+)
 
 
 def _load_json(path: Path) -> dict:
@@ -21,8 +28,8 @@ def _load_json(path: Path) -> dict:
 
 def _run_cli(args: list[str], *, env: dict[str, str]) -> dict:
     result = subprocess.run(
-        ["node", str(LOOM_BIN), *args, "--json"],
-        cwd=LOOM_RUNTIME_DIR,
+        ["node", str(STUDIO_BIN), *args, "--json"],
+        cwd=STUDIO_DIR,
         env=env,
         text=True,
         capture_output=True,
@@ -37,11 +44,13 @@ def _run_cli(args: list[str], *, env: dict[str, str]) -> dict:
 def _write_brand_fixture(root: Path) -> None:
     brand_dir = root / "brands" / "givecare"
     brand_dir.mkdir(parents=True, exist_ok=True)
-    (brand_dir / "brand.yml").write_text(
+    (brand_dir / "BRAND.md").write_text(
         textwrap.dedent(
             """
+            ---
             id: givecare
             name: GiveCare
+            tagline: Care as infrastructure.
             positioning: Care as infrastructure.
             audiences:
               - id: caregivers
@@ -87,11 +96,13 @@ def _write_brand_fixture(root: Path) -> None:
               - id: intro
                 trigger: first-touch
                 approach: Lead with a sharp observation and one ask.
+            ---
             """
         ).strip()
     )
 
 
+@requires_studio
 def test_canonical_brief_v1_dry_run_handoff_emits_schema_valid_run_result(tmp_path: Path):
     brief = _load_json(EXAMPLES_DIR / "brief.v1.rich.json")
     run_result_schema = _load_json(PROTOCOLS_DIR / "run_result.v1.schema.json")
@@ -100,7 +111,7 @@ def test_canonical_brief_v1_dry_run_handoff_emits_schema_valid_run_result(tmp_pa
     _write_brand_fixture(tmp_path)
 
     env = os.environ.copy()
-    env["LOOM_ROOT"] = str(tmp_path)
+    env["STUDIO_ROOT"] = str(tmp_path)
     env["HOME"] = str(tmp_path)
     env["TWITTER_GIVECARE_API_KEY"] = "api-key"
     env["TWITTER_GIVECARE_API_SECRET"] = "api-secret"
@@ -132,7 +143,7 @@ def test_canonical_brief_v1_dry_run_handoff_emits_schema_valid_run_result(tmp_pa
     validator.validate(run_result)
 
     assert run_result["artifact_type"] == "run_result.v1"
-    assert run_result["writer"] == {"repo": "cli-phantom", "module": "agentcy-loom"}
+    assert run_result["writer"] == {"repo": "agentcy-studio", "module": "agentcy-studio"}
     assert run_result["status"] == "dry_run"
     assert run_result["delivery"]["dry_run"] is True
     assert run_result["delivery"]["platforms"] == [

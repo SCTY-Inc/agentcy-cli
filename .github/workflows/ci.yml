@@ -22,7 +22,7 @@ jobs:
       - name: Install Python workspace + dev tools
         run: uv sync --group dev
       - name: Install loom runtime for protocol seam tests
-        run: cd loom/runtime && pnpm install --frozen-lockfile
+        run: cd studio && pnpm install --frozen-lockfile
       - name: Python + protocol tests
         run: make check-python
       - name: Maintained-surface lint
@@ -39,6 +39,6 @@ jobs:
         with:
           version: '10'
       - name: Install loom runtime
-        run: cd loom/runtime && pnpm install --frozen-lockfile
+        run: cd studio && pnpm install --frozen-lockfile
       - name: Loom tests + typecheck
         run: make check-loom

@@ -6,8 +6,8 @@
   "brief_id": "givecare.brief.fall-checkin.social-email.2026-04-12",
   "brand_id": "givecare.brand.core",
   "writer": {
-    "repo": "cli-metrics",
-    "module": "agentcy-pulse"
+    "repo": "agentcy-measure",
+    "module": "agentcy-measure"
   },
   "workflow": "social.post",
   "measured_at": "2026-04-13T17:23:11Z",

@@ -4,8 +4,8 @@
   "voice_pack_id": "givecare.voice.fall-checkin.v1",
   "brand_id": "givecare.brand.core",
   "writer": {
-    "repo": "cli-prsna",
-    "module": "agentcy-vox"
+    "repo": "agentcy-voice",
+    "module": "agentcy-voice"
   },
   "name": "GiveCare fall check-in voice pack",
   "summary": "Trust-building caregiver voice for seasonal planning, support, and next-step clarity.",
@@ -44,6 +44,6 @@
   "source": {
     "persona_id": "givecare.persona.core",
     "persona_version": "2026-04-12",
-    "notes": "Derived from the canonical caregiver persona in cli-prsna."
+    "notes": "Derived from the canonical caregiver persona in agentcy-voice."
   }
 }

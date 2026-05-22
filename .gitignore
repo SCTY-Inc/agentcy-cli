@@ -1,5 +1,6 @@
 # Python
 .venv/
+.venv-simulation/
 __pycache__/
 *.pyc
 *.pyo
@@ -11,10 +12,12 @@ build/
 *.pyc
 
 # uv
-uv.lock
+**/uv.lock
+!/uv.lock
 
 # Node / TypeScript
 node_modules/
+.pnpm-store/
 dist/
 .next/
 *.tsbuildinfo
@@ -24,6 +27,7 @@ uploads/
 state/
 data/
 logs/
+artifacts/
 *.log
 
 # Secrets

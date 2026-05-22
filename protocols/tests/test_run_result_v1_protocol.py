@@ -34,7 +34,7 @@ def test_run_result_examples_preserve_brief_lineage_and_writer_ownership():
     failed = _load_json(EXAMPLES_DIR / "run_result.v1.failed.json")
 
     for payload in [dry_run, published, failed]:
-        assert payload["writer"] == {"repo": "cli-phantom", "module": "agentcy-loom"}
+        assert payload["writer"] == {"repo": "agentcy-studio", "module": "agentcy-studio"}
         assert payload["brief_id"] == brief["brief_id"]
         assert payload["brand_id"] == brief["brand_id"]
         assert payload["lineage"]["source_voice_pack_id"] == brief["lineage"]["source_voice_pack_id"]

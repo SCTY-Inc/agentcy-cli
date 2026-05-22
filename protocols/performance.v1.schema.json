@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agentcy.dev/protocols/performance.v1.schema.json",
   "title": "performance.v1",
-  "description": "Canonical Agentcy family measurement artifact authored by agentcy-pulse / cli-metrics. This first slice is intentionally limited to aggregate performance snapshots for published social.post outcomes only and excludes tokens, secrets, auth material, audience-level data, and user-level PII. During loop 7, this schema also serves as part of the minimum birth contract for any future cli-metrics repo so naming work stays bounded to the already-proven measurement seam rather than expanding into bootstrap or analytics-platform design.",
+  "description": "Canonical Agentcy family measurement artifact authored by agentcy-measure / agentcy-measure. This first slice is intentionally limited to aggregate performance snapshots for published social.post outcomes only and excludes tokens, secrets, auth material, audience-level data, and user-level PII. During loop 7, this schema also serves as part of the minimum birth contract for any future agentcy-measure repo so naming work stays bounded to the already-proven measurement seam rather than expanding into bootstrap or analytics-platform design.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -41,8 +41,8 @@
       "additionalProperties": false,
       "required": ["repo", "module"],
       "properties": {
-        "repo": { "const": "cli-metrics" },
-        "module": { "const": "agentcy-pulse" }
+        "repo": { "const": "agentcy-measure" },
+        "module": { "const": "agentcy-measure" }
       }
     },
     "workflow": {

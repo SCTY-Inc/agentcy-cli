@@ -4,14 +4,13 @@ Instructions for AI agents working in the Agentcy monorepo.
 
 ## Project
 
-Agentcy is a protocol-first CLI suite. Members chain through stable artifacts:
+Agentcy is a protocol-first brand and content suite. The durable foundation is Brand, Voice, Visual, Content, and Outcomes; member runtimes (Voice/Briefs/Forecast/Studio/Measure) transform that foundation into explicit protocol artifacts. New capabilities should usually be extensions on top of the foundation, not new product cores.
 
-- `vox/` creates and evaluates personas, emitting `voice_pack.v1`
-- `compass/` plans brand work, emitting `brief.v1`
-- `echo/` forecasts likely social response, emitting `forecast.v1`
-- `loom/` executes brand communications from `BRAND.md`, emitting `run_result.v1`
-- `pulse/` adapts and studies outcomes, emitting `performance.v1`
-- `protocols/` owns shared schemas, adapters, and fixtures
+Three docs are the source of truth — read them before changing anything structural:
+
+- [`docs/capability-model.md`](docs/capability-model.md) — foundation, runtimes, extensions, product rule
+- [`docs/principal-patterns.md`](docs/principal-patterns.md) — small-core operating model, default pipeline, what belongs in core vs. extension
+- [`docs/design-md-fidelity.md`](docs/design-md-fidelity.md) — `DESIGN.md` evidence-first visual contract
 
 Root `CLAUDE.md` is the monorepo map. Component-specific instructions live in each component's `AGENTS.md`; do not add component-level `CLAUDE.md` files.
 
@@ -19,7 +18,7 @@ Root `CLAUDE.md` is the monorepo map. Component-specific instructions live in ea
 
 - Keep changes lean, explicit, and easy to verify.
 - Use the component's `AGENTS.md` before editing inside that component.
-- Preserve canonical writer lineage even when package names use `agentcy-*`.
+- Keep protocol writer lineage aligned with the current schemas; do not preserve legacy names unless explicitly asked.
 - Prefer machine-readable CLI modes for verification.
 - Do not stage or commit unless explicitly asked.
 - Do not restore or remove unrelated dirty files.
@@ -28,7 +27,7 @@ Root `CLAUDE.md` is the monorepo map. Component-specific instructions live in ea
 
 ```bash
 uv sync --group dev
-cd loom/runtime && pnpm install
+cd studio && pnpm install
 ```
 
 ## Verification
@@ -36,8 +35,8 @@ cd loom/runtime && pnpm install
 Use the narrowest check that proves the change:
 
 - Python suite or component: `uv run pytest <paths>`
-- TypeScript Loom runtime: `cd loom/runtime && pnpm check`
-- Protocol seam work: install Loom first, then run the relevant protocol tests
+- TypeScript Studio runtime: `cd studio && pnpm check`
+- Protocol seam work: install Studio first, then run the relevant protocol tests
 - Root smoke: `agentcy doctor --json`
 
 ## Component Docs Policy

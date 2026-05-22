@@ -85,7 +85,7 @@ def test_performance_examples_preserve_published_run_lineage_and_writer_ownershi
     rich = _load_json(EXAMPLES_DIR / "performance.v1.rich.json")
 
     for payload in [minimal, rich]:
-        assert payload["writer"] == {"repo": "cli-metrics", "module": "agentcy-pulse"}
+        assert payload["writer"] == {"repo": "agentcy-measure", "module": "agentcy-measure"}
         assert payload["workflow"] == "social.post"
         assert payload["run_id"] == run_result["run_id"]
         assert payload["brief_id"] == run_result["brief_id"]

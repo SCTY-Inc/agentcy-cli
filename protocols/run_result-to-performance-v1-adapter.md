@@ -1,6 +1,6 @@
 # `run_result.v1 -> performance.v1` thin adapter contract
 
-Status: loop-6 implementation note for the bounded family-owned `agentcy-pulse` seam  
+Status: loop-6 implementation note for the bounded family-owned `agentcy-measure` seam  
 Date: 2026-04-12
 
 This note locks the exact adapter contract before any loop-6 code lands.
@@ -23,7 +23,7 @@ This note defines only the thin family-owned seam that:
 2. accepts a tiny deterministic measurement sidecar
 3. emits canonical `performance.v1`
 
-This note does not reopen loop-5 schema design, example redesign, test redesign, `cli-metrics` bootstrap, live analytics integrations, or broader analytics scope.
+This note does not reopen loop-5 schema design, example redesign, test redesign, `agentcy-measure` bootstrap, live analytics integrations, or broader analytics scope.
 
 ## Adapter contract summary
 
@@ -50,7 +50,7 @@ The adapter must reject any upstream input that violates any of these rules:
 
 - `artifact_type` is not `run_result.v1`
 - `schema_version` is not `v1`
-- `writer` is not `{ "repo": "cli-phantom", "module": "agentcy-loom" }`
+- `writer` is not `{ "repo": "agentcy-studio", "module": "agentcy-studio" }`
 - `workflow` is not `social.post`
 - `status` is not `published`
 - `delivery.dry_run` is `true`
@@ -176,7 +176,7 @@ The adapter output must be constructed as follows.
 
 ### Set by the adapter as fixed canonical values
 
-- `writer = { "repo": "cli-metrics", "module": "agentcy-pulse" }`
+- `writer = { "repo": "agentcy-measure", "module": "agentcy-measure" }`
 
 ### Copied from the sidecar
 

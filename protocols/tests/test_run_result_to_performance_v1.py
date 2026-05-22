@@ -28,7 +28,7 @@ def test_published_run_result_example_is_a_valid_upstream_reference_for_performa
     ]
 
     run_validator.validate(run_result)
-    assert run_result["writer"] == {"repo": "cli-phantom", "module": "agentcy-loom"}
+    assert run_result["writer"] == {"repo": "agentcy-studio", "module": "agentcy-studio"}
     assert run_result["status"] == "published"
     assert run_result["workflow"] == "social.post"
 
@@ -42,7 +42,7 @@ def test_published_run_result_example_is_a_valid_upstream_reference_for_performa
     for payload in performance_examples:
         performance_validator.validate(payload)
 
-        assert payload["writer"] == {"repo": "cli-metrics", "module": "agentcy-pulse"}
+        assert payload["writer"] == {"repo": "agentcy-measure", "module": "agentcy-measure"}
         assert payload["workflow"] == run_result["workflow"]
         assert payload["run_id"] == run_result["run_id"]
         assert payload["brief_id"] == run_result["brief_id"]
@@ -66,6 +66,6 @@ def test_lineage_rules_lock_the_run_result_to_performance_slice_and_one_writer_p
 
     assert "performance.v1.run_id" in lineage_rules
     assert "performance.v1.brief_id" in lineage_rules
-    assert '`performance.v1.writer` must remain `{ "repo": "cli-metrics", "module": "agentcy-pulse" }`' in lineage_rules
-    assert '`run_result.v1.writer` must remain `{ "repo": "cli-phantom", "module": "agentcy-loom" }`' in lineage_rules
+    assert '`performance.v1.writer` must remain `{ "repo": "agentcy-measure", "module": "agentcy-measure" }`' in lineage_rules
+    assert '`run_result.v1.writer` must remain `{ "repo": "agentcy-studio", "module": "agentcy-studio" }`' in lineage_rules
     assert "published `social.post` outcomes only" in lineage_rules

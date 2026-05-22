@@ -7,10 +7,8 @@ emit functions. Import and wire into any member CLI.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
-
-from pydantic import BaseModel
 
 
 @dataclass
@@ -40,8 +38,6 @@ def is_envelope() -> bool:
 
 def normalize(data: Any) -> Any:
     """Coerce Pydantic models and model-like objects to plain dicts."""
-    if isinstance(data, BaseModel):
-        return data.model_dump()
     if hasattr(data, "model_dump"):
         return data.model_dump()
     return data

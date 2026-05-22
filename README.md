@@ -1,29 +1,42 @@
 # agentcy
 
-Consolidated monorepo for the Agentcy CLI suite.
+Consolidated monorepo for the Agentcy CLI suite. Member runtimes transform a durable Brand / Voice / Visual / Content / Outcomes foundation into explicit protocol artifacts.
+
+Read these first:
+
+- [`docs/capability-model.md`](docs/capability-model.md) — foundation, runtimes, extensions
+- [`docs/principal-patterns.md`](docs/principal-patterns.md) — small-core operating model
+- [`docs/design-md-fidelity.md`](docs/design-md-fidelity.md) — `DESIGN.md` evidence-first visual contract
+
+A portable brand kit lives at `brands/<brand>/{BRAND.md, DESIGN.md, brand.yml, assets/}`. `BRAND.md` is the behavioral contract; `DESIGN.md` follows Google's public `design.md` shape under `design_system` / `tokens` / `components`, with Agentcy execution rules under `agentcy`.
 
 ## Members
 
 | Dir | Package / bin | Purpose |
 | --- | --- | --- |
 | `protocols/` | `agentcy-protocols` | Shared schemas, examples, and adapters |
-| `vox/` | `agentcy-vox` | Persona creation and `voice_pack.v1` export |
-| `compass/` | `agentcy-compass` | Brand planning and `brief.v1` generation |
-| `echo/` | `agentcy-echo` | Forecast generation from documents + requirement |
-| `loom/` | `agentcy-loom` | TypeScript execution runtime for drafts, review, publish |
-| `pulse/` | `agentcy-pulse` | `run_result.v1` → `performance.v1` + calibration + study |
+| `voice/` | `agentcy-voice` | Persona creation and `voice_pack.v1` export |
+| `briefs/` | `agentcy-briefs` | Brand planning and `brief.v1` generation |
+| `forecast/` | `agentcy-forecast` | Forecast generation from documents + requirement |
+| `studio/` | `agentcy-studio` | TypeScript execution runtime for `brand.md`-driven drafts, review, publish |
+| `measure/` | `agentcy-measure` | `run_result.v1` → `performance.v1` + calibration + study |
 
 ## Naming contract
 
-This repo now uses `agentcy-*` package and CLI names, but the canonical protocol writer fields intentionally stay split for compatibility:
+Each protocol artifact's `writer.repo` and `writer.module` carry the same `agentcy-*` name. Python imports match with underscores (`agentcy_voice`, `agentcy_briefs`, `agentcy_forecast`, `agentcy_pulse` for `agentcy-measure`).
 
-- `voice_pack.v1.writer = { repo: "cli-prsna", module: "agentcy-vox" }`
-- `brief.v1.writer = { repo: "brand-os", module: "agentcy-compass" }`
-- `forecast.v1.writer = { repo: "cli-mirofish", module: "agentcy-echo" }`
-- `run_result.v1.writer = { repo: "cli-phantom", module: "agentcy-loom" }`
-- `performance.v1.writer = { repo: "cli-metrics", module: "agentcy-pulse" }`
+## Capabilities and extensions
 
-The rule is simple: package/bin names are unified under Agentcy, while protocol lineage keeps the historical `writer.repo` values until an explicit artifact migration lands.
+See [`docs/capability-model.md`](docs/capability-model.md) for the canonical model.
+
+Current extension families:
+
+- Studio generation: `social.post`, `blog.post`, `outreach.touch`, `respond.reply`, lab card/cover/render
+- Forecasting: audience/social reaction forecasts and repo-local `run_eval` sidecars
+- Measurement: `adapt`, `calibrate`, `study`
+- Agent instructions: one nested `skills/agentcy` skill with reference files
+
+Natural next Studio modes are `og.cover`, `social.card`, `carousel`, `short.video`, `ugc.ad`, `longform.script`, and `campaign.pack`.
 
 ## Setup
 
@@ -31,18 +44,19 @@ The rule is simple: package/bin names are unified under Agentcy, while protocol 
 # Python workspace + repo-local dev tools
 uv sync --group dev
 
-# Optional Python extras
-uv sync --all-extras --group dev
+# Studio runtime (under studio/)
+cd studio && pnpm install
 
-# Loom runtime
-cd loom/runtime && pnpm install
+# Forecast full simulation runtime, isolated on Python 3.11
+make install-forecast-simulation
 ```
 
 ## Best fit
 
 Agentcy is best when you need a protocol-first workflow stack rather than a single embedded SDK:
 
-- persona → brief → forecast → execution → measurement pipelines
+- brand kit → brief → Studio artifacts by default, with Voice/Forecast/Measure as opt-in extensions
+- multi-tenant brand execution from agent-facing `BRAND.md` contracts
 - human-and-agent collaboration over stable JSON/file handoffs
 - resumable operator workflows with explicit artifacts and lineage
 
@@ -56,17 +70,16 @@ It is not yet the best fit for:
 The suite is consumable in layers:
 
 ```bash
-# Base Python suite: root CLI + protocols + vox + compass + echo base CLI + pulse
+# Base Python suite: root CLI + protocols + voice + briefs + forecast base CLI + measure
 uv sync --group dev
 # or: make install-python-suite
 
-# Full Echo simulation runtime (Python 3.11 only)
-uv sync --extra simulation
-# or: make install-echo-simulation
+# Full Forecast simulation runtime (isolated Python 3.11 env)
+make install-forecast-simulation
 
-# Loom runtime (Node)
-cd loom/runtime && pnpm install
-# or: make install-loom
+# Studio runtime (Node, under studio/)
+cd studio && pnpm install
+# or: make install-studio
 
 # Full local operator stack
 make install-full-operator
@@ -86,7 +99,7 @@ Useful discovery commands:
 agentcy catalog --json
 agentcy quickstart --profile full-operator --json
 agentcy doctor --json
-agentcy member compass --json plan list
+agentcy member briefs --json plan list
 ```
 
 ## Test it
@@ -100,11 +113,11 @@ make lint
 ### Direct test commands
 
 ```bash
-# The protocol seam tests shell into loom, so install the runtime once in a clean checkout.
-cd loom/runtime && pnpm install
+# The protocol seam tests shell into studio, so install the runtime once in a clean checkout.
+cd studio && pnpm install
 
-uv run pytest tests compass/tests echo/tests pulse/tests vox/tests protocols/tests -q
-cd loom/runtime && pnpm check
+uv run pytest tests briefs/tests forecast/tests measure/tests voice/tests protocols/tests -q
+cd studio && pnpm check
 ```
 
 ## Pipeline commands
@@ -112,31 +125,41 @@ cd loom/runtime && pnpm check
 ### Root pipeline helpers
 
 ```bash
-# Preview bundle: module-first output under artifacts/pipelines/<pipeline_id>/
-uv run agentcy --provider claude-cli --model sonnet pipeline run \
+# Essential bundle: cheap deterministic output under artifacts/pipelines/<pipeline_id>/
+uv run agentcy pipeline run \
   --pipeline-id givecare-launch-01 \
-  --persona scientist \
-  --persona-eval \
   --brand givecare \
   --brief "Before fall gets busy, make caregiving feel lighter" \
-  --files docs/launch-memo.md \
-  --loom-workflow social.post \
   --mode preview \
   --output-dir artifacts/pipelines \
   --json
 
-# Preview mode auto-finishes loom as a dry run and writes one bundle with:
-# vox/, compass/, echo/, loom/, pulse/, reports/, bundle_manifest.json
-# Pulse is skipped honestly in preview mode unless you later attach canonical measurement.
+# Default path:
+# brief.v1 -> Studio draft/render -> inspectable artifacts
+# It does not run Voice, Forecast, Measure, providers, or publish unless requested.
 
-# After loom publish + pulse adapt happen, backfill the bundle with canonical later-stage artifacts
+# Heavier opt-in path
+uv run agentcy --provider claude-cli --model sonnet pipeline run \
+  --pipeline-id givecare-launch-forecast-01 \
+  --brand givecare \
+  --brief "Before fall gets busy, make caregiving feel lighter" \
+  --persona scientist \
+  --persona-eval \
+  --with-forecast \
+  --files docs/launch-memo.md \
+  --publish \
+  --smoke \
+  --output-dir artifacts/pipelines \
+  --json
+
+# After Studio publish + Measure adapt happen, backfill the bundle with canonical later-stage artifacts
 uv run agentcy pipeline update \
   --manifest artifacts/pipelines/<pipeline_id>/manifest.json \
   --run-result /tmp/run_result.json \
   --performance /tmp/performance.json \
   --json
 
-# Re-open the manifest later and run pulse study once performance exists
+# Re-open the manifest later and run Measure study once performance exists
 uv run agentcy pipeline study \
   --manifest artifacts/pipelines/<pipeline_id>/manifest.json \
   --json
@@ -145,36 +168,36 @@ uv run agentcy pipeline study \
 Dispatcher commands also accept root-level LLM overrides that are forwarded to members which honor them. The root pipeline also supports `--pipeline-id` so stable bundles can land at paths like `artifacts/pipelines/givecare-launch-01/`:
 
 ```bash
-uv run agentcy --provider claude-cli --model haiku echo run --files docs/memo.md --requirement "Predict reaction" --smoke --json
+uv run agentcy --provider claude-cli --model haiku forecast run --files docs/memo.md --requirement "Predict reaction" --smoke --json
 ```
 
 ### Live pipeline
 
 ```bash
-uv run agentcy-vox --json export scientist --to voice-pack.v1 > /tmp/voice_pack.json
-uv run agentcy-compass plan run "Before fall gets busy, make caregiving feel lighter" \
+uv run agentcy-voice --json export scientist --to voice-pack.v1 > /tmp/voice_pack.json
+uv run agentcy-briefs plan run "Before fall gets busy, make caregiving feel lighter" \
   --brand givecare \
   --voice-pack-input /tmp/voice_pack.json \
   --brief-v1-output /tmp/brief.json \
   -f json > /tmp/brief_plan.json
-uv run agentcy-echo run --files docs/ --brief /tmp/brief.json --json > /tmp/forecast.json
-cd loom/runtime && node bin/loom.js run social.post --brand givecare --brief-file /tmp/brief.json --json > /tmp/run_result.json
-uv run agentcy-pulse adapt --run-result /tmp/run_result.json --sidecar sidecar.json --output /tmp/performance.json --json > /tmp/performance.stdout.json
-uv run agentcy-pulse calibrate --forecast /tmp/forecast.json --performance /tmp/performance.json --json > /tmp/calibration.json
+forecast/.venv-simulation/bin/agentcy-forecast run --files docs/ --brief /tmp/brief.json --json > /tmp/forecast.json
+uv run agentcy studio run social.post --brand givecare --brief-file /tmp/brief.json --json > /tmp/run_result.json
+uv run agentcy-measure adapt --run-result /tmp/run_result.json --sidecar sidecar.json --output /tmp/performance.json --json > /tmp/performance.stdout.json
+uv run agentcy-measure calibrate --forecast /tmp/forecast.json --performance /tmp/performance.json --json > /tmp/calibration.json
 ```
 
 ### Runtime constraints
 
-- `agentcy-echo` full simulation requires **Python 3.11** plus `uv sync --extra simulation`
-- `agentcy-echo run --smoke` keeps ontology/graph/profile preparation live but skips the long-running OASIS subprocess and emits deterministic run artifacts instead
-- `loom/runtime` needs `pnpm install`
+- `agentcy-forecast` full simulation requires `make install-forecast-simulation`, which creates `forecast/.venv-simulation` on Python 3.11
+- `agentcy-forecast run --smoke` skips ontology/graph/profiles and the OASIS subprocess, then emits deterministic run artifacts for plumbing checks
+- Studio runtime under `studio` needs `pnpm install`
 - `make pipeline-fixtures` is the fixture-backed smoke path when you only want to validate downstream protocol plumbing
 
 ## Current status
 
-- Root dispatcher: healthy, now probes member reachability instead of only binary presence; ships `pipeline run` / `pipeline update` / `pipeline study` helpers, supports stable named bundles via `--pipeline-id`, writes module-first preview bundles (`vox/`, `compass/`, `echo/`, `loom/`, `pulse/`, `reports/`), forwards root-level `--provider` / `--model` overrides to members, including Compass via `BRANDOPS_LLM_PROVIDER` when applicable, and now exposes `agentcy member <member> --json ...` as a normalized wrapper over member-local JSON differences
-- Vox: healthy; structured eval tiers and saved eval-report review flow now ship in the CLI
-- Compass: healthy for package/CLI + planning surfaces; stage outputs are normalized before validation, activation coercion now tolerates numeric week/budget fields, local operator runs can use `claude-cli` / `sonnet` instead of falling back to mock on Gemini rate limits, and compatible data-producing commands now support both `--json` preference and `--json-envelope` normalized success envelopes
-- Echo: base CLI healthy; completed runs now emit a repo-local `run_eval` sidecar alongside canonical forecast export, the simulation-config stage now seeds taxonomy-driven `scenario_buckets` into aligned initial reaction lanes, CLI automation forces the simulation subprocess to exit instead of lingering in command-waiting mode, and the single-platform scripts emit action logs for downstream timeline/report assembly
-- Loom: help and runtime tests no longer hard-fail when native `canvas` is unavailable; social rendering falls back to SVG/resvg
-- Pulse: supports legacy bare adapt invocation, standardized `--json` envelopes, and a `study` command that ingests optional echo/vox eval sidecars, including echo synthetic-signal metrics such as coverage, local diversity, complexity, and heuristic critic rejection rate
+- Root dispatcher: healthy, probes member reachability, exposes `pipeline run` / `pipeline update` / `pipeline study`, defaults to Briefs mock provider plus deterministic Studio artifacts, forwards root-level `--provider` / `--model` overrides when explicitly provided, and exposes `agentcy member <member> --json ...` as a normalized wrapper over member-local JSON differences
+- Voice: structured eval tiers and saved eval-report review flow now ship in the CLI
+- Briefs: healthy for package/CLI + planning surfaces, supports provider/model forwarding, and exposes both `--json` preference and `--json-envelope` normalized success envelopes
+- Forecast: base CLI healthy; completed runs emit a repo-local `run_eval` sidecar alongside canonical forecast export; full simulation still requires the isolated Python 3.11 env
+- Studio: social rendering is deterministic SVG/resvg with no Gemini/image-provider dependency in the default workflow; lab card/cover/render are the first visible extension surfaces
+- Measure: supports standardized `--json` envelopes and a `study` command that ingests optional forecast/voice eval sidecars
