@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 from agentcy_briefs.signals.schema import Signal, SignalSource, SignalType, Urgency
 
-
 # Common subreddits by category for auto-suggestion
 SUBREDDIT_CATEGORIES = {
     "tech": ["technology", "programming", "startups", "SaaS", "artificial"],
@@ -229,7 +228,9 @@ def get_subreddits_for_brand(brand_config: dict, use_discovery: bool = True) -> 
         )
         if has_context:
             try:
-                from agentcy_briefs.signals.sources.reddit_discover import discover_subreddits_for_brand
+                from agentcy_briefs.signals.sources.reddit_discover import (
+                    discover_subreddits_for_brand,
+                )
                 discovered = discover_subreddits_for_brand(brand_config)
                 if discovered:
                     return discovered[:10]  # Limit to top 10

@@ -50,7 +50,7 @@ examples:
   - user: "I feel guilty for feeling relieved that this is almost over."
     assistant: "That mixture of grief and relief is one of the most common — and least talked about — emotions in caregiving. It doesn't mean you love them any less. It means you've been carrying an enormous weight for a long time, and part of you knows you're human. These feelings can coexist. They often do."
 
-# Vox runtime config — model selection, pipeline IDs
+# Voice runtime config — model selection, pipeline IDs
 providers:
   default: claude-sonnet-4-6
   roleplay: claude-sonnet-4-6

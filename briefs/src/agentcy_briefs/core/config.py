@@ -2,51 +2,46 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime  # noqa: F401  # re-exported for back-compat with importers
 from pathlib import Path
 from typing import Any
 
 import yaml
-from agentcy_protocols.utils import utc_now
+from agentcy_protocols.utils import utc_now  # noqa: F401
 from pydantic import BaseModel, Field
 
-# Re-export the canonical helper. Compass historically defined a local copy of
-# ``utc_now``; ~25 modules import it from this module. Keep the import path
-# stable and let agentcy_protocols.utils own the implementation.
+# Re-export the canonical helper. Briefs modules import it from this module;
+# keep the local import path stable and let agentcy_protocols.utils own it.
 __all_re_exports__ = ("utc_now",)
 
 
-class BrandOpsConfig(BaseModel):
-    """Global configuration for brandos."""
+class BriefsConfig(BaseModel):
+    """Global configuration for Briefs."""
 
     brands_dir: Path = Field(default_factory=lambda: Path("brands"))
-    data_dir: Path = Field(default_factory=lambda: Path.home() / ".brandos")
+    data_dir: Path = Field(default_factory=lambda: Path.home() / ".agentcy" / "briefs")
     default_provider: str = "gemini"
     default_model: str | None = None
 
 
-_config: BrandOpsConfig | None = None
+_config: BriefsConfig | None = None
 
 
 def config_resolution_candidates(cwd: Path | None = None, home: Path | None = None) -> list[Path]:
-    """Return the current compatibility-order config file candidates.
-
-    This intentionally preserves the mixed current surface instead of migrating it.
-    """
+    """Return config file candidates in load order."""
     cwd = cwd or Path.cwd()
     home = home or Path.home()
     return [
-        cwd / "brandos.yml",
-        home / ".brandos" / "config.yml",
+        cwd / "agentcy-briefs.yml",
+        home / ".agentcy" / "briefs.yml",
     ]
 
 
 def resolve_config_path(path: Path | None = None) -> Path | None:
-    """Resolve the active config path using the current compatibility order."""
+    """Resolve the active config path."""
     if path is not None:
         return path
 
-    env_path = os.getenv("BRANDOPS_CONFIG")
+    env_path = os.getenv("AGENTCY_BRIEFS_CONFIG")
     if env_path:
         return Path(env_path)
 
@@ -57,7 +52,21 @@ def resolve_config_path(path: Path | None = None) -> Path | None:
     return None
 
 
-def get_config() -> BrandOpsConfig:
+def resolve_workspace_path(path: Path) -> Path:
+    """Resolve a relative workspace path by walking up from the current directory."""
+    if path.is_absolute():
+        return path
+
+    cwd = Path.cwd()
+    for root in [cwd, *cwd.parents]:
+        candidate = root / path
+        if candidate.exists():
+            return candidate
+
+    return cwd / path
+
+
+def get_config() -> BriefsConfig:
     """Get the global configuration, loading from file if needed."""
     global _config
     if _config is None:
@@ -65,30 +74,27 @@ def get_config() -> BrandOpsConfig:
     return _config
 
 
-def load_config(path: Path | None = None) -> BrandOpsConfig:
+def load_config(path: Path | None = None) -> BriefsConfig:
     """Load configuration from YAML file."""
     path = resolve_config_path(path)
 
     if path and path.exists():
         with open(path) as f:
             data = yaml.safe_load(f) or {}
-        return BrandOpsConfig(**data)
+        return BriefsConfig(**data)
 
-    return BrandOpsConfig()
+    return BriefsConfig()
 
 
 def get_env(key: str, default: str | None = None) -> str | None:
-    """Get environment variable with BRANDOPS_ prefix."""
-    return os.getenv(f"BRANDOPS_{key.upper()}", default)
+    """Get environment variable with AGENTCY_BRIEFS_ prefix."""
+    return os.getenv(f"AGENTCY_BRIEFS_{key.upper()}", default)
 
 
 def get_brands_dir() -> Path:
     """Get the brands directory."""
     config = get_config()
-    brands_dir = config.brands_dir
-    if not brands_dir.is_absolute():
-        brands_dir = Path.cwd() / brands_dir
-    return brands_dir
+    return resolve_workspace_path(config.brands_dir)
 
 
 def load_brand_config(brand: str) -> dict[str, Any] | None:

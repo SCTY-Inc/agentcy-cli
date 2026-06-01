@@ -4,8 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-
-from agentcy_pulse import adapt_canonical_run_result_to_performance
+from agentcy_measure import adapt_canonical_run_result_to_performance
 
 ROOT = Path(__file__).resolve().parents[2]
 SIDECAR_PATH = (

@@ -1,6 +1,6 @@
 """Strategy stage - positioning and planning.
 
-This stage keeps brand-os as the canonical brief.v1 writer while selectively
+This stage keeps Briefs as the canonical brief.v1 writer while selectively
 re-homing only the smallest durable strategy concepts from cli-agency:
 positioning, audience framing, messaging pillars, proof points, and risks.
 """

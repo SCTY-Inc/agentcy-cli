@@ -39,7 +39,7 @@ def send_report(
 
     resend.api_key = api_key
 
-    from_email = os.getenv("BRANDOPS_FROM_EMAIL", "reports@brandos.dev")
+    from_email = os.getenv("AGENTCY_BRIEFS_FROM_EMAIL", "reports@agentcy.dev")
     subject = subject or f"Brand Report: {report.brand} ({report.report_date})"
 
     html_content = format_report_html(report)

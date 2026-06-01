@@ -136,25 +136,16 @@ pipeline-givecare:
 		--json > /tmp/gc_calibration.json
 	@echo "Pipeline complete. Artifacts in /tmp/gc_*.json"
 
-# GiveCare preview pipeline — dry run; studio publishes as preview, measure emits preview note
+# GiveCare preview pipeline — root pipeline smoke path
 pipeline-givecare-preview:
-	@echo "==> voice: export GiveCare companion voice pack"
-	uv run agentcy-voice --json export givecare-companion --to voice-pack.v1 > /tmp/gc_voice_pack.json
-	@echo "==> briefs: generate brief.v1 for GiveCare"
-	uv run agentcy-briefs plan run "$(req)" \
-		--brand givecare \
-		--voice-pack-input /tmp/gc_voice_pack.json \
-		--brief-v1-output /tmp/gc_brief.json \
-		-f json > /tmp/gc_brief_plan.json
-	@echo "==> forecast: smoke (fast, no full simulation)"
-	uv run agentcy-forecast run --smoke \
-		--brief /tmp/gc_brief.json \
-		--json > /tmp/gc_forecast.json
 	@echo "==> pipeline: preview mode (auto-approve, dry publish)"
 	uv run agentcy pipeline run \
 		--mode preview \
 		--brand givecare \
-		--brief-file /tmp/gc_brief.json \
+		--brief "$(req)" \
+		--with-forecast \
+		--files $(if $(files),$(files),docs/) \
+		--smoke \
 		--studio-workflow social.post \
 		--json > /tmp/gc_pipeline_preview.json
-	@echo "Preview complete. Artifacts in /tmp/gc_*.json"
+	@echo "Preview complete. Artifacts in /tmp/gc_pipeline_preview.json"

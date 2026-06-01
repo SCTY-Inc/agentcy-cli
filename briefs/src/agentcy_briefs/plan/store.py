@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import json
+import uuid
 from pathlib import Path
 from typing import Any
-import uuid
 
 from agentcy_briefs.core.config import utc_now
 from agentcy_briefs.core.storage import data_dir

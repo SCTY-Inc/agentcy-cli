@@ -121,7 +121,7 @@ def test_subprocess_env_includes_global_overrides() -> None:
         cli._OVERRIDES.model = None
 
 
-def test_member_json_normalizes_pulse_envelope_payload(monkeypatch) -> None:
+def test_member_json_normalizes_member_envelope_payload(monkeypatch) -> None:
     seen: dict[str, object] = {}
 
     def fake_run(command, capture_output, text, env):
@@ -209,7 +209,7 @@ def test_pipeline_run_uses_explicit_pipeline_id_and_root_claude_provider_for_bri
                 "status": "ok",
                 "command": "run",
                 "data": {
-                    "id": "run_loom_demo",
+                    "id": "run_studio_demo",
                     "workflow": "social.post",
                     "status": "in_review",
                     "currentStep": "review",
@@ -221,9 +221,10 @@ def test_pipeline_run_uses_explicit_pipeline_id_and_root_claude_provider_for_bri
 
     def fake_run(command, capture_output, text, env, check=False, cwd=None):
         if "agentcy-briefs" in command[0]:
-            seen["provider"] = env.get("BRANDOPS_LLM_PROVIDER")
+            seen["provider"] = env.get("AGENTCY_BRIEFS_LLM_PROVIDER")
             seen["model"] = env.get("CLAUDE_MODEL")
             seen["voice_arg"] = command[command.index("--voice-pack-id") + 1]
+            seen["cwd"] = str(cwd)
             output_path = Path(command[command.index("--output") + 1])
             output_path.write_text(
                 json.dumps({"activation": {"channels": ["twitter"]}}),
@@ -267,6 +268,7 @@ def test_pipeline_run_uses_explicit_pipeline_id_and_root_claude_provider_for_bri
         "provider": "claude-cli",
         "model": "sonnet",
         "voice_arg": "givecare.brand.core.voice.default",
+        "cwd": str(Path(__file__).resolve().parents[1]),
     }
 
 
@@ -286,7 +288,7 @@ def test_pipeline_run_writes_manifest_with_discovered_artifacts(
                 "status": "ok",
                 "command": "run",
                 "data": {
-                    "id": "run_loom_demo",
+                    "id": "run_studio_demo",
                     "workflow": "social.post",
                     "status": "in_review",
                     "currentStep": "review",
@@ -298,7 +300,7 @@ def test_pipeline_run_writes_manifest_with_discovered_artifacts(
 
     def fake_run(command, capture_output, text, env, check=False, cwd=None):
         if "agentcy-briefs" in command[0]:
-            seen["provider"] = env.get("BRANDOPS_LLM_PROVIDER")
+            seen["provider"] = env.get("AGENTCY_BRIEFS_LLM_PROVIDER")
             output_path = Path(command[command.index("--output") + 1])
             output_path.write_text(
                 json.dumps({"activation": {"channels": ["twitter"]}}),
@@ -346,7 +348,7 @@ def test_pipeline_run_writes_manifest_with_discovered_artifacts(
     assert Path(payload["data"]["report"]).exists()
 
 
-def test_pipeline_run_can_record_persona_eval_and_optional_loom_branch(
+def test_pipeline_run_can_record_persona_eval_and_optional_studio_branch(
     monkeypatch,
     tmp_path: Path,
 ) -> None:
@@ -369,7 +371,7 @@ def test_pipeline_run_can_record_persona_eval_and_optional_loom_branch(
                 "artifacts": {
                     "forecast_v1": str(tmp_path / "forecast.v1.json"),
                     "run_eval": str(
-                        tmp_path / "echo-runs" / "run_demo" / "eval" / "run_eval.v1.json"
+                        tmp_path / "forecast-runs" / "run_demo" / "eval" / "run_eval.v1.json"
                     ),
                 }
             }
@@ -382,7 +384,7 @@ def test_pipeline_run_can_record_persona_eval_and_optional_loom_branch(
                 "status": "ok",
                 "command": "run",
                 "data": {
-                    "id": "run_loom_demo",
+                    "id": "run_studio_demo",
                     "workflow": "social.post",
                     "status": "in_review",
                     "currentStep": "review",
@@ -392,17 +394,17 @@ def test_pipeline_run_can_record_persona_eval_and_optional_loom_branch(
             return {
                 "status": "ok",
                 "command": "review",
-                "data": {"id": "run_loom_demo", "status": "approved"},
+                "data": {"id": "run_studio_demo", "status": "approved"},
             }
         if args[0] == "publish":
             return {
                 "status": "ok",
                 "command": "publish",
                 "data": {
-                    "run": {"id": "run_loom_demo", "status": "approved"},
+                    "run": {"id": "run_studio_demo", "status": "approved"},
                     "runResult": {
                         "artifact_type": "run_result.v1",
-                        "run_id": "run_loom_demo",
+                        "run_id": "run_studio_demo",
                         "workflow": "social.post",
                         "status": "dry_run",
                     },
@@ -484,7 +486,7 @@ def test_pipeline_run_can_record_persona_eval_and_optional_loom_branch(
     assert manifest["artifacts"]["voice_pack"].endswith("voice/voice_pack.v1.json")
     assert manifest["artifacts"]["forecast"].endswith("forecast.v1.json")
     assert manifest["artifacts"]["forecast_run_eval"].endswith("run_eval.v1.json")
-    assert manifest["artifacts"]["studio_run_id"] == "run_loom_demo"
+    assert manifest["artifacts"]["studio_run_id"] == "run_studio_demo"
     assert manifest["artifacts"]["studio_run"].endswith("studio/run.json")
     assert manifest["artifacts"]["studio_review"].endswith("studio/review.json")
     assert manifest["artifacts"]["studio_publish"].endswith("studio/publish.json")
@@ -542,7 +544,7 @@ def test_pipeline_update_backfills_run_result_and_performance(tmp_path: Path) ->
         json.dumps(
             {
                 "artifact_type": "run_result.v1",
-                "run_id": "run_loom_demo",
+                "run_id": "run_studio_demo",
                 "workflow": "social.post",
                 "status": "published",
             }
@@ -555,7 +557,7 @@ def test_pipeline_update_backfills_run_result_and_performance(tmp_path: Path) ->
             {
                 "artifact_type": "performance.v1",
                 "performance_id": "perf.demo",
-                "run_id": "run_loom_demo",
+                "run_id": "run_studio_demo",
                 "measured_at": "2026-04-18T23:30:00Z",
             }
         ),
@@ -582,7 +584,7 @@ def test_pipeline_update_backfills_run_result_and_performance(tmp_path: Path) ->
     manifest = json.loads(Path(payload["data"]["manifest"]).read_text(encoding="utf-8"))
     assert manifest["artifacts"]["run_result"].endswith("run_result.v1.json")
     assert manifest["artifacts"]["performance"].endswith("performance.v1.json")
-    assert manifest["artifacts"]["studio_run_id"] == "run_loom_demo"
+    assert manifest["artifacts"]["studio_run_id"] == "run_studio_demo"
     assert manifest["steps"]["run_result"]["data"]["status"] == "published"
     assert manifest["steps"]["performance"]["data"]["performance_id"] == "perf.demo"
 

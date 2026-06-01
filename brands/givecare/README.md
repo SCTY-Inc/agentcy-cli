@@ -78,4 +78,4 @@ Crisis content (`grief`, `death`, `crisis`, `suicide`, etc.) always lands in `in
 
 ## Persona source
 
-The `givecare-companion` persona lives at `voice/personas/givecare-companion.yaml`. Vox reads it directly from the repo — no install step required.
+The `givecare-companion` persona lives at `voice/personas/givecare-companion.yaml`. Voice reads it directly from the repo; no install step is required.

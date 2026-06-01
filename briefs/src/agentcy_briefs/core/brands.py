@@ -6,17 +6,8 @@ from typing import Any
 
 import yaml
 
-from agentcy_briefs.core.config import get_config
+from agentcy_briefs.core.config import get_brands_dir
 from agentcy_briefs.core.identity import BrandProfile, Identity, Visual, Voice
-
-
-def get_brands_dir() -> Path:
-    """Get the brands directory."""
-    config = get_config()
-    brands_dir = config.brands_dir
-    if not brands_dir.is_absolute():
-        brands_dir = Path.cwd() / brands_dir
-    return brands_dir
 
 
 def discover_brands() -> list[str]:

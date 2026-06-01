@@ -1,1 +1,1 @@
-__all__ = ["brandos", "persona", "social"]
+__all__ = ["config", "persona", "social"]

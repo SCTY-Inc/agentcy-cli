@@ -3,6 +3,11 @@
 __version__ = "0.1.0"
 
 # Core
+from agentcy_briefs.core.brands import (
+    discover_brands,
+    load_brand_config,
+    load_brand_profile,
+)
 from agentcy_briefs.core.identity import (
     BrandProfile,
     Example,
@@ -10,12 +15,16 @@ from agentcy_briefs.core.identity import (
     Visual,
     Voice,
 )
-from agentcy_briefs.core.brands import (
-    discover_brands,
-    load_brand_config,
-    load_brand_profile,
-)
 from agentcy_briefs.core.llm import complete, complete_json, get_provider
+
+# Eval
+from agentcy_briefs.eval import (
+    aggregate_learnings,
+    grade_content,
+    heal_content,
+    load_rubric,
+    parse_rubric,
+)
 
 # Intel
 from agentcy_briefs.intel import (
@@ -24,12 +33,10 @@ from agentcy_briefs.intel import (
     run_intel_pipeline,
 )
 
-# Signals
-from agentcy_briefs.signals import (
-    append_signals,
-    filter_signals,
-    query_signals,
-    score_relevance,
+# Monitor
+from agentcy_briefs.monitor import (
+    generate_report,
+    send_report,
 )
 
 # Plan
@@ -51,15 +58,6 @@ from agentcy_briefs.produce import (
     generate_video,
 )
 
-# Eval
-from agentcy_briefs.eval import (
-    aggregate_learnings,
-    grade_content,
-    heal_content,
-    load_rubric,
-    parse_rubric,
-)
-
 # Publish
 from agentcy_briefs.publish import (
     add_to_queue,
@@ -68,10 +66,12 @@ from agentcy_briefs.publish import (
     remove_from_queue,
 )
 
-# Monitor
-from agentcy_briefs.monitor import (
-    generate_report,
-    send_report,
+# Signals
+from agentcy_briefs.signals import (
+    append_signals,
+    filter_signals,
+    query_signals,
+    score_relevance,
 )
 
 __all__ = [

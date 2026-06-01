@@ -54,5 +54,5 @@ class NotifyAction:
     def cli(self, decision: Decision) -> dict:
         """Log to CLI (passive notification via decision list)."""
         # This is passive - decisions are logged and visible via:
-        # brandos decision pending
+        # agentcy briefs decision pending
         return {"status": "logged", "decision_id": decision.id}

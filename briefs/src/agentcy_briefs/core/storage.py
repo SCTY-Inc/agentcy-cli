@@ -5,14 +5,14 @@ from pathlib import Path
 
 
 def default_data_dir(home: Path | None = None) -> Path:
-    """Return the current default runtime data dir compatibility path."""
+    """Return the default Briefs runtime data directory."""
     home = home or Path.home()
-    return home / ".brand-os"
+    return home / ".agentcy" / "briefs"
 
 
 def resolve_data_dir() -> Path:
-    """Resolve the active runtime data dir without changing compatibility behavior."""
-    root = os.getenv("BRANDOS_DATA_DIR")
+    """Resolve the active Briefs runtime data directory."""
+    root = os.getenv("AGENTCY_BRIEFS_DATA_DIR")
     return Path(root).expanduser() if root else default_data_dir()
 
 

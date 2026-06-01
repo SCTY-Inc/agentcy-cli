@@ -5,10 +5,10 @@
 ```bash
 uv sync --group dev
 cd studio && pnpm install
-make install-echo-simulation
+make install-forecast-simulation
 ```
 
-Full Forecast simulation uses the isolated Python 3.11 env from `make install-echo-simulation`. Use `--smoke` for fast local pipeline checks on Python 3.12.
+Full Forecast simulation uses the isolated Python 3.11 env from `make install-forecast-simulation`. Use `--smoke` for fast local pipeline checks on Python 3.12.
 
 ## Discovery
 

@@ -1,7 +1,6 @@
 """Content grading using LLM-as-judge."""
 from __future__ import annotations
 
-
 from pydantic import BaseModel, Field
 
 from agentcy_briefs.core.llm import complete_json

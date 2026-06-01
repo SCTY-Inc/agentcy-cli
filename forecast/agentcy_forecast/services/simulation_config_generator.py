@@ -143,7 +143,7 @@ class PlatformConfig:
     # Viral spread threshold (interactions needed to trigger spread)
     viral_threshold: int = 10
 
-    # Echo chamber effect strength (degree of similar opinion clustering)
+    # Opinion-clustering effect strength
     echo_chamber_strength: float = 0.5
 
 

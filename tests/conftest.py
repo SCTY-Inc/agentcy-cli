@@ -9,8 +9,8 @@ from agentcy import cli
 _LEAKY_VARS = (
     "LLM_PROVIDER",
     "CLAUDE_MODEL",
-    "BRANDOPS_LLM_PROVIDER",
-    "BRANDOPS_LLM_MODEL",
+    "AGENTCY_BRIEFS_LLM_PROVIDER",
+    "AGENTCY_BRIEFS_LLM_MODEL",
 )
 
 

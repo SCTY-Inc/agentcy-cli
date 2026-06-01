@@ -7,7 +7,7 @@ import agentcy_briefs.core.llm as llm
 
 
 def test_get_provider_uses_llm_provider_env_when_brandops_provider_is_unset(monkeypatch) -> None:
-    monkeypatch.delenv("BRANDOPS_LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("AGENTCY_BRIEFS_LLM_PROVIDER", raising=False)
     monkeypatch.setenv("LLM_PROVIDER", "claude-cli")
     monkeypatch.setattr(
         llm.shutil,

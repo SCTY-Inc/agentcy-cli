@@ -21,14 +21,14 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - name: Install Python workspace + dev tools
         run: uv sync --group dev
-      - name: Install loom runtime for protocol seam tests
+      - name: Install Studio runtime for protocol seam tests
         run: cd studio && pnpm install --frozen-lockfile
       - name: Python + protocol tests
         run: make check-python
       - name: Maintained-surface lint
         run: make lint
 
-  loom:
+  studio:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +38,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: '10'
-      - name: Install loom runtime
+      - name: Install Studio runtime
         run: cd studio && pnpm install --frozen-lockfile
-      - name: Loom tests + typecheck
-        run: make check-loom
+      - name: Studio tests + typecheck
+        run: make check-studio

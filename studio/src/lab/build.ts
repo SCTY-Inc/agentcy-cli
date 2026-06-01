@@ -96,9 +96,9 @@ function escapeJson(value: unknown): string {
 
 function buildFontCss(fontHrefPrefix: string): string {
   return [
-    `@font-face { font-family: "Loom Alegreya Body"; src: url("${fontHrefPrefix}/alegreya-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }`,
-    `@font-face { font-family: "Loom Alegreya Headline"; src: url("${fontHrefPrefix}/alegreya-latin-wght-normal.woff2") format("woff2"); font-weight: 400 900; font-style: normal; font-display: swap; }`,
-    `@font-face { font-family: "Loom Gabarito"; src: url("${fontHrefPrefix}/gabarito-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }`,
+    `@font-face { font-family: "Studio Alegreya Body"; src: url("${fontHrefPrefix}/alegreya-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }`,
+    `@font-face { font-family: "Studio Alegreya Headline"; src: url("${fontHrefPrefix}/alegreya-latin-wght-normal.woff2") format("woff2"); font-weight: 400 900; font-style: normal; font-display: swap; }`,
+    `@font-face { font-family: "Studio Gabarito"; src: url("${fontHrefPrefix}/gabarito-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }`,
   ].join('\n')
 }
 
@@ -148,7 +148,7 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
       body {
         background: var(--bg);
         color: var(--fg);
-        font-family: "Loom Alegreya Body", Georgia, serif;
+        font-family: "Studio Alegreya Body", Georgia, serif;
       }
 
       .app {
@@ -531,7 +531,7 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
         line-height: 0.92;
         letter-spacing: -0.05em;
         font-weight: 700;
-        font-family: "Loom Alegreya Headline", Georgia, serif;
+        font-family: "Studio Alegreya Headline", Georgia, serif;
         overflow-wrap: anywhere;
         text-wrap: balance;
       }
@@ -547,7 +547,7 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
         color: color-mix(in srgb, var(--card-fg, var(--fg)) 82%, var(--card-bg, var(--bg)) 18%);
         font-size: calc(12px + var(--density-step, 0) * 1px);
         line-height: 1.44;
-        font-family: "Loom Alegreya Body", Georgia, serif;
+        font-family: "Studio Alegreya Body", Georgia, serif;
         overflow-wrap: anywhere;
       }
 
@@ -615,12 +615,6 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
         flex: 0 0 auto;
       }
 
-      .media-block {
-        border: 1px solid color-mix(in srgb, var(--card-fg, var(--fg)) 12%, transparent);
-        background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 16%, transparent), color-mix(in srgb, var(--card-fg) 8%, transparent));
-        min-height: 120px;
-      }
-
       .layout-center .card-inner {
         align-content: center;
       }
@@ -638,38 +632,6 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
       .layout-footer-band .card-footer {
         padding-top: 10px;
         border-top: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
-      }
-
-      .layout-split .card-inner {
-        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-        grid-template-rows: minmax(0, 1fr) auto;
-        column-gap: 16px;
-      }
-
-      .layout-split .card-header {
-        grid-column: 1;
-        grid-row: 1;
-      }
-
-      .layout-split .card-footer {
-        grid-column: 1 / -1;
-        grid-row: 2;
-      }
-
-      .layout-split .media-block {
-        grid-column: 2;
-        grid-row: 1;
-        align-self: stretch;
-        min-height: 0;
-      }
-
-      .layout-poster .headline {
-        max-width: 8ch;
-        letter-spacing: -0.06em;
-      }
-
-      .layout-poster .body {
-        max-width: 20ch;
       }
 
       .platform-pill {
@@ -980,13 +942,13 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
 
       function resolveCardTypeForApproach(series, approachId, index) {
         const byApproach = {
-          'pulse-masthead': 'quote',
+          'editorial-masthead': 'quote',
           'editors-note': 'quote',
           'weekly-callouts': 'fact-list',
           'lead-signal': 'signal-post',
           'signal-grid': 'signal-post',
           'broken-copy': 'photo-text',
-          'type-poster': 'hero-stat',
+          'type-statement': 'hero-stat',
           'brief-sheet': 'fact-list',
         }
         const fallback = byApproach[approachId] || 'quote'
@@ -1035,18 +997,18 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
       function approachDefinitions() {
         if (boot.brand.layout === 'signal-grid') {
           return [
-            { id: 'signal-grid', label: 'Signal Grid', shortLabel: 'Signal', note: 'Sharp hierarchy, clean interruption, operator framing.', alignment: ['left', 'left', 'center'], density: ['balanced', 'dense', 'balanced'], accentMode: ['band', 'rule', 'corner'], texture: [0.18, 0.34], motif: [0.18, 0.34], scale: [0.92, 1.12], padding: [28, 42], layoutVariants: ['layout-split', 'layout-footer-band'] },
-            { id: 'broken-copy', label: 'Broken Copy', shortLabel: 'Broken', note: 'More damaged, more thresholded, more interruption.', alignment: ['left', 'left', 'left'], density: ['dense', 'dense', 'balanced'], accentMode: ['band', 'band', 'corner'], texture: [0.24, 0.42], motif: [0.2, 0.38], scale: [0.88, 1.06], padding: [26, 38], layoutVariants: ['layout-split', 'layout-poster'] },
-            { id: 'type-poster', label: 'Type Poster', shortLabel: 'Type', note: 'Larger type, simpler surfaces, harder statement.', alignment: ['left', 'center', 'left'], density: ['quiet', 'balanced', 'balanced'], accentMode: ['rule', 'corner', 'rule'], texture: [0.08, 0.22], motif: [0.12, 0.26], scale: [1.04, 1.24], padding: [30, 44], layoutVariants: ['layout-poster', 'layout-center'] },
-            { id: 'brief-sheet', label: 'Brief Sheet', shortLabel: 'Brief', note: 'More structured, more scan-friendly, still on-brand.', alignment: ['left', 'left', 'center'], density: ['balanced', 'dense', 'dense'], accentMode: ['rule', 'band', 'rule'], texture: [0.12, 0.26], motif: [0.08, 0.18], scale: [0.9, 1.04], padding: [28, 40], layoutVariants: ['layout-footer-band', 'layout-split'] },
+            { id: 'signal-grid', label: 'Signal Grid', shortLabel: 'Signal', note: 'Sharp hierarchy, clean interruption, operator framing.', alignment: ['left', 'left', 'center'], density: ['balanced', 'dense', 'balanced'], accentMode: ['band', 'rule', 'corner'], texture: [0.18, 0.34], motif: [0.18, 0.34], scale: [0.92, 1.12], padding: [28, 42], layoutVariants: ['layout-footer-band', 'layout-center'] },
+            { id: 'broken-copy', label: 'Broken Copy', shortLabel: 'Broken', note: 'More damaged, more thresholded, more interruption.', alignment: ['left', 'left', 'left'], density: ['dense', 'dense', 'balanced'], accentMode: ['band', 'band', 'corner'], texture: [0.24, 0.42], motif: [0.2, 0.38], scale: [0.88, 1.06], padding: [26, 38], layoutVariants: ['layout-footer-band'] },
+            { id: 'type-statement', label: 'Type Statement', shortLabel: 'Type', note: 'Larger type, simpler surfaces, harder statement.', alignment: ['left', 'center', 'left'], density: ['quiet', 'balanced', 'balanced'], accentMode: ['rule', 'corner', 'rule'], texture: [0.08, 0.22], motif: [0.12, 0.26], scale: [1.04, 1.24], padding: [30, 44], layoutVariants: ['layout-center'] },
+            { id: 'brief-sheet', label: 'Brief Sheet', shortLabel: 'Brief', note: 'More structured, more scan-friendly, still on-brand.', alignment: ['left', 'left', 'center'], density: ['balanced', 'dense', 'dense'], accentMode: ['rule', 'band', 'rule'], texture: [0.12, 0.26], motif: [0.08, 0.18], scale: [0.9, 1.04], padding: [28, 40], layoutVariants: ['layout-footer-band', 'layout-center'] },
           ]
         }
 
         return [
-          { id: 'pulse-masthead', label: 'Pulse Masthead', shortLabel: 'Masthead', note: 'Big editorial thesis with a restrained deck and strong breathing room.', alignment: ['left', 'center', 'left'], density: ['quiet', 'quiet', 'balanced'], accentMode: ['rule', 'corner'], texture: [0.03, 0.1], motif: [0.04, 0.12], scale: [1.04, 1.22], padding: [36, 54], layoutVariants: ['layout-center', 'layout-poster'] },
+          { id: 'editorial-masthead', label: 'Editorial Masthead', shortLabel: 'Masthead', note: 'Big editorial thesis with a restrained deck and strong breathing room.', alignment: ['left', 'center', 'left'], density: ['quiet', 'quiet', 'balanced'], accentMode: ['rule', 'corner'], texture: [0.03, 0.1], motif: [0.04, 0.12], scale: [1.04, 1.22], padding: [36, 54], layoutVariants: ['layout-center'] },
           { id: 'editors-note', label: 'Editor’s Note', shortLabel: 'Note', note: 'Lead paragraph first, softer hierarchy, more reading-oriented.', alignment: ['left', 'left', 'center'], density: ['quiet', 'balanced'], accentMode: ['rule', 'corner'], texture: [0.04, 0.14], motif: [0.05, 0.14], scale: [0.94, 1.06], padding: [38, 56], layoutVariants: ['layout-footer-band', 'layout-center'] },
-          { id: 'weekly-callouts', label: 'Weekly Callouts', shortLabel: 'Callouts', note: 'Structured recap with 2–3 takeaway blocks and a tighter editorial system.', alignment: ['left', 'left'], density: ['balanced', 'dense'], accentMode: ['band', 'rule'], texture: [0.06, 0.16], motif: [0.04, 0.1], scale: [0.9, 1.0], padding: [30, 42], layoutVariants: ['layout-split', 'layout-footer-band'] },
-          { id: 'lead-signal', label: 'Lead Signal', shortLabel: 'Signal', note: 'Single strongest idea with source-like framing and one clear implication.', alignment: ['left', 'center'], density: ['balanced', 'quiet'], accentMode: ['rule', 'band', 'corner'], texture: [0.08, 0.18], motif: [0.08, 0.2], scale: [0.96, 1.1], padding: [32, 46], layoutVariants: ['layout-split', 'layout-center'] },
+          { id: 'weekly-callouts', label: 'Weekly Callouts', shortLabel: 'Callouts', note: 'Structured recap with 2–3 takeaway blocks and a tighter editorial system.', alignment: ['left', 'left'], density: ['balanced', 'dense'], accentMode: ['band', 'rule'], texture: [0.06, 0.16], motif: [0.04, 0.1], scale: [0.9, 1.0], padding: [30, 42], layoutVariants: ['layout-footer-band', 'layout-center'] },
+          { id: 'lead-signal', label: 'Lead Signal', shortLabel: 'Signal', note: 'Single strongest idea with source-like framing and one clear implication.', alignment: ['left', 'center'], density: ['balanced', 'quiet'], accentMode: ['rule', 'band', 'corner'], texture: [0.08, 0.18], motif: [0.08, 0.2], scale: [0.96, 1.1], padding: [32, 46], layoutVariants: ['layout-footer-band', 'layout-center'] },
         ]
       }
 
@@ -1256,7 +1218,6 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
           + renderHeadline(fitted, headlineClass)
           + renderBody(fitted)
           + '</div>'
-          + renderMediaBlock(fitted)
           + '<div class="card-footer">'
           + '<div class="' + lockupClass + '">' + mark + '<span>' + escapeHtml(boot.brand.name) + '</span></div>'
           + '</div>'
@@ -1274,10 +1235,7 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
       }
 
       function renderHeadline(variant, headlineClass) {
-        const headline = variant.layoutVariant === 'layout-poster'
-          ? truncateWords(variant.headline, 8)
-          : variant.headline
-        return '<h3 class="' + headlineClass + '">' + escapeHtml(headline) + '</h3>'
+        return '<h3 class="' + headlineClass + '">' + escapeHtml(variant.headline) + '</h3>'
       }
 
       function renderBody(variant) {
@@ -1306,11 +1264,6 @@ export function buildCardLabHtml(options: BuildCardLabOptions): string {
         }
 
         return '<p class="body">' + escapeHtml(truncateWords(bullets.slice(0, 2).join(' '), 30)) + '</p>'
-      }
-
-      function renderMediaBlock(variant) {
-        if (variant.layoutVariant !== 'layout-split') return ''
-        return '<div class="media-block" aria-hidden="true"></div>'
       }
 
       function presetFor(variant) {

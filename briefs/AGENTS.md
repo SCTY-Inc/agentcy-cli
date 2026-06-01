@@ -23,7 +23,7 @@ Preferred stage surfaces are `brand`, `signals`, `intel`, and `plan`. `produce`,
 ```bash
 uv sync
 uv run agentcy-briefs --help
-BRANDOPS_LLM_PROVIDER=claude-cli CLAUDE_MODEL=sonnet uv run agentcy-briefs plan run "..." --brand givecare -f json
+AGENTCY_BRIEFS_LLM_PROVIDER=claude-cli CLAUDE_MODEL=sonnet uv run agentcy-briefs plan run "..." --brand givecare -f json
 uv run pytest
 uv run ruff check src/
 ```

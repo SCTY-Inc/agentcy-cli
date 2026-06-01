@@ -106,7 +106,7 @@ def _require_dspy():
         import dspy
     except ModuleNotFoundError as exc:
         raise typer.BadParameter(
-            "DSPy is optional. Install Vox optimization extras first: "
+            "DSPy is optional. Install Voice optimization extras first: "
             "uv sync --package agentcy-voice --extra optimize"
         ) from exc
     return dspy
@@ -607,7 +607,11 @@ def evals(
     ] = 10,
 ):
     """Inspect saved eval reports for a persona."""
-    from agentcy_voice.eval_store import compare_latest_eval_reports, latest_eval_report, list_eval_reports
+    from agentcy_voice.eval_store import (
+        compare_latest_eval_reports,
+        latest_eval_report,
+        list_eval_reports,
+    )
 
     if compare:
         comparison = compare_latest_eval_reports(name)

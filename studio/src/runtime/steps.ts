@@ -8,6 +8,7 @@ import type {
   StepName,
   WorkflowName,
 } from '../domain/types'
+import { brandLogoDataUri } from '../brands/assets'
 import { generateSocialDraftSet } from '../generate/copy'
 import { renderCard } from '../render/pipeline'
 import type { Ground } from '../render/tokens'
@@ -157,27 +158,6 @@ function brandGround(brand: BrandFoundation, style?: BrandVisualStyle): Ground {
     accent: palette.accent,
     dark: hexLuminance(bg) < 0.45,
   }
-}
-
-function logoMimeType(path: string): string {
-  const lower = path.toLowerCase()
-  if (lower.endsWith('.svg')) return 'image/svg+xml'
-  if (lower.endsWith('.png')) return 'image/png'
-  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg'
-  if (lower.endsWith('.webp')) return 'image/webp'
-  return 'application/octet-stream'
-}
-
-async function loadBrandLogoDataUri(context: WorkflowContext): Promise<string | undefined> {
-  const logo = context.brand.visual.logo
-  if (!logo) return undefined
-
-  const { existsSync, readFileSync } = await import('fs')
-  const { join } = await import('path')
-  const filePath = join(context.paths.brandsDir, context.brand.id, logo)
-  if (!existsSync(filePath)) return undefined
-
-  return `data:${logoMimeType(filePath)};base64,${readFileSync(filePath).toString('base64')}`
 }
 
 function resolveVisualStyle(brand: BrandFoundation, input: Record<string, unknown>): BrandVisualStyle | undefined {
@@ -406,7 +386,7 @@ async function buildAssetArtifacts(context: WorkflowContext): Promise<StepOutput
   const eyebrow = resolveCardEyebrow(context)
   const visualStyle = resolveVisualStyle(context.brand, context.input)
   const effectivePalette = mergePalette(context.brand.visual.palette, visualStyle?.palette)
-  const logoDataUri = await loadBrandLogoDataUri(context)
+  const logoDataUri = brandLogoDataUri(context.brand, context.paths.brandsDir)
 
   const groundId = typeof context.input.ground === 'string' ? context.input.ground : undefined
   const ground = groundId ? undefined : brandGround(context.brand, visualStyle)

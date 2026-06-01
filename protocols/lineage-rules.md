@@ -185,7 +185,7 @@ Family lineage and privacy rules:
 9. Metric fields must stay narrow, aggregate, and optional; canonical examples may include values like `impressions`, `reach`, `engagements`, `likes`, `comments`, `shares`, `saves`, `clicks`, `video_views`, `engagement_rate`, and `ctr`, but should not expand into broad warehouse-shaped payloads.
 10. Canonical `performance.v1` artifacts, examples, and tests must include no tokens, secrets, auth material, account credentials, audience-level data, or user-level PII.
 11. Publish locators such as platform `post_id` and public `url` are allowed because they identify the published artifact rather than an audience member.
-12. While `agentcy-measure` is still absent, these pulse rules also function as the minimum birth contract for any future repo: do not widen beyond the canonical published `social.post` seam before repo/package/import/CLI naming is chosen intentionally at repo birth.
+12. `agentcy-measure` owns the bounded measurement seam. Do not widen beyond the canonical published `social.post` seam without an explicit protocol change.
 
 ## Cross-artifact invariants
 

@@ -6,7 +6,6 @@ from typer.testing import CliRunner
 
 from agentcy_briefs.cli import app
 
-
 runner = CliRunner()
 
 

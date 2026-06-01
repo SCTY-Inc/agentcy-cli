@@ -14,7 +14,7 @@ Source-of-truth docs:
 |-----|-----|------|
 | `protocols/` | (lib) | Shared schemas + adapters + narrow helper utilities — `agentcy-protocols` pip package |
 | `voice/` | `agentcy-voice` | Persona management — create, test, optimize, export |
-| `briefs/` | `agentcy-briefs` | Brand ops — signals → plan → produce → publish |
+| `briefs/` | `agentcy-briefs` | Brand planning — brand kit + prompt → brief.v1 |
 | `forecast/` | `agentcy-forecast` | Swarm prediction — docs + requirement → social forecast |
 | `studio/` | `agentcy-studio` | Comms runtime — brief → draft → render → publish (TypeScript) |
 | `measure/` | `agentcy-measure` | Measurement + calibration + study — run_result.v1 → performance.v1 |
@@ -42,7 +42,7 @@ The root dispatcher now also exposes a lightweight pipeline layer:
 - use `--persona`, `--persona-eval`, `--with-forecast --files ...`, and `--publish` to turn on heavier stages explicitly
 - `agentcy pipeline update --manifest ... --run-result ... --performance ...` backfills later-stage canonical artifact paths after Studio publish / Measure adapt finish
 - `agentcy pipeline study --manifest ...` reopens that manifest and runs `agentcy-measure study` with auto-discovered forecast / voice eval sidecars
-- root `--provider` and `--model` flags are forwarded as `LLM_PROVIDER` / `CLAUDE_MODEL` to members that support them; the pipeline layer also maps compatible values onto Briefs as `BRANDOPS_LLM_PROVIDER` / `BRANDOPS_LLM_MODEL`
+- root `--provider` and `--model` flags are forwarded as `LLM_PROVIDER` / `CLAUDE_MODEL` to members that support them; the pipeline layer also maps compatible values onto Briefs as `AGENTCY_BRIEFS_LLM_PROVIDER` / `AGENTCY_BRIEFS_LLM_MODEL`
 
 ## Setup
 
@@ -54,7 +54,7 @@ uv sync --group dev
 cd studio && pnpm install
 # Protocol seam tests call the Studio launcher, so this install is also required for `make check-python`
 
-# Legacy Echo full simulation runtime, isolated on Python 3.11
+# Forecast full simulation runtime, isolated on Python 3.11
 make install-forecast-simulation
 
 # Full live pipeline (requires make install-forecast-simulation + make install-studio)
@@ -94,7 +94,7 @@ Current operator contract:
 - `agentcy-forecast` and `agentcy-studio` expose subcommand-level `--json`
 - `agentcy pipeline run/update/study --json` emit root-level normalized envelopes
 - `agentcy member <member> --json ...` wraps any member in one normalized root envelope, even when the member's native JSON contract differs
-- `agentcy-briefs` now exposes a global `--json` preference across compatible data-producing commands, plus `--json-envelope` for normalized Compass-local success envelopes
+- `agentcy-briefs` exposes a global `--json` preference across compatible data-producing commands, plus `--json-envelope` for normalized success envelopes
 - Exit: `0` success, `1` user error, `2` runtime error
 
 Do not assume every member subcommand has the same JSON envelope yet; use the documented command form for each tool.
@@ -122,4 +122,4 @@ Each protocol artifact carries the same `agentcy-*` name in both `writer.repo` a
 - `run_result.v1` → `agentcy-studio`
 - `performance.v1` → `agentcy-measure`
 
-Python module imports match these names (with underscores): `agentcy_voice`, `agentcy_briefs`, `agentcy_forecast`, `agentcy_pulse` (for `agentcy-measure`).
+Python module imports match these names with underscores: `agentcy_voice`, `agentcy_briefs`, `agentcy_forecast`, `agentcy_measure`.

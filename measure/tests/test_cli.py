@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from agentcy_pulse.cli import main
+from agentcy_measure.cli import main
 
 
 def test_cli_writes_output_file(monkeypatch, tmp_path: Path) -> None:
@@ -14,7 +14,7 @@ def test_cli_writes_output_file(monkeypatch, tmp_path: Path) -> None:
         assert run_result_path == Path("run-result.json")
         return expected
 
-    monkeypatch.setattr("agentcy_pulse.cli.adapt_canonical_run_result_to_performance", fake_adapt)
+    monkeypatch.setattr("agentcy_measure.cli.adapt_canonical_run_result_to_performance", fake_adapt)
 
     output_path = tmp_path / "performance.json"
     exit_code = main([
@@ -34,7 +34,7 @@ def test_cli_prints_json_when_output_is_omitted(monkeypatch, capsys) -> None:
     expected = {"artifact_type": "performance.v1", "performance_id": "stdout.performance"}
 
     monkeypatch.setattr(
-        "agentcy_pulse.cli.adapt_canonical_run_result_to_performance",
+        "agentcy_measure.cli.adapt_canonical_run_result_to_performance",
         lambda sidecar_path, *, run_result_path: expected,
     )
 
@@ -48,7 +48,7 @@ def test_cli_emits_standard_json_envelope_when_requested(monkeypatch, capsys) ->
     expected = {"artifact_type": "performance.v1", "performance_id": "json.performance"}
 
     monkeypatch.setattr(
-        "agentcy_pulse.cli.adapt_canonical_run_result_to_performance",
+        "agentcy_measure.cli.adapt_canonical_run_result_to_performance",
         lambda sidecar_path, *, run_result_path: expected,
     )
 

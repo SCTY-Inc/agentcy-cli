@@ -23,7 +23,7 @@ A portable brand kit lives at `brands/<brand>/{BRAND.md, DESIGN.md, brand.yml, a
 
 ## Naming contract
 
-Each protocol artifact's `writer.repo` and `writer.module` carry the same `agentcy-*` name. Python imports match with underscores (`agentcy_voice`, `agentcy_briefs`, `agentcy_forecast`, `agentcy_pulse` for `agentcy-measure`).
+Each protocol artifact's `writer.repo` and `writer.module` carry the same `agentcy-*` name. Python imports match with underscores (`agentcy_voice`, `agentcy_briefs`, `agentcy_forecast`, `agentcy_measure`).
 
 ## Capabilities and extensions
 

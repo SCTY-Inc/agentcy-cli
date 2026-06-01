@@ -1,8 +1,8 @@
-# Loom Runtime Architecture
+# Studio Runtime Architecture
 
 ## Purpose
 
-Loom is an autonomous brand communications runtime. brand.yml is the agent's operating spec — pillars are lenses for evaluating signals, voice constrains copy, visual drives rendering, offers define CTAs. The runtime executes the spec.
+Studio is an autonomous brand communications runtime. `brand.yml` is the agent's operating spec: pillars are lenses for evaluating signals, voice constrains copy, visual drives rendering, and offers define CTAs. The runtime executes the spec.
 
 ## Workflows
 
@@ -47,7 +47,7 @@ Each brand defines pillars with `perspective`, `signals`, `format`, and `frequen
 
 ### Step definitions
 
-Workflow steps are defined in `runtime/src/runtime/steps.ts`. All steps are async. The `Runtime` class in `runtime.ts` orchestrates execution, artifact storage, and state transitions.
+Workflow steps are defined in `src/runtime/steps.ts`. All steps are async. The `Runtime` class in `runtime.ts` orchestrates execution, artifact storage, and state transitions.
 
 ## Render Modules
 

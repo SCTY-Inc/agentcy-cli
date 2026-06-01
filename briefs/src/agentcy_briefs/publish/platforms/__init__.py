@@ -1,5 +1,6 @@
 """Social platform publishers."""
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 # Publisher callable: (content, credentials, media_paths) -> result dict
 Publisher = Callable[..., dict[str, Any]]

@@ -16,8 +16,8 @@ jobs:
       - name: Install dependencies
         run: uv sync
       - name: CLI help
-        run: uv run agentcy-pulse --help
+        run: uv run agentcy-measure --help
       - name: Import smoke
-        run: uv run python -c "import agentcy_pulse"
+        run: uv run python -c "import agentcy_measure"
       - name: Test suite
         run: uv run pytest

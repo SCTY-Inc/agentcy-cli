@@ -20,7 +20,7 @@ def reset_decision_log(monkeypatch) -> None:
 
 
 def test_approval_workflow_persists_review_and_execution(tmp_path, monkeypatch):
-    monkeypatch.setenv("BRANDOS_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("AGENTCY_BRIEFS_DATA_DIR", str(tmp_path))
     reset_decision_log(monkeypatch)
 
     decision = Decision(
@@ -47,7 +47,7 @@ def test_approval_workflow_persists_review_and_execution(tmp_path, monkeypatch):
 
 
 def test_approval_workflow_rejects_invalid_transition(tmp_path, monkeypatch):
-    monkeypatch.setenv("BRANDOS_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("AGENTCY_BRIEFS_DATA_DIR", str(tmp_path))
     reset_decision_log(monkeypatch)
 
     decision = Decision(
@@ -70,7 +70,7 @@ def test_approval_workflow_rejects_invalid_transition(tmp_path, monkeypatch):
 
 
 def test_reject_decision_updates_review_metadata(tmp_path, monkeypatch):
-    monkeypatch.setenv("BRANDOS_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("AGENTCY_BRIEFS_DATA_DIR", str(tmp_path))
     reset_decision_log(monkeypatch)
 
     decision = Decision(

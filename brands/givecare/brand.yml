@@ -1,7 +1,7 @@
-# GiveCare — Compass operational config
-# Brand identity lives in studio/brands/givecare/BRAND.md
+# GiveCare — Briefs operational config
+# Brand identity lives in brands/givecare/BRAND.md
 # This file contains only signal-monitoring and automation policy
-# that Compass needs and BRAND.md does not carry.
+# that Briefs needs and BRAND.md does not carry.
 
 name: givecare
 description: "AI caregiving companion — SMS-first support for America's 53M unpaid caregivers"
@@ -93,7 +93,7 @@ competitors:
   - "Papa (elder companion)"
   - Homethrive
 
-# === Compass-only: signal sources ===
+# === Briefs-only: signal sources ===
 # These are operational config that does not belong in BRAND.md
 
 subreddits:
@@ -118,7 +118,7 @@ stop_phrases:
   - "sponsored post"
   - "ad:"
 
-# === Compass-only: automation policy ===
+# === Briefs-only: automation policy ===
 # Confidence thresholds, cooldowns, rate limits — operational, not brand identity
 
 policy:

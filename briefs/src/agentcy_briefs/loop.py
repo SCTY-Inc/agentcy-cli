@@ -15,8 +15,9 @@ from __future__ import annotations
 import asyncio
 import signal
 import sys
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable, NoReturn
+from typing import Any, NoReturn
 
 from pydantic import BaseModel, Field
 
@@ -28,13 +29,13 @@ from agentcy_briefs.core.decision import (
     get_decision_log,
     list_decisions,
 )
+from agentcy_briefs.core.learning import log_outcome
 from agentcy_briefs.core.policy import (
     BrandPolicy,
     PolicyEvaluation,
     PolicyVerdict,
     get_policy_engine,
 )
-from agentcy_briefs.core.learning import log_outcome
 
 
 class LoopConfig(BaseModel):
@@ -182,7 +183,7 @@ class AutonomousLoop:
                     timeout=wait_time
                 )
                 break
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
 
     def _get_active_brands(self) -> list[str]:
@@ -228,8 +229,8 @@ class AutonomousLoop:
 
     async def _fetch_signals(self, brand: str) -> list[Any]:
         """Fetch signals for a brand from configured sources."""
-        from agentcy_briefs.signals.sources.rss import RSSSource, DEFAULT_FEEDS
         from agentcy_briefs.signals.sources.reddit import RedditSource, get_subreddits_for_brand
+        from agentcy_briefs.signals.sources.rss import DEFAULT_FEEDS, RSSSource
 
         # Load brand config
         config = load_brand_config(brand) or {}

@@ -339,7 +339,7 @@ def _run_briefs_plan(
     supported = {"mock", "gemini", "anthropic", "claude-cli"}
     preferred = (
         provider
-        or os.environ.get("BRANDOPS_LLM_PROVIDER")
+        or os.environ.get("AGENTCY_BRIEFS_LLM_PROVIDER")
         or _OVERRIDES.provider
         or os.environ.get("LLM_PROVIDER")
         or "mock"
@@ -351,12 +351,12 @@ def _run_briefs_plan(
     for candidate in [preferred, *(["mock"] if preferred != "mock" else [])]:
         tried.append(candidate)
         env = _subprocess_env()
-        env["BRANDOPS_LLM_PROVIDER"] = candidate
-        model = os.environ.get("BRANDOPS_LLM_MODEL") or _OVERRIDES.model or os.environ.get(
+        env["AGENTCY_BRIEFS_LLM_PROVIDER"] = candidate
+        model = os.environ.get("AGENTCY_BRIEFS_LLM_MODEL") or _OVERRIDES.model or os.environ.get(
             "CLAUDE_MODEL"
         )
         if model:
-            env.setdefault("BRANDOPS_LLM_MODEL", model)
+            env.setdefault("AGENTCY_BRIEFS_LLM_MODEL", model)
         try:
             subprocess.run(
                 command,
@@ -371,7 +371,7 @@ def _run_briefs_plan(
             if candidate == "mock" or preferred == "mock":
                 message = (exc.stderr or exc.stdout or str(exc)).strip()
                 raise RuntimeError(message) from exc
-    raise RuntimeError(f"Compass failed for providers: {', '.join(tried)}")
+    raise RuntimeError(f"Briefs failed for providers: {', '.join(tried)}")
 
 # ---
 @pipeline_app.command("run")
@@ -444,8 +444,14 @@ def pipeline_run(
         str | None,
         typer.Option("--forecast-output-dir", help="Override forecast run artifact root"),
     ] = None,
-    max_rounds: Annotated[int | None, typer.Option("--max-rounds", help="Forward to forecast")]=None,
-    json_out: Annotated[bool, typer.Option("--json", help="Machine-readable output")]=False,
+    max_rounds: Annotated[
+        int | None,
+        typer.Option("--max-rounds", help="Forward to forecast"),
+    ] = None,
+    json_out: Annotated[
+        bool,
+        typer.Option("--json", help="Machine-readable output"),
+    ] = False,
 ) -> None:
     """Run the repo-local essential brand-to-artifact pipeline."""
     resolved_files = list(files or [])
@@ -583,13 +589,13 @@ def pipeline_run(
         briefs_provider_used, briefs_degraded = _run_briefs_plan(
             briefs_command,
             provider=briefs_provider,
-            cwd=Path(__file__).resolve().parents[1] / "briefs",
+            cwd=Path(__file__).resolve().parents[1],
         )
         if briefs_degraded:
             manifest = _record_degradation(
                 manifest,
                 "Briefs fell back to "
-                f"BRANDOPS_LLM_PROVIDER={briefs_provider_used} after the preferred "
+                f"AGENTCY_BRIEFS_LLM_PROVIDER={briefs_provider_used} after the preferred "
                 "provider failed schema validation or command execution.",
             )
         briefs_payload = _load_json(briefs_output_path)
@@ -608,7 +614,9 @@ def pipeline_run(
         _save_pipeline_manifest(manifest_path, manifest)
 
         if with_forecast:
-            resolved_forecast_output_dir = forecast_output_dir or str(_module_dir(pipeline_dir, "forecast"))
+            resolved_forecast_output_dir = forecast_output_dir or str(
+                _module_dir(pipeline_dir, "forecast")
+            )
             forecast_args = [
                 "run",
                 "--files",
@@ -626,7 +634,10 @@ def pipeline_run(
 
             forecast_payload = _capture_member_json("agentcy-forecast", forecast_args)
             forecast_run_id = str(forecast_payload.get("run_id"))
-            export_payload = _forecast_artifacts_for_run(forecast_run_id, resolved_forecast_output_dir)
+            export_payload = _forecast_artifacts_for_run(
+                forecast_run_id,
+                resolved_forecast_output_dir,
+            )
             artifacts = dict(export_payload.get("artifacts") or {})
             forecast_run_dir = str(Path(resolved_forecast_output_dir).resolve() / forecast_run_id)
             manifest = _record_pipeline_step(
@@ -638,7 +649,11 @@ def pipeline_run(
             manifest = _record_pipeline_artifact(manifest, "forecast_run_id", forecast_run_id)
             manifest = _record_pipeline_artifact(manifest, "forecast_run_dir", forecast_run_dir)
             manifest = _record_pipeline_artifact(manifest, "forecast", artifacts.get("forecast_v1"))
-            manifest = _record_pipeline_artifact(manifest, "forecast_run_eval", artifacts.get("run_eval"))
+            manifest = _record_pipeline_artifact(
+                manifest,
+                "forecast_run_eval",
+                artifacts.get("run_eval"),
+            )
             if not artifacts.get("forecast_v1"):
                 manifest = _record_degradation(
                     manifest,
@@ -722,7 +737,11 @@ def pipeline_run(
                     manifest,
                     "measure",
                     status="skipped",
-                    data={"reason": "canonical performance.v1 is attached later with pipeline update"},
+                    data={
+                        "reason": (
+                            "canonical performance.v1 is attached later with pipeline update"
+                        )
+                    },
                 )
                 manifest = _record_pipeline_artifact(
                     manifest,
@@ -968,4 +987,3 @@ def pipeline_study(
 # ---------------------------------------------------------------------------
 # catalog / quickstart / doctor
 # ---------------------------------------------------------------------------
-

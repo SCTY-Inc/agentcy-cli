@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { extname, join, resolve } from 'path'
+import { brandLogoDataUri } from '../brands/assets'
 import { loadBrandFoundation } from '../brands/load'
 import { ensureParentDir, resolveRuntimePaths } from '../core/paths'
 import { buildCardLabHtml, CARD_LAB_TYPES, type CardLabType } from '../lab/build'
@@ -54,7 +55,7 @@ function usage(): string {
     'Usage:',
     '  lab card --brand <id> [--type quote] [--headline "..."] [--out path]',
     '  lab cover --brand <id> --title "..." [--subtitle "..."] [--eyebrow "..."] [--seed "..."] [--background path.png] [--source post.md] [--out cover.png]',
-    '  lab render --brand <id> [--style editorial] [--ground cream] [--platform linkedin] [--headline "..."] [--body "..."] [--out path.png]',
+    '  lab render --brand <id> [--style editorial] [--ground cream] [--platform linkedin] [--headline "..."] [--body "..."] [--cta "..."] [--out path.png]',
   ].join('\n')
 }
 
@@ -270,6 +271,7 @@ async function runLabRender(args: string[], root?: string): Promise<unknown> {
   } : undefined
   const headline = parsed.headline || 'Care is infrastructure'
   const body     = parsed.body || 'The care economy is valued at $1 trillion in unpaid labor annually.'
+  const cta      = parsed.cta
   const eyebrow  = parsed.eyebrow || 'CARE ECONOMY'
   const outPath  = parsed.out
     ? resolve(paths.root, parsed.out)
@@ -280,13 +282,22 @@ async function runLabRender(args: string[], root?: string): Promise<unknown> {
     : undefined
 
   mkdirSync(join(paths.stateDir, 'cards'), { recursive: true })
+  const logoDataUri = brand ? brandLogoDataUri(brand, paths.brandsDir) : undefined
   const png = await renderCard({
     ground, groundId: groundId || 'cream', platformId,
-    topic: eyebrow, eyebrow, headline, body, stat,
+    topic: eyebrow, eyebrow, headline, body, cta, stat,
     style,
     brandName: brand?.name || 'GiveCare',
+    logoDataUri,
   })
   writeFileSync(outPath, png)
 
-  return { ground: groundId || 'brand', style: style?.id ?? null, platform: platformId, path: outPath }
+  return {
+    ground: groundId || 'brand',
+    style: style?.id ?? null,
+    platform: platformId,
+    path: outPath,
+    logo: brand?.visual.logo ?? null,
+    logoEmbedded: Boolean(logoDataUri),
+  }
 }

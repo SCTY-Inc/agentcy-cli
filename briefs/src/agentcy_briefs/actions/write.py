@@ -17,13 +17,9 @@ from agentcy_briefs.core.storage import data_dir
 class WriteAction:
     """Write decision outputs to files.
 
-    Creates structured output in the current compatibility runtime path:
-        ~/.brand-os/outputs/{brand}/{date}/{decision_id}.json
-        ~/.brand-os/outputs/{brand}/{date}/{decision_id}.md
-
-    This intentionally follows `agentcy_briefs.core.storage.data_dir()` rather than the
-    config-model `BrandOpsConfig.data_dir` surface, which currently defaults to
-    `~/.brandos`.
+    Creates structured output in the Briefs runtime path:
+        ~/.agentcy/briefs/outputs/{brand}/{date}/{decision_id}.json
+        ~/.agentcy/briefs/outputs/{brand}/{date}/{decision_id}.md
     """
 
     def __init__(self, base_dir: Path | None = None):
@@ -59,29 +55,29 @@ class WriteAction:
         """Format decision as readable markdown."""
         lines = [
             f"# {decision.type.value.replace('_', ' ').title()}",
-            f"",
+            "",
             f"**Brand**: {decision.brand}",
             f"**ID**: {decision.id}",
             f"**Created**: {decision.created_at.isoformat()}",
             f"**Confidence**: {decision.confidence:.0%}",
             f"**Status**: {decision.status.value}",
-            f"",
-            f"## Rationale",
-            f"",
+            "",
+            "## Rationale",
+            "",
             decision.rationale,
-            f"",
-            f"## Proposal",
-            f"",
-            f"```json",
+            "",
+            "## Proposal",
+            "",
+            "```json",
             json.dumps(decision.proposal, indent=2, default=str),
-            f"```",
+            "```",
         ]
 
         if analysis:
             lines.extend([
-                f"",
-                f"## Analysis",
-                f"",
+                "",
+                "## Analysis",
+                "",
             ])
 
             if "summary" in analysis:

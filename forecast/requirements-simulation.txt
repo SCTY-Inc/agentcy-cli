@@ -1,6 +1,6 @@
 # Legacy OASIS/CAMEL simulation runtime.
-# Install into a separate Python 3.11 environment with `make install-echo-simulation`.
-# Keep Echo's third-party base deps here too; the Makefile installs local packages with --no-deps
+# Install into a separate Python 3.11 environment with `make install-forecast-simulation`.
+# Keep Forecast's third-party base deps here too; the Makefile installs local packages with --no-deps
 # so this file remains the source for the compiled simulation lock.
 openai>=1.0.0
 PyMuPDF>=1.24.0

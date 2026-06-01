@@ -12,12 +12,20 @@ function createWorkspace(): string {
   const root = mkdtempSync(join(tmpdir(), 'studio-cli-'))
   roots.push(root)
   mkdirSync(join(root, 'brands', 'givecare'), { recursive: true })
+  mkdirSync(join(root, 'brands', 'givecare', 'assets'), { recursive: true })
+  writeFileSync(
+    join(root, 'brands', 'givecare', 'assets', 'gc.svg'),
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 657 100"><text x="0" y="72" font-size="72">GiveCare</text></svg>',
+    'utf8',
+  )
   writeFileSync(
     join(root, 'brands', 'givecare', 'BRAND.md'),
     `
 ---
 name: GiveCare
 positioning: Care as infrastructure.
+visual:
+  logo: assets/gc.svg
 voice:
   tone: [warm, direct, specific]
   style: [human, plainspoken]
@@ -443,6 +451,40 @@ Warm editorial.
     const htmlPath = String(response.data.path)
     expect(htmlPath).toContain(join(root, 'state', 'lab'))
     expect(existsSync(htmlPath)).toBe(true)
+  })
+
+  test('renders lab cards with brand logo metadata', async () => {
+    const root = createWorkspace()
+    process.env.STUDIO_ROOT = root
+    process.env.HOME = root
+
+    const { result, stdout } = await captureStdout(() =>
+      runCli([
+        'lab',
+        'render',
+        '--brand',
+        'givecare',
+        '--headline',
+        'Care is infrastructure',
+        '--body',
+        'Make invisible work visible.',
+        '--cta',
+        'Text START',
+        '--json',
+      ]),
+    )
+
+    expect(result).toBe(0)
+    const response = JSON.parse(stdout)
+    expect(response).toMatchObject({
+      status: 'ok',
+      command: 'lab',
+      data: {
+        logo: 'assets/gc.svg',
+        logoEmbedded: true,
+      },
+    })
+    expect(existsSync(String(response.data.path))).toBe(true)
   })
 
   test('renders a 1200x630 OG cover with a sidecar contract', async () => {

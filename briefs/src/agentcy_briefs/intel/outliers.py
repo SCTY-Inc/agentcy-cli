@@ -1,8 +1,8 @@
 """Outlier detection for viral content."""
 from __future__ import annotations
 
-from typing import Any
 import statistics
+from typing import Any
 
 
 def detect_outliers(

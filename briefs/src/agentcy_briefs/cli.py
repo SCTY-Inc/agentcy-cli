@@ -33,14 +33,14 @@ def main(
     set_output_mode(json_output=json_output, envelope=json_envelope)
 
 # Import and register subcommand groups
+from agentcy_briefs.eval.cli import eval_app
 from agentcy_briefs.intel.cli import intel_app
-from agentcy_briefs.signals.cli import signals_app
+from agentcy_briefs.loop_cli import decision_app, learn_app, loop_app, policy_app
+from agentcy_briefs.monitor.cli import monitor_app
 from agentcy_briefs.plan.cli import plan_app
 from agentcy_briefs.produce.cli import produce_app
-from agentcy_briefs.eval.cli import eval_app
 from agentcy_briefs.publish.cli import publish_app, queue_cli_app
-from agentcy_briefs.monitor.cli import monitor_app
-from agentcy_briefs.loop_cli import loop_app, decision_app, policy_app, learn_app
+from agentcy_briefs.signals.cli import signals_app
 
 app.add_typer(intel_app, name="intel")
 app.add_typer(signals_app, name="signals")

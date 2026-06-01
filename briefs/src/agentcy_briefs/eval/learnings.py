@@ -5,9 +5,9 @@ import json
 from pathlib import Path
 from typing import Any
 
+from agentcy_briefs.core.brands import get_brand_dir
 from agentcy_briefs.core.config import utc_now
 from agentcy_briefs.core.llm import complete_json
-from agentcy_briefs.core.brands import get_brand_dir
 
 
 def get_eval_log_path(brand: str) -> Path:

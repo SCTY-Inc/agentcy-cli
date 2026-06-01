@@ -5,7 +5,7 @@ Measure owns measurement, calibration, and study. It consumes `run_result.v1` an
 ## Current Surfaces
 
 - Python distribution: `agentcy-measure`
-- Python import root: `agentcy_pulse`
+- Python import root: `agentcy_measure`
 - installed CLI: `agentcy-measure`
 - dispatcher alias: `agentcy measure ...`
 - writer contract: `performance.v1.writer = { repo: "agentcy-measure", module: "agentcy-measure" }`
@@ -26,7 +26,7 @@ All JSON commands emit `{status, command, data}` envelopes.
 
 ```text
 measure/
-  src/agentcy_pulse/
+  src/agentcy_measure/
     adapter.py
     calibration.py
     cli.py

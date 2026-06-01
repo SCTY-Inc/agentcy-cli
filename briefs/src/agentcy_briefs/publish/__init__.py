@@ -1,9 +1,9 @@
 """Publish module - from phantom-cli-tools."""
 from agentcy_briefs.publish.queue import (
     add_to_queue,
+    clear_queue,
     get_queue,
     remove_from_queue,
-    clear_queue,
 )
 
 __all__ = [

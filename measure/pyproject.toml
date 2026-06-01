@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [project.scripts]
-agentcy-measure = "agentcy_pulse.cli:main"
+agentcy-measure = "agentcy_measure.cli:main"
 
 [tool.uv.sources]
 agentcy-protocols = { workspace = true }
@@ -20,7 +20,7 @@ requires = ["hatchling>=1.27.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agentcy_pulse"]
+packages = ["src/agentcy_measure"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -8,7 +8,6 @@ from typer.testing import CliRunner
 
 from agentcy_briefs.cli import app
 
-
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT = ROOT / "pyproject.toml"
 runner = CliRunner()

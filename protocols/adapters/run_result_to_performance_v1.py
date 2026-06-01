@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 from typing import Any
 
-from jsonschema import Draft202012Validator
-
 from agentcy_protocols.utils import load_json
+from jsonschema import Draft202012Validator
 
 PROTOCOLS_DIR = Path(__file__).resolve().parent
 if not (PROTOCOLS_DIR / "schemas").exists():
@@ -79,7 +79,9 @@ def _validate_run_result(run_result: dict[str, Any]) -> None:
         item for item in delivery.get("platforms", []) if item.get("status") == "published"
     ]
     if not published_platforms:
-        raise AdapterValidationError("Upstream input must include at least one published delivery platform")
+        raise AdapterValidationError(
+            "Upstream input must include at least one published delivery platform"
+        )
 
 
 def _validate_sidecar(sidecar: dict[str, Any]) -> None:
@@ -108,14 +110,20 @@ def _validate_sidecar(sidecar: dict[str, Any]) -> None:
             raise AdapterValidationError("Each sidecar observation must include metrics")
         metrics = observation["metrics"]
         if not isinstance(metrics, dict) or not metrics:
-            raise AdapterValidationError("Each sidecar observation must include a non-empty metrics object")
+            raise AdapterValidationError(
+                "Each sidecar observation must include a non-empty metrics object"
+            )
         invalid_keys = sorted(set(metrics) - ALLOWED_METRIC_KEYS)
         if invalid_keys:
             raise AdapterValidationError(
-                f"Observation for platform {observation['platform']} uses unsupported metric keys: {', '.join(invalid_keys)}"
+                "Observation for platform "
+                f"{observation['platform']} uses unsupported metric keys: "
+                f"{', '.join(invalid_keys)}"
             )
         if "post_id" in observation or "url" in observation:
-            raise AdapterValidationError("Sidecar observations may not invent or override publish locators")
+            raise AdapterValidationError(
+                "Sidecar observations may not invent or override publish locators"
+            )
 
 
 def adapt_run_result_to_performance(
@@ -140,11 +148,13 @@ def adapt_run_result_to_performance(
         upstream = published_platforms.get(platform)
         if upstream is None:
             raise AdapterValidationError(
-                f"Observation platform {platform} does not match a canonical published delivery platform"
+                f"Observation platform {platform} does not match a canonical "
+                "published delivery platform"
             )
         if not upstream.get("post_id") and not upstream.get("url"):
             raise AdapterValidationError(
-                f"Published platform {platform} is missing both post_id and url in canonical run_result.v1"
+                f"Published platform {platform} is missing both post_id and url "
+                "in canonical run_result.v1"
             )
 
         adapted = {
@@ -194,7 +204,10 @@ def adapt_from_paths(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Adapt canonical published run_result.v1 plus a deterministic sidecar into performance.v1; this remains the bounded family-owned pulse seam and minimum future agentcy-measure birth-contract adapter surface"
+        description=(
+            "Adapt canonical published run_result.v1 plus a deterministic sidecar "
+            "into performance.v1; this remains the bounded agentcy-measure adapter surface"
+        )
     )
     parser.add_argument("sidecar", type=Path, help="Path to deterministic measurement sidecar JSON")
     parser.add_argument(

@@ -1,7 +1,7 @@
 """Research stage - market research and analysis.
 
-This stage stays repo-local to brand-os and selectively re-homes only durable
-cli-agency research concepts that can strengthen the brief.v1 seam.
+This stage stays local to Briefs and keeps only durable research concepts that
+strengthen the brief.v1 seam.
 """
 from __future__ import annotations
 
@@ -83,7 +83,8 @@ def research(
         if known_competitors:
             competitor_list = "\n".join(f"- {c}" for c in known_competitors)
             prompt_parts.append(
-                f"Known competitors to analyze (use these exactly — do not substitute or invent others):\n{competitor_list}"
+                "Known competitors to analyze "
+                f"(use these exactly - do not substitute or invent others):\n{competitor_list}"
             )
 
     if context:

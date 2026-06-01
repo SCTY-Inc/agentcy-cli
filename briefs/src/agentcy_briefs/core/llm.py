@@ -130,7 +130,7 @@ class ClaudeCLIProvider:
             raise ProviderError("claude CLI not found")
 
     def _model(self, model: str | None = None) -> str | None:
-        return model or os.getenv("BRANDOPS_LLM_MODEL") or os.getenv("CLAUDE_MODEL") or None
+        return model or os.getenv("AGENTCY_BRIEFS_LLM_MODEL") or os.getenv("CLAUDE_MODEL") or None
 
     def complete(self, prompt: str, system: str | None = None, model: str | None = None) -> str:
         prompt_parts = []
@@ -200,7 +200,7 @@ def _parse_json(text: str, default: dict[str, Any] | None = None) -> dict[str, A
 
 
 def get_provider(name: str | None = None) -> LLMProvider:
-    provider = name or os.getenv("BRANDOPS_LLM_PROVIDER")
+    provider = name or os.getenv("AGENTCY_BRIEFS_LLM_PROVIDER")
     if not provider:
         llm_provider = os.getenv("LLM_PROVIDER", "").strip().lower()
         if llm_provider in {"mock", "gemini", "anthropic", "claude-cli"}:

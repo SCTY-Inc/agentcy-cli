@@ -10,7 +10,8 @@ class _MetricLeader(TypedDict):
     platform: str
     value: float
 
-WORKSPACE_ROOT = Path(__file__).resolve().parents[3]  # agentcy_pulse/ → src/ → measure/ → agentcy/
+
+WORKSPACE_ROOT = Path(__file__).resolve().parents[3]
 CANONICAL_FORECAST_PATH = (
     WORKSPACE_ROOT / "protocols" / "examples" / "forecast.v1.completed-rich.json"
 )

@@ -16,7 +16,7 @@ def load_profile(config_path: str | Path, brand_key: str) -> BrandProfile:
         name=brand_key,
         description=profile.get("company_summary"),
         voice=Voice(),
-        metadata={"source": "brandos"},
+        metadata={"source": "agentcy"},
     )
 
     return BrandProfile(
@@ -24,7 +24,7 @@ def load_profile(config_path: str | Path, brand_key: str) -> BrandProfile:
         keywords=profile.get("keywords") or [],
         competitors=profile.get("competitors") or [],
         stop_phrases=profile.get("stop_phrases") or [],
-        metadata={"source": "brandos"},
+        metadata={"source": "agentcy"},
     )
 
 

@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from agentcy_pulse.cli import main
-from agentcy_pulse.synthetic_analysis import build_study_report
+from agentcy_measure.cli import main
+from agentcy_measure.synthetic_analysis import build_study_report
 
 ROOT = Path(__file__).resolve().parents[2]
 PROTOCOLS = ROOT / "protocols" / "examples"

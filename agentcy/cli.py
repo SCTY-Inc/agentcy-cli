@@ -369,7 +369,10 @@ def _foundation_payload() -> dict[str, dict[str, Any]]:
             "consumed_by": ["studio"],
         },
         "content": {
-            "purpose": "Signals, pillars, campaign intent, proof, CTA, channel guidance, and risks.",
+            "purpose": (
+                "Signals, pillars, campaign intent, proof, CTA, channel guidance, "
+                "and risks."
+            ),
             "primary_artifact": "brief.v1",
             "owner": "briefs",
             "consumed_by": ["forecast", "studio", "measure"],
@@ -656,7 +659,10 @@ def quickstart(
         str,
         typer.Option(
             "--profile",
-            help="Install profile: python-suite | forecast-simulation | studio-runtime | full-operator",
+            help=(
+                "Install profile: python-suite | forecast-simulation | "
+                "studio-runtime | full-operator"
+            ),
         ),
     ] = "python-suite",
     json_out: Annotated[bool, typer.Option("--json", help="Machine-readable output")] = False,
