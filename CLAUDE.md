@@ -19,6 +19,8 @@ Source-of-truth docs:
 | `studio/` | `agentcy-studio` | Comms runtime — brief → draft → render → publish (TypeScript) |
 | `measure/` | `agentcy-measure` | Measurement + calibration + study — run_result.v1 → performance.v1 |
 
+> **Social-credential boundary (atum):** brand-token social posting on this server is owned solely by `atelier/publish` (`~/agents/_skills/atelier/`). `studio/` shares the `{PLATFORM}_{BRAND}_*` env convention, so don't run agentcy publishers against `/home/deploy/.env` here — that's atelier's lane. agentcy publishers are for the product's own runs and creds.
+
 ## Pipeline
 
 ```
