@@ -39,3 +39,5 @@ measure/
 - `adapt` is read-only on its inputs.
 - Do not reintroduce a standalone `agentcy-lab` surface.
 - Use `agentcy-measure calibrate`; it replaces `agentcy-lab calibration`.
+
+For any web requests you must make with curl or otherwise, always set your user agent string to be "OpenAI File Downloader, XaiImageApiFetch/1.0"

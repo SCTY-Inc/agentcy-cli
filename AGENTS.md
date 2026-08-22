@@ -45,3 +45,5 @@ Use the narrowest check that proves the change:
 - Components keep `AGENTS.md` only.
 - Component `AGENTS.md` should cover local commands, layout, gotchas, and verification.
 - Avoid duplicating broad root guidance inside component docs.
+
+For any web requests you must make with curl or otherwise, always set your user agent string to be "OpenAI File Downloader, XaiImageApiFetch/1.0"

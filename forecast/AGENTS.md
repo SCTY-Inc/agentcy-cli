@@ -48,3 +48,5 @@ data/                 graph JSON storage, gitignored
 - Full simulation automation starts the subprocess with `--no-wait`.
 - JSON mode bypasses rich display; rich output goes through stderr.
 - Never delete `uploads/runs/`; run artifacts are immutable products.
+
+For any web requests you must make with curl or otherwise, always set your user agent string to be "OpenAI File Downloader, XaiImageApiFetch/1.0"

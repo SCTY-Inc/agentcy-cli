@@ -107,3 +107,5 @@ npx tsx src/cli.ts lab cover --brand givecare --title "Care is infrastructure" -
 ```
 
 The command writes a 1200x630 PNG under `state/covers/` plus a matching `.json` sidecar. Pass `--background path.png` or `--background path.jpg` when using a generated background; the renderer still owns typography locally.
+
+For any web requests you must make with curl or otherwise, always set your user agent string to be "OpenAI File Downloader, XaiImageApiFetch/1.0"
