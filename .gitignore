@@ -1,25 +1,24 @@
 # Python
 .venv/
+venv/
 .venv-simulation/
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
 *.egg-info/
 dist/
 build/
 .pytest_cache/
 .ruff_cache/
-*.pyc
+.coverage
+htmlcov/
 
-# uv
+# uv (workspace lock is root only)
 **/uv.lock
 !/uv.lock
 
-# Node / TypeScript
+# Node
 node_modules/
 .pnpm-store/
-dist/
-.next/
 *.tsbuildinfo
 
 # Runtime state
@@ -35,10 +34,7 @@ artifacts/
 .env.*
 !.env.example
 
-# Editor / OS
+# Editor / OS / local agent state
 .DS_Store
 .claude/
 .codex/
-.openclaw/
-.pi/
-.agents/
