@@ -34,8 +34,16 @@ def get_brand_dir(name: str) -> Path:
 def resolve_brand(name: str) -> Path | None:
     """Resolve a brand name to its directory path."""
     brand_dir = get_brand_dir(name)
-    if brand_dir.exists():
+    if brand_dir.is_dir():
         return brand_dir
+    # Fall back to a case-insensitive match so "GiveCare" finds brands/givecare
+    # on case-sensitive filesystems (Linux), as it already does on macOS.
+    brands_dir = get_brands_dir()
+    if brands_dir.is_dir():
+        wanted = name.casefold()
+        for item in sorted(brands_dir.iterdir()):
+            if item.is_dir() and item.name.casefold() == wanted:
+                return item
     return None
 
 
@@ -46,7 +54,7 @@ def load_brand_config(name: str) -> dict[str, Any]:
         raise ValueError(f"Brand not found: {name}")
 
     # Try both naming conventions
-    for filename in ["brand.yml", f"{name}-brand.yml"]:
+    for filename in ["brand.yml", f"{brand_dir.name}-brand.yml"]:
         config_path = brand_dir / filename
         if config_path.exists():
             with open(config_path) as f:
@@ -89,7 +97,7 @@ def load_brand_rubric(name: str) -> dict[str, Any]:
         raise ValueError(f"Brand not found: {name}")
 
     # Try both naming conventions
-    for filename in ["rubric.yml", f"{name}-rubric.yml"]:
+    for filename in ["rubric.yml", f"{brand_dir.name}-rubric.yml"]:
         rubric_path = brand_dir / filename
         if rubric_path.exists():
             with open(rubric_path) as f:

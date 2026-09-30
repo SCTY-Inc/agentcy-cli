@@ -1,4 +1,5 @@
 import json
+import re
 import sys
 import types
 from pathlib import Path
@@ -10,6 +11,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from agentcy_forecast.brief_v1 import import_brief_v1
 from agentcy_forecast.cli import _refresh_run_manifest, _resolve_run_inputs, app
 from typer.testing import CliRunner
+
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _plain(text: str) -> str:
+    """Strip ANSI codes; CI forces rich color, which splits option names."""
+    return _ANSI.sub("", text)
 
 _runner = CliRunner()
 from agentcy_forecast.forecast_v1 import build_completed_forecast_v1
@@ -100,10 +108,11 @@ def test_cli_commands_are_run_first():
     assert "runs" in result.output
 
     result = runner.invoke(app, ["run", "--help"])
-    assert "--files" in result.output
-    assert "--requirement" in result.output
-    assert "--brief" in result.output
-    assert "--project-name" not in result.output
+    output = _plain(result.output)
+    assert "--files" in output
+    assert "--requirement" in output
+    assert "--brief" in output
+    assert "--project-name" not in output
     assert "--parallel-profile-count" not in result.output
 
 

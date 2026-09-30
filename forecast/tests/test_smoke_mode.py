@@ -1,4 +1,5 @@
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -11,7 +12,8 @@ from agentcy_forecast.smoke_mode import build_smoke_outputs
 def test_cli_run_includes_smoke_flag() -> None:
     from typer.testing import CliRunner
     result = CliRunner().invoke(app, ["run", "--help"])
-    assert "--smoke" in result.output
+    # CI forces rich color, which splits "--smoke" with ANSI codes.
+    assert "--smoke" in re.sub(r"\x1b\[[0-9;]*m", "", result.output)
 
 
 def test_build_smoke_outputs_uses_prepared_simulation_config(tmp_path: Path) -> None:
