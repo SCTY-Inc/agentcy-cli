@@ -90,9 +90,18 @@ def _subprocess_env() -> dict[str, str]:
     return env
 
 
+def _which(bin_name: str) -> str | None:
+    """Find a member binary on PATH, else beside this interpreter.
+
+    `uv tool install` / pipx only link the `agentcy` entry point onto PATH; the
+    member CLIs live in the same venv bin directory.
+    """
+    return shutil.which(bin_name) or shutil.which(bin_name, path=str(Path(sys.executable).parent))
+
+
 def _run(bin_name: str, args: list[str]) -> None:
     """Resolve bin, exec, forward exit code."""
-    resolved = shutil.which(bin_name)
+    resolved = _which(bin_name)
     if not resolved:
         err.print(f"[red]error:[/red] '{bin_name}' not found — run: uv sync --group dev")
         raise typer.Exit(2)
@@ -117,7 +126,7 @@ def _capture_json(command: list[str]) -> dict[str, Any]:
 
 
 def _resolve_bin(bin_name: str) -> str:
-    resolved = shutil.which(bin_name)
+    resolved = _which(bin_name)
     if not resolved:
         raise RuntimeError(f"'{bin_name}' not found — run: uv sync --group dev")
     return resolved
@@ -707,7 +716,7 @@ def doctor(
             found = resolved is not None and node is not None
             reachable = found and _probe_member(_studio_command(["help", "--json"]))
         else:
-            resolved = shutil.which(bin_name)
+            resolved = _which(bin_name)
             found = resolved is not None
             reachable = False
             if found and probe_command is not None:

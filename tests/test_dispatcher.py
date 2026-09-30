@@ -596,3 +596,20 @@ def test_local_studio_bin_resolves_repo_studio_bin() -> None:
 
     assert resolved is not None
     assert Path(resolved) == expected
+
+
+def test_which_finds_member_bin_beside_interpreter(tmp_path, monkeypatch):
+    """Tool installs (uv tool / pipx) keep member CLIs off PATH, in the venv bin."""
+    import stat
+    import sys
+
+    from agentcy import cli
+
+    fake = tmp_path / "agentcy-fake-member"
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
+    monkeypatch.setenv("PATH", "/nonexistent")
+    monkeypatch.setattr(sys, "executable", str(tmp_path / "python"))
+
+    assert cli._which("agentcy-fake-member") == str(fake)
+    assert cli._which("agentcy-not-installed") is None
