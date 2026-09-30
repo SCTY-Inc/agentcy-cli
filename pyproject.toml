@@ -2,6 +2,8 @@
 name = "agentcy"
 version = "0.1.0"
 description = "Agentcy — single CLI entry point for the agent suite"
+license = "MIT"
+license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

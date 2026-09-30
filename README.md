@@ -1,5 +1,14 @@
 # agentcy
 
+A creative CLI suite for brand work: voice, briefs, forecasting, studio drafts, and measurement, connected by explicit protocol artifacts.
+
+```bash
+uv tool install git+https://github.com/SCTY-Inc/agentcy-cli
+agentcy --help
+```
+
+Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). The `studio` runtime also needs Node 22+. Licensed MIT.
+
 Consolidated monorepo for the Agentcy CLI suite. Member runtimes transform a durable Brand / Voice / Visual / Content / Outcomes foundation into explicit protocol artifacts.
 
 Read these first:
