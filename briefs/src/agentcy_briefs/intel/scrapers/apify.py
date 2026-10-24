@@ -113,24 +113,26 @@ def _scrape_linkedin(handle: str, limit: int) -> list[dict[str, Any]]:
     client = get_apify_client()
 
     run_input = {
-        "urls": [f"https://www.linkedin.com/in/{handle}/"],
-        "limitPosts": limit,
+        "profileUrls": [f"https://www.linkedin.com/in/{handle}/"],
+        "maxPostsPerProfile": limit,
     }
 
-    run = client.actor("anchor/linkedin-profile-scraper").call(run_input=run_input)
+    run = client.actor("johnvc/linkedin-posts-api").call(run_input=run_input)
 
     posts = []
     for item in client.dataset(run["defaultDatasetId"]).iterate_items():
-        for post in item.get("posts", []):
-            posts.append({
-                "platform": "linkedin",
-                "id": post.get("urn"),
-                "text": post.get("text", ""),
-                "created_at": post.get("postedAt"),
-                "likes": post.get("numLikes", 0),
-                "comments": post.get("numComments", 0),
-                "reposts": post.get("numShares", 0),
-                "url": post.get("url"),
-            })
+        # One item per post; skip error and notice rows
+        if item.get("result_type") != "post":
+            continue
+        posts.append({
+            "platform": "linkedin",
+            "id": item.get("postId"),
+            "text": item.get("text", ""),
+            "created_at": item.get("datePosted"),
+            "likes": item.get("numLikes", 0),
+            "comments": item.get("numComments", 0),
+            "reposts": item.get("numShares", 0),
+            "url": item.get("postUrl"),
+        })
 
     return posts

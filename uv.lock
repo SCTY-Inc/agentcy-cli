@@ -166,7 +166,7 @@ requires-dist = [
     { name = "agentcy-briefs", extras = ["gemini", "openai", "intel", "video", "publish", "server", "email", "workflows", "notifications", "agents", "predict"], marker = "extra == 'all'", editable = "briefs" },
     { name = "agentcy-protocols", editable = "protocols" },
     { name = "aiosqlite", marker = "extra == 'workflows'", specifier = ">=0.20" },
-    { name = "apify-client", marker = "extra == 'intel'", specifier = ">=1.7" },
+    { name = "apify-client", marker = "extra == 'intel'", specifier = ">=1.7,<3" },
     { name = "beautifulsoup4", marker = "extra == 'intel'", specifier = ">=4.12" },
     { name = "cartesia", marker = "extra == 'video'", specifier = ">=2.2" },
     { name = "dspy", marker = "extra == 'optimize'", specifier = ">=2.5" },
