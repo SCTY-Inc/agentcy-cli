@@ -622,7 +622,16 @@ def member(
         bin_name, _ = _member_specs()[member]
         _run(bin_name, ctx.args)
 
-    envelope, exit_code = _run_member_enveloped(member, ctx.args)
+    try:
+        envelope, exit_code = _run_member_enveloped(member, ctx.args)
+    except RuntimeError as exc:
+        # Missing member binary (or unresolvable command): report a clean
+        # JSON envelope error instead of an unhandled traceback, mirroring
+        # the plain (non-json) path's clean Exit(2) in _run.
+        envelope = _envelope({"member": member, "error": str(exc)}, command="member")
+        envelope["status"] = "error"
+        print(json.dumps(envelope, indent=2))
+        raise typer.Exit(2)
     print(json.dumps(envelope, indent=2))
     raise typer.Exit(exit_code)
 

@@ -613,3 +613,18 @@ def test_which_finds_member_bin_beside_interpreter(tmp_path, monkeypatch):
 
     assert cli._which("agentcy-fake-member") == str(fake)
     assert cli._which("agentcy-not-installed") is None
+
+
+def test_member_json_reports_missing_binary_as_envelope_error(monkeypatch) -> None:
+    """`member --json` with no member binary must emit a JSON error, not a traceback."""
+    monkeypatch.setattr(cli, "_resolve_bin", lambda name: (_ for _ in ()).throw(
+        RuntimeError(f"'{name}' not found — run: uv sync --group dev")))
+
+    result = runner.invoke(cli.app, ["member", "measure", "--json", "study"])
+
+    assert result.exit_code == 2
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "error"
+    assert payload["command"] == "member"
+    assert payload["data"]["member"] == "measure"
+    assert "agentcy-measure" in payload["data"]["error"]
